@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PowerShell 7.4 y 7.5: fin de soporte y migración a 7.6 LTS | Consola Abierta</title>
+<meta name="description" content="Plan de migración empresarial de PowerShell 7.4 y 7.5 a 7.6 LTS: lifecycle, inventario, compatibilidad de módulos, despliegue por anillos, validación y rollback.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/">
+<link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg">
+<link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PowerShell 7.4 y 7.5 llegan al fin de soporte: migración empresarial a 7.6 LTS">
+<meta property="og:description" content="Una estrategia operativa de inventario, compatibilidad, despliegue y validación.">
+<meta property="og:url" content="https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/">
+<meta property="og:site_name" content="Consola Abierta"><link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","headline":"PowerShell 7.4 y 7.5 llegan al fin de soporte: plan de migración empresarial a 7.6 LTS","description":"Plan de migración empresarial de PowerShell 7.4 y 7.5 a 7.6 LTS.","datePublished":"2026-11-11","dateModified":"2026-11-11","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/"}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell">
+  <div class="masthead-top">
+    <a class="brand" href="/" aria-label="Consola Abierta, inicio"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a>
+    <div class="header-meta"><span>Publicación independiente</span><a href="/en/analysis/powershell-7-6-enterprise-migration/" lang="en">EN</a></div>
+  </div>
+  <nav class="primary-nav" aria-label="Navegación principal">
+    <div class="nav-links"><a href="/">Inicio</a><a href="/#articulos">Artículos</a><a href="/#especialidades">Especialidades</a><a href="/#criterio">Criterio editorial</a></div>
+    <div class="nav-tools"><span class="edition">ANÁLISIS TÉCNICO</span><a class="text-link" href="/">Volver a portada ↗</a></div>
+  </nav>
+</div></header>
+
+<main id="contenido" class="site-shell">
+  <header class="article-header">
+    <div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/#especialidades">Systems Engineering</a> / Lifecycle</div>
+    <div class="kicker">Systems Engineering · Lifecycle Management</div>
+    <h1>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</h1>
+    <p class="article-deck">El 10 de noviembre de 2026 se cerró el soporte de PowerShell 7.4 y 7.5. La respuesta profesional no es ejecutar un instalador a escala: es identificar dónde se ejecuta PowerShell, qué depende de él y cómo validar el cambio antes de extenderlo.</p>
+    <div class="article-meta"><span>Por Ray Vega</span><span>11 noviembre 2026</span><span>12–15 min de lectura</span><span>Mid-senior · Senior</span></div>
+    <div class="status-line">Documentación oficial contrastada · comandos de inventario revisables · no declarado como lab verified</div>
+  </header>
+
+  <div class="article-layout">
+    <nav class="toc" aria-label="Contenido del artículo">
+      <div class="toc-title">En este análisis</div>
+      <ol>
+        <li><a href="#decision">La decisión de lifecycle</a></li>
+        <li><a href="#scope">Alcance real</a></li>
+        <li><a href="#inventory">Inventario</a></li>
+        <li><a href="#compatibility">Compatibilidad</a></li>
+        <li><a href="#rollout">Despliegue por anillos</a></li>
+        <li><a href="#validation">Validación y rollback</a></li>
+        <li><a href="#runbook">Runbook de cambio</a></li>
+        <li><a href="#sources">Fuentes primarias</a></li>
+      </ol>
+    </nav>
+
+    <article class="article-body">
+      <div class="callout"><strong>Conclusión ejecutiva</strong><p>PowerShell 7.6 LTS es el destino lógico para las cargas que requieren un canal de mantenimiento prolongado. Antes de migrar, separa las dependencias de PowerShell 7 de las que siguen requiriendo Windows PowerShell 5.1. No conviertas el fin de soporte en un cambio masivo sin inventario, pruebas y criterio de reversión.</p></div>
+
+      <h2 id="decision">1. La decisión de lifecycle: qué ha cambiado</h2>
+      <p>Microsoft fija el <strong>10 de noviembre de 2026</strong> como fecha de fin de soporte de PowerShell 7.4 LTS y PowerShell 7.5. La rama 7.4 está basada en .NET 8 LTS; la rama 7.5, en .NET 9. PowerShell 7.6 es la línea LTS actual, basada en .NET 10, con soporte previsto hasta el <strong>14 de noviembre de 2028</strong>.</p>
+      <table class="data-table">
+        <thead><tr><th>Rama</th><th>Canal</th><th>Runtime</th><th>Fin de soporte</th><th>Implicación</th></tr></thead>
+        <tbody>
+          <tr><td>7.4</td><td>LTS</td><td>.NET 8</td><td>10 nov 2026</td><td>Fuera de soporte</td></tr>
+          <tr><td>7.5</td><td>Stable</td><td>.NET 9</td><td>10 nov 2026</td><td>Fuera de soporte</td></tr>
+          <tr><td>7.6</td><td>LTS</td><td>.NET 10</td><td>14 nov 2028</td><td>Destino recomendado para cargas que requieren LTS</td></tr>
+        </tbody>
+      </table>
+      <p>El repositorio oficial de PowerShell publicó <strong>7.6.10 el 10 de noviembre de 2026</strong>. Hay que separar la fecha del release de la disponibilidad en cada canal de distribución: algunas páginas de instalación de Microsoft todavía muestran ejemplos con versiones anteriores. En un despliegue gobernado, fija artefacto, versión, arquitectura, origen y SHA-256; no dejes que una pipeline elija silenciosamente “la última versión”.</p>
+      <p>El fin de soporte significa que esa rama deja de recibir nuevas actualizaciones bajo su ciclo de mantenimiento. Puede existir una excepción temporal por compatibilidad, pero debe tener propietario, riesgo aceptado, controles compensatorios y fecha de salida.</p>
+
+      <h2 id="scope">2. Primero separa PowerShell 7 de Windows PowerShell 5.1</h2>
+      <p>PowerShell 7 no sustituye a Windows PowerShell 5.1. Se instala en otra ubicación y ambos pueden convivir. Esto es relevante en Windows Server, donde todavía existen módulos o herramientas que dependen de .NET Framework, componentes del sistema o comportamientos específicos de Windows PowerShell.</p>
+      <p>El alcance no debería definirse como “actualizar todos los servidores Windows”, sino como “identificar cada ejecución de PowerShell 7.4/7.5 y migrar las cargas compatibles, manteniendo una ruta controlada para las que todavía dependen de 5.1”.</p>
+      <ul>
+        <li>Consolas y estaciones administrativas.</li>
+        <li>Scripts programados en Task Scheduler y tareas de mantenimiento.</li>
+        <li>Servicios, agentes y procesos que invocan <code>pwsh.exe</code>.</li>
+        <li>Runners de CI/CD, herramientas de configuración y automatización remota.</li>
+        <li>Contenedores e imágenes base que incluyen PowerShell.</li>
+        <li>Jump servers, hosts de administración y servidores de automatización.</li>
+      </ul>
+      <p>La distinción operativa importante es qué ejecutable llama cada consumidor. Un script que usa <code>powershell.exe</code> puede seguir ejecutándose en 5.1; una tarea que invoca una ruta absoluta de <code>pwsh.exe</code> puede quedar vinculada a una versión o ubicación concreta.</p>
+
+      <h2 id="inventory">3. Inventario: no empieces por el instalador</h2>
+      <p>El inventario debe responder al menos a cuatro preguntas: qué versión está instalada, cómo se instaló, qué la invoca y qué módulos necesita. Una sesión interactiva que devuelve <code>$PSVersionTable</code> no descubre tareas programadas, agentes, contenedores ni referencias a rutas absolutas.</p>
+      <h3>3.1 Detectar instalaciones registradas</h3>
+      <p>En Windows puedes consultar las claves estándar de desinstalación. Evita <code>Win32_Product</code> como método de discovery: su consulta puede disparar comprobaciones de consistencia de Windows Installer y no es una fuente adecuada para inventariar una flota.</p>
+      <pre><code>$uninstallRoots = @(
+  'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+)
+
+$powerShellInstalls = foreach ($root in $uninstallRoots) {
+  Get-ItemProperty -Path $root -ErrorAction SilentlyContinue
+}
+
+$powerShellInstalls |
+  Where-Object { $_.DisplayName -match '^PowerShell 7' } |
+  Select-Object DisplayName, DisplayVersion, InstallLocation, Publisher</code></pre>
+      <p>Este método cubre las instalaciones que registran su paquete en esas claves. No es suficiente para ZIP, despliegues portables o ejecutables fuera del PATH. Compleméntalo con resolución de comandos:</p>
+      <pre><code>Get-Command pwsh -All -ErrorAction SilentlyContinue |
+  Select-Object Name, Source, Version, CommandType</code></pre>
+      <h3>3.2 Discovery remoto controlado</h3>
+      <p>Si WinRM está habilitado y autorizado, puedes iniciar un inventario sobre una lista aprobada de equipos. Ejecuta primero contra un grupo piloto, limita la concurrencia a la capacidad de administración disponible y guarda los resultados en una ubicación protegida.</p>
+      <pre><code>$computers = Get-Content .\servers-pilot.txt |
+  Where-Object { $_ -and $_ -notmatch '^\s*#' }
+
+$inventory = Invoke-Command -ComputerName $computers -ScriptBlock {
+  $roots = @(
+    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+    'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+  )
+
+  foreach ($root in $roots) {
+    Get-ItemProperty $root -ErrorAction SilentlyContinue |
+      Where-Object { $_.DisplayName -match '^PowerShell 7' } |
+      Select-Object @{n='ComputerName';e={$env:COMPUTERNAME}},
+        DisplayName, DisplayVersion, InstallLocation
+  }
+
+  Get-Command pwsh -All -ErrorAction SilentlyContinue |
+    Select-Object @{n='ComputerName';e={$env:COMPUTERNAME}},
+      @{n='DisplayName';e={'Command resolution'}}, Source, Version
+}
+
+$inventory |
+  Export-Csv .\powershell-inventory.csv -NoTypeInformation -Encoding utf8</code></pre>
+      <p>Este ejemplo es una primera fotografía, no un sistema exhaustivo de discovery. Correlaciona sus resultados con CMDB, Intune/Configuration Manager, inventario de software, repositorios, definiciones de pipeline, tareas programadas y configuración de servicios.</p>
+
+      <h2 id="compatibility">4. Compatibilidad: donde se concentran los riesgos</h2>
+      <p>La migración suele ser menos problemática en el motor que en las dependencias periféricas: módulos, runtimes nativos, autenticación, perfiles, rutas de ejecutables, serialización y supuestos heredados de Windows PowerShell.</p>
+      <h3>4.1 Módulos, edición y dependencias nativas</h3>
+      <p>Registra qué módulos se cargan, desde dónde, qué versiones se han validado y qué dependencias nativas necesitan. Revisa especialmente módulos internos, binarios, módulos basados en .NET Framework y módulos que instalan dependencias por separado.</p>
+      <pre><code>Get-Module -ListAvailable |
+  Sort-Object Name, Version |
+  Select-Object Name, Version, PSEdition, CompatiblePSEditions, Path</code></pre>
+      <p>No basta con que <code>Import-Module</code> termine sin error. Comprueba las operaciones reales: autenticación, permisos, conexiones, paginación, serialización, formatos de fecha, llamadas nativas y tratamiento de errores.</p>
+      <h3>4.2 Cambio relacionado con ThreadJob</h3>
+      <p>En PowerShell 7.6, el módulo <code>ThreadJob</code> se sustituye por <code>Microsoft.PowerShell.ThreadJob</code>. El cmdlet <code>Start-ThreadJob</code> mantiene su nombre; sin embargo, los scripts que importan o invocan el módulo usando su nombre cualificado deben revisarse.</p>
+      <pre><code>Get-ChildItem .\automation -Filter *.ps1 -Recurse |
+  Select-String -Pattern 'ThreadJob\\Start-ThreadJob|Import-Module\s+ThreadJob'</code></pre>
+      <p>Trata el resultado como una señal para revisar, no como prueba de incompatibilidad. Valida en el mismo host, con la misma cuenta de servicio, perfiles, políticas y contexto operativo que ejecutarán la carga.</p>
+      <h3>4.3 Windows PowerShell Compatibility</h3>
+      <p>Algunos módulos heredados pueden ejecutarse mediante la capa de compatibilidad, que utiliza un proceso local de Windows PowerShell. No asumas equivalencia completa: existen límites de serialización de objetos, sesiones, rendimiento y comportamiento funcional. Para cada dependencia heredada, decide si se mantiene temporalmente en 5.1, se ejecuta por compatibilidad o se sustituye.</p>
+
+      <h2 id="rollout">5. Modelo de despliegue recomendado</h2>
+      <p>Utiliza anillos y separa el cambio de runtime del cambio de lógica de los scripts. No actualices a la vez PowerShell, módulos, credenciales y automatizaciones: si algo falla, perderás la capacidad de atribuir la causa.</p>
+      <table class="data-table">
+        <thead><tr><th>Anillo</th><th>Alcance</th><th>Criterio de salida</th></tr></thead>
+        <tbody>
+          <tr><td>0 · Lab</td><td>VMs representativas, mismas políticas y módulos</td><td>Smoke tests y regresión funcional aprobados</td></tr>
+          <tr><td>1 · IT pilot</td><td>Administración y automatizaciones no críticas</td><td>Sin errores nuevos y telemetría estable</td></tr>
+          <tr><td>2 · Servicios internos</td><td>Jobs y procesos de criticidad media</td><td>Ventana de observación completada</td></tr>
+          <tr><td>3 · Producción crítica</td><td>Agentes, tareas y servicios con impacto alto</td><td>Go/no-go individual por servicio</td></tr>
+        </tbody>
+      </table>
+      <h3>5.1 Elegir el artefacto adecuado</h3>
+      <ul>
+        <li><strong>Windows Server:</strong> Microsoft identifica MSI como opción apropiada para escenarios de servidor y despliegue empresarial. Elige arquitectura y propiedades de instalación de acuerdo con tu baseline.</li>
+        <li><strong>Windows cliente:</strong> WinGet es una vía soportada, pero disponibilidad y formato dependen de la plataforma y del origen. Verifica el paquete antes de darlo por válido.</li>
+        <li><strong>Linux:</strong> usa el repositorio y paquete correspondiente a la distribución soportada; fija versión y origen en la gestión de configuración.</li>
+        <li><strong>ZIP:</strong> útil para laboratorio y escenarios avanzados de side-by-side, pero exige gestionar PATH, accesos directos, actualizaciones y requisitos manualmente.</li>
+      </ul>
+      <p>Para que el cambio sea reproducible, conserva el instalador aprobado, SHA-256, versión, arquitectura, fuente de descarga, opciones de instalación e identificador del cambio. La página de instalación de Microsoft y los feeds de paquetes pueden mostrar una versión distinta de la última release publicada en GitHub: registra cuál has decidido desplegar y por qué.</p>
+      <pre><code># Verificar el hash del paquete antes de distribuirlo
+Get-FileHash .\PowerShell-7.6.10-win-x64.msi -Algorithm SHA256
+
+# Confirmar la versión después de instalar
+& "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoLogo -NoProfile -Command '$PSVersionTable | Format-List'</code></pre>
+      <p>En MSI, propiedades como <code>USE_MU</code>, <code>ENABLE_MU</code>, <code>ENABLE_PSREMOTING</code>, <code>REGISTER_MANIFEST</code> y <code>ADD_PATH</code> afectan al resultado de instalación y a la operación posterior. No habilites remoting ni modifiques PATH en toda la flota sin una decisión de seguridad y operación.</p>
+
+      <h2 id="validation">6. Validación y rollback: criterios de aceptación</h2>
+      <p>La validación debe observar el servicio que ejecuta el script, no solo que <code>pwsh.exe</code> arranque. Por cada automatización crítica registra código de salida, duración, errores, resultado funcional y dependencias externas.</p>
+      <ol>
+        <li>Arranque con <code>-NoProfile</code> y versión esperada.</li>
+        <li>Importación de módulos con la cuenta de servicio real.</li>
+        <li>Autenticación contra endpoints y recursos usados por la carga.</li>
+        <li>Lectura y escritura en las rutas y almacenes requeridos.</li>
+        <li>Tratamiento de errores, códigos de salida y logging.</li>
+        <li>Ejecución programada y remota, no solo ejecución interactiva.</li>
+        <li>Rendimiento dentro del baseline acordado.</li>
+      </ol>
+      <p>Antes del cambio conserva el paquete exacto anterior, parámetros de instalación, módulos y configuración. En una actualización MSI convencional una versión nueva puede sustituir a la anterior: no presupongas que el rollback consiste en cambiar una ruta. Define el método de reinstalación o restauración, impacto de reinicio si aplica, ventana de observación y autoridad que aprueba la reversión.</p>
+      <p>Si necesitas comparar versiones de PowerShell 7 en paralelo, una instalación ZIP en un directorio separado puede ser útil para laboratorio. No conviertas esa vía en mecanismo permanente de producción sin gestionar PATH, tareas, servicios y actualizaciones.</p>
+
+      <h2 id="runbook">7. Runbook de cambio</h2>
+      <table class="data-table">
+        <thead><tr><th>Fase</th><th>Acción</th><th>Evidencia</th><th>Go / no-go</th></tr></thead>
+        <tbody>
+          <tr><td>Precheck</td><td>Inventario de versiones, consumidores, módulos y cuentas de servicio</td><td>CSV firmado / CMDB reconciliada</td><td>No continuar con activos desconocidos críticos</td></tr>
+          <tr><td>Preparación</td><td>Paquete, hash, instalador y pruebas aprobadas</td><td>Artefacto versionado y change record</td><td>No continuar con hash o procedencia no verificados</td></tr>
+          <tr><td>Piloto</td><td>Desplegar en lab y grupo IT representativo</td><td>Resultados de pruebas y logs</td><td>Sin regresiones funcionales abiertas</td></tr>
+          <tr><td>Producción</td><td>Ampliar por anillos con ventana de observación</td><td>Éxito por grupo, alertas y tickets</td><td>Detener si supera umbral de fallo acordado</td></tr>
+          <tr><td>Cierre</td><td>Actualizar CMDB, baseline, runbooks y excepciones</td><td>Inventario final y aprobación del owner</td><td>Cambio cerrado y deuda registrada</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><strong>Decisión final</strong><p>El fin de soporte convierte la migración en una tarea de lifecycle prioritaria, pero no justifica un despliegue indiscriminado. Primero identifica los consumidores; después prueba el comportamiento; finalmente amplía el cambio por anillos. Si una carga no puede migrar todavía, documenta excepción, propietario, riesgo, controles compensatorios y fecha de salida.</p></div>
+
+      <h2 id="sources">8. Fuentes primarias y notas de verificación</h2>
+      <ol class="reference-list">
+        <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/install/powershell-support-lifecycle?view=powershell-7.6" target="_blank" rel="noopener">Microsoft Learn — PowerShell Support Lifecycle</a>. Fechas de soporte, canales LTS/Stable y plataformas admitidas.</li>
+        <li><a href="https://github.com/PowerShell/PowerShell/releases/tag/v7.6.10" target="_blank" rel="noopener">PowerShell/PowerShell — Release v7.6.10</a>. Publicación del 10 de noviembre de 2026, artefactos y hashes oficiales.</li>
+        <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.6" target="_blank" rel="noopener">Microsoft Learn — Installing PowerShell on Windows</a>. MSI, MSIX, WinGet, ZIP, actualización y coexistencia con Windows PowerShell 5.1.</li>
+        <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/whats-new/what-s-new-in-powershell-76?view=powershell-7.6" target="_blank" rel="noopener">Microsoft Learn — What's New in PowerShell 7.6</a>. Cambios documentados, incluido ThreadJob.</li>
+        <li><a href="https://github.com/PowerShell/PowerShell/releases" target="_blank" rel="noopener">PowerShell/PowerShell — Releases</a>. Historial de releases y artefactos.</li>
+      </ol>
+      <p class="page-end">Última revisión documental: 11 noviembre 2026. Guía de planificación contrastada con documentación pública; no se afirma validación práctica en una flota real. Prueba los comandos en un entorno representativo antes de usarlos en producción.</p>
+    </article>
+    <aside class="article-aside"><div class="toc-title">Ficha técnica</div><p><strong>Producto</strong><br>PowerShell 7.x</p><p><strong>Cambio</strong><br>Lifecycle / actualización</p><p><strong>Audiencia</strong><br>Mid-senior · Senior · Platform</p><p><strong>Riesgo principal</strong><br>Compatibilidad de módulos y automatizaciones</p><p><strong>Validación</strong><br>Documentación oficial contrastada</p></aside>
+  </div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Una publicación independiente fundada y editada por Ray Vega.</p></div><div class="footer-links"><a href="/">Inicio</a><a href="/es/sobre/">Sobre</a><a href="/#especialidades">Especialidades</a><a href="/feed.xml">RSS</a><span>Contacto editorial · próximamente</span></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

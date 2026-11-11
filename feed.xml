@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Consola Abierta</title>
+    <link>https://consolaabierta.com/</link>
+    <description>Ingeniería y tecnología explicadas desde dentro.</description>
+    <language>es</language>
+    <lastBuildDate>Wed, 11 Nov 2026 13:00:00 +0100</lastBuildDate>
+    <item>
+      <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
+      <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</guid>
+      <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
+      <description>Plan de migración empresarial: lifecycle, inventario, compatibilidad de módulos, despliegue por anillos, validación y rollback.</description>
+      <category>Systems Engineering</category>
+    </item>
+  </channel>
+</rss>
