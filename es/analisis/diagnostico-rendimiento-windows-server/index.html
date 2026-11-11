@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico de rendimiento en Windows Server: CPU, memoria, almacenamiento y red | Consola Abierta</title>
+<meta name="description" content="Método avanzado para diagnosticar cuellos de botella en Windows Server: PerfMon, ETW, WPR/WPA, contadores, correlación de CPU, memoria, I/O y red.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article"><meta property="og:title" content="Diagnóstico avanzado de rendimiento en Windows Server"><meta property="og:description" content="De la métrica al cuello de botella: método de captura, correlación y diagnóstico diferencial."><meta property="og:url" content="https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/"><meta property="og:site_name" content="Consola Abierta">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Diagnóstico avanzado de rendimiento en Windows Server: CPU, memoria, almacenamiento y red","description":"Método de diagnóstico de rendimiento para Windows Server con PerfMon, ETW, WPR/WPA y análisis de subsistemas.","datePublished":"2026-11-11","dateModified":"2026-11-11","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/"}</script>
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top">
+<a class="brand" href="/" aria-label="Consola Abierta, inicio"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a>
+<div class="header-meta"><span>Publicación independiente</span><a href="/" lang="es">ES</a></div></div>
+<nav class="primary-nav" aria-label="Navegación principal"><div class="nav-links"><a href="/">Inicio</a><a href="/#articulos">Artículos</a><a href="/#especialidades">Especialidades</a><a href="/#criterio">Criterio editorial</a></div><div class="nav-tools"><span class="edition">ANÁLISIS TÉCNICO</span><a class="text-link" href="/">Volver a portada ↗</a></div></nav></div></header>
+<main id="contenido" class="site-shell">
+<header class="article-header">
+<div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/#especialidades">Systems & Infrastructure</a> / Performance Engineering</div>
+<div class="kicker">Windows Server · Performance Engineering · Troubleshooting</div>
+<h1>Diagnóstico avanzado de rendimiento en Windows Server: de la métrica al cuello de botella</h1>
+<p class="article-deck">CPU alta, memoria comprometida, latencia de almacenamiento o una red aparentemente saturada son síntomas, no diagnósticos. Un método de ingeniería empieza por capturar evidencia con resolución temporal suficiente, correlacionar subsistemas y demostrar qué recurso está limitando el servicio.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>11 noviembre 2026</span><span>18–22 min de lectura</span><span>Mid-senior · Senior</span></div>
+<div class="status-line">Documentación oficial contrastada · ejemplos de captura revisables · no declarado como lab verified</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En este análisis</div><ol>
+<li><a href="#principles">Modelo de diagnóstico</a></li><li><a href="#capture">Captura de evidencia</a></li><li><a href="#cpu">CPU y planificación</a></li><li><a href="#memory">Memoria y presión</a></li><li><a href="#storage">Almacenamiento e I/O</a></li><li><a href="#network">Red y transporte</a></li><li><a href="#etw">ETW, WPR y WPA</a></li><li><a href="#workflow">Flujo de trabajo operativo</a></li><li><a href="#pitfalls">Errores de diagnóstico</a></li><li><a href="#sources">Fuentes primarias</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>La idea central</strong><p>No diagnostiques “el servidor está lento” mirando un único porcentaje. Define primero qué operación se ha degradado, cuantifica la desviación frente a una línea base y sigue la cadena de espera: aplicación → proceso/hilo → sistema operativo → driver/hipervisor → recurso físico o servicio dependiente.</p></div>
+
+<h2 id="principles">1. El modelo: síntoma, saturación y causa no son lo mismo</h2>
+<p>Un servidor puede mostrar CPU al 95 % sin que la CPU sea la causa primaria: un bucle de reintentos puede consumir procesador porque una dependencia externa está fallando. También puede tener CPU al 25 % y ofrecer tiempos de respuesta inaceptables porque un único hilo está serializado, espera I/O o compite por CPU dentro de una máquina virtual.</p>
+<p>El primer paso es traducir la queja a una señal observable. “La aplicación va lenta” no es una métrica. “El p95 de la operación X pasó de 180 ms a 2,4 s entre las 10:05 y las 10:22, afectando a tres nodos” sí permite investigar. Registra:</p>
+<ul><li>Operación o servicio afectado y métrica de experiencia: latencia p50/p95/p99, throughput, errores y timeouts.</li><li>Ventana temporal exacta, recurrencia, alcance y cambios coincidentes.</li><li>Topología: físico/virtual, clúster, almacenamiento, red, balanceadores y dependencias.</li><li>Línea base comparable: mismo horario, carga, patrón de negocio y configuración.</li><li>Impacto y restricciones operativas: criticidad, tolerancia a captura, ventana de cambio y límites de almacenamiento.</li></ul>
+<p>Trabaja con hipótesis falsables. Por ejemplo: “la cola de disco crece antes de la latencia de aplicación” es verificable; “el disco está mal” no lo es. Busca precedencia temporal y correlación, pero no confundas correlación con causalidad.</p>
+
+<h2 id="capture">2. Captura de evidencia: PerfMon antes que la intuición</h2>
+<p>Task Manager y Resource Monitor sirven para orientar una primera inspección. No son suficientes para un evento intermitente: cuando alguien abre la consola, el pico puede haber terminado. Para problemas que aparecen por ventanas, deja una captura persistente con Performance Monitor (PerfMon) o <code>logman</code>.</p>
+<h3>2.1 Diseña la captura según el fenómeno</h3>
+<p>Para una degradación de varios minutos, un intervalo de 5–15 segundos suele ofrecer una visión general razonable. Para picos breves o CPU elevada, reduce el intervalo durante una ventana acotada, asumiendo mayor volumen y overhead. No conviertas un muestreo de un segundo en una política permanente sin medir el coste. Microsoft advierte además de la agregación visual de muestras cuando PerfMon presenta demasiados puntos en una gráfica: conserva el BLG original y analiza sus estadísticas, no solo la curva.</p>
+<p>Ejemplo de conjunto circular de contadores, con límite de tamaño y muestreo cada 15 segundos. Ejecuta en una consola elevada y adapta el directorio, la capacidad y los objetos a la función del servidor:</p>
+<pre><code>$name = 'CA_Perf_15s'
+$path = 'C:\PerfLogs\CA_Perf_15s.blg'
+
+logman create counter $name `
+  -o $path -f bincirc -v mmddhhmm -max 1024 `
+  -c '\Processor Information(*)\*' `
+     '\System\*' `
+     '\Memory\*' `
+     '\PhysicalDisk(*)\*' `
+     '\LogicalDisk(*)\*' `
+     '\Process(*)\*' `
+     '\Network Interface(*)\*' `
+  -si 00:00:15
+
+logman start $name
+
+# Cuando termine la ventana de observación:
+logman stop $name
+logman delete $name</code></pre>
+<p>El conjunto anterior es una plantilla de partida, no una configuración universal. En servidores Hyper-V, RDS, SMB, IIS o SQL Server añade los objetos específicos de ese rol. Evita capturar todos los contadores disponibles indiscriminadamente: aumenta el coste, el tamaño y la dificultad de análisis.</p>
+<h3>2.2 Reglas de calidad de la evidencia</h3>
+<ul><li>Sincroniza la referencia temporal con los sistemas de aplicación, monitorización, almacenamiento e hipervisor.</li><li>Documenta el intervalo, los contadores, la versión del sistema y el contexto de carga.</li><li>Comprueba que los contadores existen y que las instancias corresponden al dispositivo o proceso esperado.</li><li>Conserva los ficheros originales, registra su hash si forman parte de una evidencia de incidente y limita su acceso.</li><li>Incluye un periodo previo y posterior al evento; capturar solo el pico elimina contexto.</li></ul>
+
+<h2 id="cpu">3. CPU: utilización, cola, paralelismo y tiempo de kernel</h2>
+<p>Empieza con <code>Processor Information(*)\% Processor Utility</code> cuando esté disponible, <code>Processor(_Total)\% Processor Time</code> y las instancias por procesador lógico. Añade:</p>
+<ul><li><code>System\Processor Queue Length</code>: hilos ejecutables esperando CPU.</li><li><code>Processor(*)\% Privileged Time</code> y <code>% User Time</code>: separación entre ejecución en kernel y user mode.</li><li><code>Processor(*)\% DPC Time</code> y <code>% Interrupt Time</code>: actividad de interrupciones y DPC.</li><li><code>System\Context Switches/sec</code> y <code>Processor(*)\Interrupts/sec</code>: contexto de planificación y actividad de interrupciones.</li><li><code>Process(*)\% Processor Time</code>, <code>Thread(*)\% Processor Time</code> y recuento de hilos: atribución al proceso/hilo.</li></ul>
+<p><strong>No uses un umbral aislado como veredicto.</strong> Una cola de procesador sostenida puede indicar contención, pero su interpretación depende del número de procesadores lógicos, la carga, el paralelismo y el contexto de virtualización. Un promedio bajo puede ocultar un core saturado; una suma de porcentajes por proceso puede superar 100 % porque el contador se expresa respecto a un procesador lógico.</p>
+<h3>3.1 Diferenciar user mode, kernel y contención</h3>
+<p>Si domina <em>User Time</em>, investiga el proceso y sus hilos: bucles, serialización, GC, cifrado, compresión o trabajo excesivo. Si domina <em>Privileged Time</em>, amplía a drivers, filtros, filesystem, antivirus, networking y llamadas al sistema. Un aumento anómalo de DPC/interrupt time merece revisar NIC/HBA, drivers, firmware, colas y distribución de interrupciones; no atribuyas automáticamente el síntoma a una aplicación.</p>
+<p>En una VM, recoge simultáneamente métricas del guest y del host. El invitado no ve toda la contención del scheduler del hipervisor. Correlaciona CPU ready/co-stop o métricas equivalentes de la plataforma, overcommit, límites/reservas, NUMA y carga del host. No compares directamente métricas de plataformas distintas sin entender su definición.</p>
+<h3>3.2 Siguiente nivel</h3>
+<p>Cuando PerfMon identifica la ventana pero no explica el trabajo que consume CPU, usa Event Tracing for Windows (ETW). WPR puede capturar perfiles de CPU y actividad del sistema; WPA permite desglosar por proceso, hilo y pila. Una traza corta y dirigida durante el evento suele aportar más que horas de contadores genéricos.</p>
+
+<h2 id="memory">4. Memoria: presión real, commit y fugas de kernel</h2>
+<p>La memoria no se diagnostica mirando únicamente el porcentaje de RAM usado. Separa memoria física disponible, compromiso virtual, working sets y pools del kernel. Como mínimo correlaciona:</p>
+<ul><li><code>Memory\Available MBytes</code>: memoria física disponible para asignación.</li><li><code>Memory\% Committed Bytes In Use</code> y <code>Committed Bytes</code>: compromiso del sistema frente al límite de commit.</li><li><code>Process(*)\Working Set - Private</code> y <code>Private Bytes</code>: memoria residente privada y compromiso privado por proceso.</li><li><code>Memory\Pages/sec</code>, <code>Page Reads/sec</code> y <code>Page Writes/sec</code>: actividad de paginación, que exige interpretación contextual.</li><li><code>Memory\Pool Nonpaged Bytes</code> y <code>Pool Paged Bytes</code>: pools del kernel.</li></ul>
+<p><code>Pages/sec</code> no significa “páginas del pagefile por segundo”: puede incluir lecturas de archivos mapeados y otras operaciones. Un hard fault tampoco implica automáticamente acceso al pagefile. Busca presión sostenida: memoria disponible que cae, commit que se aproxima al límite, actividad de lectura sostenida y degradación correlacionada de aplicaciones.</p>
+<h3>4.1 Distinguir fuga de proceso de fuga de kernel</h3>
+<p>Si <code>Private Bytes</code> crece de forma monotónica en un proceso, contrástalo con el working set, los ciclos de carga y la liberación esperada. Si el crecimiento aparece en pools paged/nonpaged sin un proceso que lo explique, investiga drivers y asignaciones del kernel. PoolMon, cuando esté disponible en el entorno de herramientas, permite agrupar por pool tag; la atribución requiere símbolos o referencias del fabricante y no debe resolverse descargando drivers al azar.</p>
+<p>En sistemas con límites de memoria virtualizados, revisa también ballooning, dynamic memory, reservas y presión en el host. El guest puede observar memoria disponible sin conocer toda la presión física del nodo.</p>
+
+<h2 id="storage">5. Almacenamiento: latencia, cola, throughput y ruta completa</h2>
+<p>El contador de utilización del disco no es un diagnóstico suficiente. La pregunta relevante es cuánto tarda una operación de I/O y dónde se acumula la espera. Recoge por volumen y dispositivo:</p>
+<ul><li><code>PhysicalDisk(*)\Avg. Disk sec/Read</code> y <code>Avg. Disk sec/Write</code>: latencia media observada por Windows.</li><li><code>PhysicalDisk(*)\Current Disk Queue Length</code> y <code>Avg. Disk Queue Length</code>: solicitudes pendientes, interpretadas según el dispositivo y la arquitectura.</li><li><code>Disk Reads/sec</code>, <code>Disk Writes/sec</code>, <code>Disk Read Bytes/sec</code> y <code>Disk Write Bytes/sec</code>: IOPS y throughput.</li><li><code>Process(*)\IO Read Bytes/sec</code> y <code>IO Write Bytes/sec</code>: actividad atribuida a procesos, no necesariamente I/O físico completado.</li></ul>
+<p>Los valores de latencia deben leerse en función del tipo de almacenamiento, patrón de I/O, tamaño de bloque, profundidad de cola, caché, multipath y SLA del backend. Los umbrales genéricos publicados por Microsoft son referencias para investigar, no SLO universales. Un pico corto no equivale a degradación sostenida y una media puede ocultar colas largas; contrasta con percentiles del storage array o del hipervisor si están disponibles.</p>
+<h3>5.1 Sigue la ruta, no solo la letra de unidad</h3>
+<p>Una unidad lógica puede estar respaldada por VHDX, CSV, SAN, iSCSI, Storage Spaces, SMB o almacenamiento cloud. Identifica la ruta completa: aplicación → filesystem → volumen → virtual disk/LUN → multipath/HBA/NIC → cabina o servicio. Compara la misma ventana en Windows, hipervisor y plataforma de almacenamiento. Si la latencia aparece primero en el backend, no intentes “arreglarla” cambiando parámetros del guest.</p>
+<p>Para atribuir actividad, combina los contadores de proceso con Resource Monitor, ETW o herramientas del fabricante. El I/O atribuido al proceso incluye operaciones que pueden terminar en caché o en capas intermedias; no equivale siempre a operaciones físicas en el medio.</p>
+
+<h2 id="network">6. Red: throughput no es calidad de transporte</h2>
+<p>Un enlace al 30 % puede transportar tráfico con retransmisiones, drops o latencia elevada. Correlaciona por interfaz:</p>
+<ul><li><code>Network Interface(*)\Bytes Total/sec</code>, <code>Output Queue Length</code> y contadores de errores/descartes disponibles.</li><li><code>Get-NetAdapterStatistics</code>: errores y descartes por adaptador.</li><li><code>Get-NetTCPStatistics</code>: estadísticas TCP del stack; compara deltas entre muestras, no solo acumulados desde el arranque.</li><li>Latencia, pérdida y retransmisiones desde los extremos y a través de la ruta, junto con métricas de switch, firewall, balanceador y virtual switch.</li></ul>
+<pre><code># Fotografía inicial de adaptadores y estadísticas
+Get-NetAdapter |
+  Select-Object Name, InterfaceDescription, Status, LinkSpeed
+
+Get-NetAdapterStatistics |
+  Format-Table Name, ReceivedBytes, SentBytes,
+    ReceivedPacketErrors, OutboundPacketErrors,
+    ReceivedDiscardedPackets, OutboundDiscardedPackets -AutoSize
+
+Get-NetTCPStatistics |
+  Format-List *</code></pre>
+<p>Captura dos o más muestras con marca temporal para calcular deltas. En entornos virtuales revisa vNIC, vSwitch, VMQ, RSS, colas, teaming y límites de ancho de banda. En SMB, correlaciona los contadores de red con SMB Client/Server, latencia de almacenamiento y CPU: el throughput bajo puede ser consecuencia de I/O lento o de una aplicación que no genera solicitudes suficientes.</p>
+
+<h2 id="etw">7. ETW, WPR y WPA: pasar de la correlación a la atribución</h2>
+<p>PerfMon responde “qué recurso cambió y cuándo”. ETW ayuda a responder “qué procesos, hilos, drivers o rutas de ejecución estaban trabajando”. Windows Performance Recorder (WPR) está incluido en Windows; Windows Performance Analyzer (WPA) se obtiene mediante Windows ADK / Windows Performance Toolkit. Los perfiles y el volumen de eventos deben elegirse según la hipótesis.</p>
+<p>Comprueba primero los perfiles disponibles en la versión instalada:</p>
+<pre><code>wpr -profiles</code></pre>
+<p>Para una captura dirigida, inicia WPR con un perfil adecuado desde la interfaz o la línea de comandos. Por ejemplo, una captura corta con el perfil general, en modo archivo:</p>
+<pre><code>wpr -start GeneralProfile -filemode
+
+# Reproduce o espera el síntoma durante una ventana breve.
+
+wpr -stop C:\PerfLogs\CA-performance.etl</code></pre>
+<p>Valida el perfil disponible antes de ejecutar el ejemplo; los nombres pueden variar según la instalación y los componentes del Windows Performance Toolkit. No mantengas una traza ETW amplia indefinidamente: puede generar un volumen elevado y afectar al sistema. Para análisis de CPU, WPA permite agrupar por proceso, hilo y pila; carga símbolos cuando necesites resolver funciones. Para problemas de memoria, I/O, DPC o drivers, selecciona los gráficos y proveedores pertinentes en vez de abrir todas las tablas sin una pregunta concreta.</p>
+<p>Si el caso requiere soporte del fabricante, utiliza el procedimiento de captura recomendado por ese fabricante o Microsoft (por ejemplo, TSS cuando aplique). Comprueba requisitos, permisos, datos sensibles incluidos y retención antes de recopilar o transferir trazas.</p>
+
+<h2 id="workflow">8. Flujo de trabajo operativo: una secuencia que evita cambios a ciegas</h2>
+<ol>
+<li><strong>Define el impacto.</strong> Servicio, transacción, percentiles, nodos afectados y ventana temporal.</li>
+<li><strong>Congela el contexto.</strong> Cambios recientes, despliegues, tareas batch, backup, antivirus, parches, cambios de red/storage y eventos del hipervisor.</li>
+<li><strong>Establece baseline.</strong> Compara una ventana normal equivalente; registra carga, throughput y latencia.</li>
+<li><strong>Captura sin alterar.</strong> PerfMon persistente y eventos ya disponibles; limita la instrumentación invasiva.</li>
+<li><strong>Localiza el subsistema.</strong> Busca qué señal cambia primero y si el síntoma es local, transversal o dependiente de una ruta.</li>
+<li><strong>Profundiza con ETW o herramientas de rol.</strong> Solo cuando la captura inicial haya reducido el espacio de hipótesis.</li>
+<li><strong>Formula una causa demostrable.</strong> Evidencia temporal, mecanismo técnico y explicación de por qué reproduce el impacto.</li>
+<li><strong>Prueba una corrección acotada.</strong> Define métrica de éxito, blast radius, ventana y rollback antes del cambio.</li>
+<li><strong>Valida después.</strong> Compara contra baseline y confirma que no se ha desplazado el cuello de botella a otro componente.</li>
+</ol>
+<div class="callout"><strong>Criterio de cierre</strong><p>Una incidencia de rendimiento no está resuelta porque el porcentaje haya bajado durante cinco minutos. Debe recuperarse la métrica de servicio, desaparecer o quedar explicada la señal limitante, mantenerse la estabilidad bajo carga comparable y existir evidencia posterior al cambio.</p></div>
+
+<h2 id="pitfalls">9. Errores que producen diagnósticos falsos</h2>
+<ul><li><strong>Perseguir el máximo:</strong> un pico aislado no explica una degradación sostenida. Examina duración, percentiles y precedencia.</li><li><strong>Usar umbrales universales:</strong> el mismo valor significa cosas distintas en HDD, NVMe, SAN, VM y host físico.</li><li><strong>Confundir proceso con recurso físico:</strong> los contadores de I/O de proceso no son una medición directa del backend.</li><li><strong>Mirar solo el guest:</strong> omite contención de CPU, memoria, red y storage en el hipervisor.</li><li><strong>Capturar demasiado:</strong> una traza enorme, sin hipótesis ni periodo acotado, complica el análisis y puede aumentar el impacto.</li><li><strong>Optimizar antes de medir:</strong> cambios de registro, prioridades, pagefile, antivirus o parámetros de NIC pueden ocultar el síntoma y crear otro.</li><li><strong>Confundir recuperación con causa raíz:</strong> reiniciar un servicio o ampliar recursos puede restaurar temporalmente el servicio sin explicar el mecanismo.</li></ul>
+
+<h2 id="sources">10. Fuentes primarias y referencias</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/troubleshoot-performance-problems-in-windows" rel="noopener">Microsoft Learn — Troubleshoot performance problems in Windows</a>. Guía de captura con PerfMon, objetos de contadores y análisis de subsistemas.</li>
+<li><a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/support-tools/troubleshoot-issues-performance-monitor" rel="noopener">Microsoft Learn — Troubleshoot issues using Performance Monitor</a>. Captura local/remota, TSS y ejemplos de diagnóstico.</li>
+<li><a href="https://learn.microsoft.com/es-es/troubleshoot/windows-server/support-tools/support-tools-xperf-wpa-wpr" rel="noopener">Microsoft Learn — Solución de problemas de procesos y subprocesos mediante WPR y WPA</a>. ETW, perfiles, análisis de CPU y memoria.</li>
+<li><a href="https://learn.microsoft.com/en-us/windows-server/administration/performance-tuning/" rel="noopener">Microsoft Learn — Performance Tuning Guidelines for Windows Server</a>. Consideraciones de hardware, rol y subsistema.</li>
+<li><a href="https://learn.microsoft.com/en-us/windows-hardware/test/wpt/windows-performance-toolkit-technical-reference" rel="noopener">Microsoft Learn — Windows Performance Toolkit Technical Reference</a>. Referencia técnica de WPR/WPA.</li>
+</ul>
+<p class="status-line">Revisado el 11 de noviembre de 2026. Los nombres de contadores, perfiles y herramientas pueden variar por idioma, versión y componentes instalados. Antes de aplicar capturas o cambios en producción, valida la configuración en el sistema objetivo y sigue los procedimientos de cambio de tu organización.</p>
+</article></div></main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Una publicación independiente fundada y editada por Ray Vega.</p></div><div class="footer-links"><a href="/es/sobre/">Sobre la publicación</a><a href="/#criterio">Criterio editorial</a><a href="/feed.xml">RSS</a><a href="/en/">English edition</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
+<script src="/assets/site.js" defer></script></body></html>
