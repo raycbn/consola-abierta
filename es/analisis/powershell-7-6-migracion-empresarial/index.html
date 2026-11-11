@@ -68,10 +68,10 @@
         <tbody>
           <tr><td>7.4</td><td>LTS</td><td>.NET 8</td><td>10 nov 2026</td><td>Fuera de soporte</td></tr>
           <tr><td>7.5</td><td>Stable</td><td>.NET 9</td><td>10 nov 2026</td><td>Fuera de soporte</td></tr>
-          <tr><td>7.6</td><td>LTS</td><td>.NET 10</td><td>14 nov 2028</td><td>Destino recomendado para cargas que requieren LTS</td></tr>
+          <tr><td>7.6.6</td><td>LTS</td><td>.NET 10.0.12</td><td>14 nov 2028</td><td>Destino recomendado para cargas que requieren LTS</td></tr>
         </tbody>
       </table>
-      <p>El repositorio oficial de PowerShell publicó <strong>7.6.10 el 10 de noviembre de 2026</strong>. Hay que separar la fecha del release de la disponibilidad en cada canal de distribución: algunas páginas de instalación de Microsoft todavía muestran ejemplos con versiones anteriores. En un despliegue gobernado, fija artefacto, versión, arquitectura, origen y SHA-256; no dejes que una pipeline elija silenciosamente “la última versión”.</p>
+      <p>A fecha de esta revisión, la versión LTS vigente es <strong>PowerShell 7.6.6</strong>, basada en .NET 10.0.12. La documentación de Microsoft recoge esa versión como referencia para las novedades de 7.6 y el repositorio oficial publica el artefacto <strong>v7.6.6</strong>. Conviene separar la versión del producto de su disponibilidad en cada canal de distribución: las páginas de instalación y los feeds pueden actualizarse en momentos distintos. En un despliegue gobernado, fija artefacto, versión, arquitectura, origen y SHA-256; no dejes que una pipeline elija silenciosamente “la última versión”.</p>
       <p>El fin de soporte significa que esa rama deja de recibir nuevas actualizaciones bajo su ciclo de mantenimiento. Puede existir una excepción temporal por compatibilidad, pero debe tener propietario, riesgo aceptado, controles compensatorios y fecha de salida.</p>
 
       <h2 id="scope">2. Primero separa PowerShell 7 de Windows PowerShell 5.1</h2>
@@ -169,7 +169,7 @@ $inventory |
       </ul>
       <p>Para que el cambio sea reproducible, conserva el instalador aprobado, SHA-256, versión, arquitectura, fuente de descarga, opciones de instalación e identificador del cambio. La página de instalación de Microsoft y los feeds de paquetes pueden mostrar una versión distinta de la última release publicada en GitHub: registra cuál has decidido desplegar y por qué.</p>
       <pre><code># Verificar el hash del paquete antes de distribuirlo
-Get-FileHash .\PowerShell-7.6.10-win-x64.msi -Algorithm SHA256
+Get-FileHash .\PowerShell-7.6.6-win-x64.msi -Algorithm SHA256
 
 # Confirmar la versión después de instalar
 & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoLogo -NoProfile -Command '$PSVersionTable | Format-List'</code></pre>
@@ -205,7 +205,7 @@ Get-FileHash .\PowerShell-7.6.10-win-x64.msi -Algorithm SHA256
       <h2 id="sources">8. Fuentes primarias y notas de verificación</h2>
       <ol class="reference-list">
         <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/install/powershell-support-lifecycle?view=powershell-7.6" target="_blank" rel="noopener">Microsoft Learn — PowerShell Support Lifecycle</a>. Fechas de soporte, canales LTS/Stable y plataformas admitidas.</li>
-        <li><a href="https://github.com/PowerShell/PowerShell/releases/tag/v7.6.10" target="_blank" rel="noopener">PowerShell/PowerShell — Release v7.6.10</a>. Publicación del 10 de noviembre de 2026, artefactos y hashes oficiales.</li>
+        <li><a href="https://github.com/PowerShell/PowerShell/releases/tag/v7.6.6" target="_blank" rel="noopener">PowerShell/PowerShell — Release v7.6.6</a>. Release publicado el 8 de septiembre de 2026, artefactos y hashes oficiales.</li>
         <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.6" target="_blank" rel="noopener">Microsoft Learn — Installing PowerShell on Windows</a>. MSI, MSIX, WinGet, ZIP, actualización y coexistencia con Windows PowerShell 5.1.</li>
         <li><a href="https://learn.microsoft.com/en-us/powershell/scripting/whats-new/what-s-new-in-powershell-76?view=powershell-7.6" target="_blank" rel="noopener">Microsoft Learn — What's New in PowerShell 7.6</a>. Cambios documentados, incluido ThreadJob.</li>
         <li><a href="https://github.com/PowerShell/PowerShell/releases" target="_blank" rel="noopener">PowerShell/PowerShell — Releases</a>. Historial de releases y artefactos.</li>
