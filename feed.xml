@@ -5,7 +5,7 @@
     <link>https://consolaabierta.com/</link>
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
-    <lastBuildDate>Wed, 11 Nov 2026 13:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 11 Nov 2026 20:00:00 +0100</lastBuildDate>
     <item>
       <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
       <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
@@ -13,6 +13,14 @@
       <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
       <description>Plan de migración empresarial: lifecycle, inventario, compatibilidad de módulos, despliegue por anillos, validación y rollback.</description>
       <category>Systems Engineering</category>
+    </item>
+    <item>
+      <title>Diagnóstico avanzado de rendimiento en Windows Server: de la métrica al cuello de botella</title>
+      <link>https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/</guid>
+      <pubDate>Wed, 11 Nov 2026 20:00:00 +0100</pubDate>
+      <description>Método avanzado de diagnóstico con PerfMon, ETW, WPR/WPA y correlación de CPU, memoria, almacenamiento y red.</description>
+      <category>Windows Server</category>
     </item>
   </channel>
 </rss>
