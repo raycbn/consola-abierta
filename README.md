@@ -28,5 +28,3 @@ Then open http://localhost:4173.
 
 ## Editorial integrity
 No article is marked lab-verified unless commands and behaviour have been reproduced in a documented environment. Separate official documentation, third-party incident analysis, lab results and first-hand experience.
-
-[executed on device: PCRAY (b87ee87e-9b14-4197-9fda-7fcb55268921)]
