@@ -1,6 +1,34 @@
 {
-  "generated": "2026-11-13",
+  "generated": "2026-11-14",
   "articles": [
+    {
+      "labels": "AI · LLM Engineering · Transformer Internals",
+      "lang": "es",
+      "title": "Anatomía interna de un Transformer: de los tokens a un LLM decoder-only",
+      "url": "/es/analisis/anatomia-interna-transformer-llm/",
+      "summary": "Deep dive en embeddings, Q/K/V, scaled dot-product attention, causal masking, Pre-LayerNorm y next-token prediction. Laboratorio TinyGPT reproducido con PyTorch y evidencias.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "30–35 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · Transformer Internals",
+      "lang": "en",
+      "title": "Inside a Transformer: from tokens to a decoder-only LLM",
+      "url": "/en/analysis/inside-transformer-anatomy-llm/",
+      "summary": "A deep dive into embeddings, Q/K/V, scaled dot-product attention, causal masking, Pre-LayerNorm and next-token prediction. Reproduced TinyGPT PyTorch lab and evidence.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "30–35 min"
+    },
     {
       "labels": "Systems & Infrastructure · IT Operations · SQL Server",
       "lang": "es",

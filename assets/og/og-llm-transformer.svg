@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07111f"/><stop offset="1" stop-color="#101d31"/></linearGradient>
+ <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#18cbe9"/><stop offset="1" stop-color="#4d7cf4"/></linearGradient>
+ <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#20364e" stroke-width="1"/></pattern>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<rect width="1200" height="630" fill="url(#grid)" opacity=".38"/>
+<g opacity=".12" stroke="#2fd7f2" fill="none"><path d="M780 30L1050 30L1050 580L780 580Z"/><path d="M820 70H1010M820 110H1010M820 150H1010M820 190H1010M820 230H1010M820 270H1010M820 310H1010M820 350H1010M820 390H1010M820 430H1010M820 470H1010M820 510H1010"/></g>
+<rect x="68" y="54" width="8" height="48" rx="4" fill="url(#glow)"/>
+<text x="96" y="88" fill="#c3d5e8" font-size="24" font-family="Arial,sans-serif" letter-spacing="4">CONSOLA ABIERTA  /  LLM ENGINEERING 01</text>
+<text x="68" y="210" fill="#f1f7ff" font-size="66" font-family="Arial,sans-serif" font-weight="700">Inside a Transformer</text>
+<text x="68" y="285" fill="#f1f7ff" font-size="46" font-family="Arial,sans-serif" font-weight="500">From tokens to a decoder-only LLM</text>
+<text x="70" y="355" fill="#8feaff" font-size="24" font-family="Arial,sans-serif">Q / K / V · SELF-ATTENTION · CAUSAL MASKING · PYTORCH LAB</text>
+<g transform="translate(825 370)">
+ <rect x="0" y="0" width="285" height="145" rx="18" fill="#10263c" stroke="#2fd7f2" stroke-width="2"/>
+ <g fill="none" stroke="url(#glow)" stroke-width="3">
+ <path d="M25 28H95V60H145V90H205V120H260"/>
+ <path d="M25 60H65V90H120V120H205"/>
+ <path d="M25 90H80V120H145"/>
+ </g>
+ <g fill="#2fd7f2"><circle cx="25" cy="28" r="5"/><circle cx="95" cy="60" r="5"/><circle cx="145" cy="90" r="5"/><circle cx="205" cy="120" r="5"/></g>
+ <g fill="#dcefff" font-family="Arial,sans-serif" font-size="15"><text x="20" y="-16">TENSOR FLOW / QKV</text></g>
+</g>
+<rect x="68" y="510" width="430" height="54" rx="27" fill="#102b3b" stroke="#2fd7f2"/>
+<text x="100" y="545" fill="#dffaff" font-size="21" font-family="Arial,sans-serif">LAB VERIFIED · CPU · 110,464 PARAMETERS</text>
+<text x="70" y="602" fill="#8fa8c2" font-size="18" font-family="Arial,sans-serif">Mathematics · Architecture · Reproducible Evidence</text>
+</svg>

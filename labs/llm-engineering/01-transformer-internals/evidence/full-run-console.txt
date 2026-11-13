@@ -1,0 +1,27 @@
+step=0050/600 train=2.9162 validation=2.9167 grad_norm=0.7553
+step=0100/600 train=2.5674 validation=2.6072 grad_norm=0.7901
+step=0150/600 train=2.4443 validation=2.4977 grad_norm=0.5395
+step=0200/600 train=2.3770 validation=2.4617 grad_norm=0.8298
+step=0250/600 train=2.3377 validation=2.3965 grad_norm=0.6069
+step=0300/600 train=2.2976 validation=2.4034 grad_norm=0.9326
+step=0350/600 train=2.2635 validation=2.3792 grad_norm=0.6218
+step=0400/600 train=2.2513 validation=2.3518 grad_norm=0.7544
+step=0450/600 train=2.2251 validation=2.3366 grad_norm=0.5421
+step=0500/600 train=2.1957 validation=2.3319 grad_norm=0.7178
+step=0550/600 train=2.1795 validation=2.3144 grad_norm=0.7412
+step=0600/600 train=2.1771 validation=2.3035 grad_norm=0.6191
+
+=== RUN SUMMARY ===
+parameters=110,464 vocab=66 device=cpu
+train_loss=4.2293 -> 2.1660
+validation_loss=4.2222 -> 2.3091
+wall_time_seconds=53.383
+checks={"logits_shape": [2, 24, 66], "attention_shape": [2, 4, 24, 24], "attention_row_sum_max_abs_error": 2.384185791015625e-07, "future_attention_mass_max": 0.0, "future_token_perturbation_prefix_logits_max_abs_delta": 0.0, "manual_vs_pytorch_sdpa_max_abs_delta": 2.980232238769531e-07, "shape_check": true, "causal_mask_check": true, "attention_normalization_check": true, "sdpa_equivalence_check": true}
+
+=== GENERATED SAMPLE ===
+El Transformerepr inta sesos ron forme untadres foronentunamul ur-La r prmerializaseal di≤ ctese e del se e unincaba ace cofien ffontrunte conermolormrelade enama rmasuna.
+
+Durquricoda po se nvos a esen sio a l re ntento e entienemos pa elinesal se ntelal cade pado sueentia des.
+Sire n me dase
+
+LAB STATUS: PASS

@@ -7,8 +7,16 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Fri, 13 Nov 2026 23:50:00 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 00:20:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Inside a Transformer: from tokens to a decoder-only LLM</title>
+      <link>https://consolaabierta.com/en/analysis/inside-transformer-anatomy-llm/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/inside-transformer-anatomy-llm/</guid>
+      <pubDate>Sat, 14 Nov 2026 00:20:00 +0100</pubDate>
+      <description>A deep dive into embeddings, Q/K/V, scaled dot-product attention, causal masking, Pre-LayerNorm and next-token prediction. Includes a reproduced TinyGPT PyTorch lab.</description>
+      <category>LLM Engineering</category>
+    </item>
     <item>
       <title>SQL Server tempdb: diagnosing log growth caused by an open transaction</title>
       <link>https://consolaabierta.com/en/analysis/sql-server-tempdb-log-growth-open-transaction/</link>

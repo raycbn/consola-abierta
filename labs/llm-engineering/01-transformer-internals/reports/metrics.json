@@ -1,0 +1,97 @@
+{
+  "lab": "Consola Abierta - Transformer Internals 01",
+  "run_timestamp_local": "2026-11-14 00:13:58",
+  "host": "PCRAY",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10",
+  "pytorch": "2.14.0+cpu",
+  "device": "cpu",
+  "cuda_available": false,
+  "xpu_available": false,
+  "cpu_threads": 4,
+  "cpu": "11th Gen Intel Core i5-1155G7 @ 2.50 GHz · 4 cores / 8 logical processors",
+  "gpu_detected": "Intel Iris Xe Graphics (not used for this PyTorch run)",
+  "dataset": {
+    "train_characters": 7571,
+    "validation_characters": 2413,
+    "vocabulary_characters": 66,
+    "tokenization": "character-level, pedagogical only",
+    "train_validation_split": "separate authored sections; validation never used for optimizer updates"
+  },
+  "model": {
+    "block_size": 96,
+    "n_embd": 64,
+    "n_head": 4,
+    "n_layer": 2,
+    "dropout": 0.1,
+    "batch_size": 16,
+    "learning_rate": 0.0005,
+    "weight_decay": 0.01,
+    "steps": 600,
+    "eval_interval": 50,
+    "eval_batches": 20,
+    "seed": 20261114,
+    "vocab_size": 66,
+    "trainable_parameters": 110464,
+    "architecture": "decoder-only, Pre-LayerNorm, learned positions, tied token/output embeddings"
+  },
+  "training": {
+    "steps_completed": 600,
+    "wall_time_seconds": 53.383,
+    "initial_train_loss": 4.229303765296936,
+    "final_train_loss": 2.1660280585289002,
+    "initial_validation_loss": 4.222211861610413,
+    "final_validation_loss": 2.309074115753174,
+    "train_loss_reduction_percent": 48.79,
+    "validation_loss_reduction_percent": 45.31
+  },
+  "checks": {
+    "before_training": {
+      "logits_shape": [
+        2,
+        24,
+        66
+      ],
+      "attention_shape": [
+        2,
+        4,
+        24,
+        24
+      ],
+      "attention_row_sum_max_abs_error": 2.384185791015625e-07,
+      "future_attention_mass_max": 0.0,
+      "future_token_perturbation_prefix_logits_max_abs_delta": 0.0,
+      "manual_vs_pytorch_sdpa_max_abs_delta": 2.980232238769531e-07,
+      "shape_check": true,
+      "causal_mask_check": true,
+      "attention_normalization_check": true,
+      "sdpa_equivalence_check": true
+    },
+    "after_training": {
+      "logits_shape": [
+        2,
+        24,
+        66
+      ],
+      "attention_shape": [
+        2,
+        4,
+        24,
+        24
+      ],
+      "attention_row_sum_max_abs_error": 2.384185791015625e-07,
+      "future_attention_mass_max": 0.0,
+      "future_token_perturbation_prefix_logits_max_abs_delta": 0.0,
+      "manual_vs_pytorch_sdpa_max_abs_delta": 2.980232238769531e-07,
+      "shape_check": true,
+      "causal_mask_check": true,
+      "attention_normalization_check": true,
+      "sdpa_equivalence_check": true
+    }
+  },
+  "interpretation": [
+    "This is a small character-level teaching model, not a production language model.",
+    "Loss values depend on this corpus, seed, configuration and hardware; they are not comparable to external model benchmarks.",
+    "CPU-only execution was intentional because this host has no CUDA or XPU device available."
+  ]
+}

@@ -6,15 +6,15 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - Static HTML/CSS/JavaScript; no framework, build step or application server.
 - Spanish edition at / and English edition at /en/.
 - Article archives at /es/articulos/ and /en/articles/.
-- Six article URLs (three editorial topics translated into Spanish and English).
+- Eight article URLs (four editorial topics translated into Spanish and English).
 - Language-aware catalogue search powered by /search-index.json and assets/site.js.
-- Six specialty filters on the archives. Empty specialties show an explicit empty state, not placeholder links.
+- Seven specialty filters on the archives, including the LLM Engineering series. Empty specialties show an explicit empty state, not placeholder links.
 - RSS feeds: /feed.xml (Spanish) and /en/feed.xml (English), with an XSLT browser view and Atom self links.
 - Sitemap and robots: /sitemap.xml and /robots.txt.
 - Public corrections: /es/contacto/ and /en/contact/ via GitHub Issues (public); private contact: contacto@consolaabierta.com (published).
 - Privacy routes now disclose Google AdSense, advertising technologies, cookies, consent management, providers and user rights in Spanish and English. They remain noindex until the owner confirms legal identity and address.
 - ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
-- Fourteen public pages expose a cookie/privacy preferences link wired to Google's googlefc.showRevocationMessage API; the link appears for visitors where the TCF reports GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
+- Sixteen public pages expose a cookie/privacy preferences link wired to Google's googlefc.showRevocationMessage API; the link appears for visitors where the TCF reports GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
 - Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
 - GitHub Pages deploys the repository root on pushes to main, using .github/workflows/pages.yml.
 
