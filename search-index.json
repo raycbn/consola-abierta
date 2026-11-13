@@ -1,57 +1,83 @@
 {
-    "generated":  "2026-11-13",
-    "articles":  [
-                     {
-                         "labels":  "Systems \u0026 Infrastructure · IT Operations",
-                         "lang":  "es",
-                         "title":  "Diagnóstico avanzado de rendimiento en Windows Server",
-                         "url":  "/es/analisis/diagnostico-rendimiento-windows-server/",
-                         "summary":  "Investigación reproducible de CPU, memoria, almacenamiento y red en Windows Server 2025, con PerfMon, ETW, DiskSpd y límites documentados.",
-                         "topics":  [
-                                        "systems-infrastructure",
-                                        "it-operations"
-                                    ],
-                         "date":  "2026-11-11",
-                         "read":  "25–29 min"
-                     },
-                     {
-                         "labels":  "Systems \u0026 Infrastructure · Automation Engineering",
-                         "lang":  "es",
-                         "title":  "PowerShell 7.4 y 7.5: fin de soporte y migración empresarial a 7.6 LTS",
-                         "url":  "/es/analisis/powershell-7-6-migracion-empresarial/",
-                         "summary":  "Inventario de instalaciones, compatibilidad de módulos, validación de automatizaciones y despliegue controlado hacia PowerShell 7.6 LTS.",
-                         "topics":  [
-                                        "systems-infrastructure",
-                                        "automation-engineering"
-                                    ],
-                         "date":  "2026-11-11",
-                         "read":  "12 min"
-                     },
-                     {
-                         "labels":  "Systems \u0026 Infrastructure · IT Operations",
-                         "lang":  "en",
-                         "title":  "Windows Server under pressure: advanced CPU, memory, storage and network diagnostics",
-                         "url":  "/en/analysis/windows-server-performance-diagnostics/",
-                         "summary":  "Reproducible Windows Server 2025 investigation across CPU, memory, storage and networking, with PerfMon, ETW, DiskSpd and explicit measurement limits.",
-                         "topics":  [
-                                        "systems-infrastructure",
-                                        "it-operations"
-                                    ],
-                         "date":  "2026-11-11",
-                         "read":  "25–29 min"
-                     },
-                     {
-                         "labels":  "Systems \u0026 Infrastructure · Automation Engineering",
-                         "lang":  "en",
-                         "title":  "PowerShell 7.4 and 7.5: end of support and enterprise migration to 7.6 LTS",
-                         "url":  "/en/analysis/powershell-7-6-enterprise-migration/",
-                         "summary":  "Inventory, module compatibility, automation validation and controlled rollout planning for PowerShell 7.6 LTS.",
-                         "topics":  [
-                                        "systems-infrastructure",
-                                        "automation-engineering"
-                                    ],
-                         "date":  "2026-11-11",
-                         "read":  "12 min"
-                     }
-                 ]
+  "generated": "2026-11-13",
+  "articles": [
+    {
+      "labels": "Systems & Infrastructure · IT Operations · SQL Server",
+      "lang": "es",
+      "title": "SQL Server tempdb: crecimiento del log por una transacción abierta",
+      "url": "/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/",
+      "summary": "Laboratorio reproducido en SQL Server 2022: diagnóstico de ACTIVE_TRANSACTION, 26 autogrowths del log y recuperación sin shrink.",
+      "topics": [
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-13",
+      "read": "15–18 min"
+    },
+    {
+      "labels": "Systems & Infrastructure · IT Operations · SQL Server",
+      "lang": "en",
+      "title": "SQL Server tempdb: log growth caused by an open transaction",
+      "url": "/en/analysis/sql-server-tempdb-log-growth-open-transaction/",
+      "summary": "Reproduced SQL Server 2022 lab: diagnose ACTIVE_TRANSACTION, 26 log autogrowth events and recovery without shrinking.",
+      "topics": [
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-13",
+      "read": "15–18 min"
+    },
+    {
+      "labels": "Systems & Infrastructure · IT Operations",
+      "lang": "es",
+      "title": "Diagnóstico avanzado de rendimiento en Windows Server",
+      "url": "/es/analisis/diagnostico-rendimiento-windows-server/",
+      "summary": "Investigación reproducible de CPU, memoria, almacenamiento y red en Windows Server 2025, con PerfMon, ETW, DiskSpd y límites documentados.",
+      "topics": [
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-11",
+      "read": "25–29 min"
+    },
+    {
+      "labels": "Systems & Infrastructure · Automation Engineering",
+      "lang": "es",
+      "title": "PowerShell 7.4 y 7.5: fin de soporte y migración empresarial a 7.6 LTS",
+      "url": "/es/analisis/powershell-7-6-migracion-empresarial/",
+      "summary": "Inventario de instalaciones, compatibilidad de módulos, validación de automatizaciones y despliegue controlado hacia PowerShell 7.6 LTS.",
+      "topics": [
+        "systems-infrastructure",
+        "automation-engineering"
+      ],
+      "date": "2026-11-11",
+      "read": "12 min"
+    },
+    {
+      "labels": "Systems & Infrastructure · IT Operations",
+      "lang": "en",
+      "title": "Windows Server under pressure: advanced CPU, memory, storage and network diagnostics",
+      "url": "/en/analysis/windows-server-performance-diagnostics/",
+      "summary": "Reproducible Windows Server 2025 investigation across CPU, memory, storage and networking, with PerfMon, ETW, DiskSpd and explicit measurement limits.",
+      "topics": [
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-11",
+      "read": "25–29 min"
+    },
+    {
+      "labels": "Systems & Infrastructure · Automation Engineering",
+      "lang": "en",
+      "title": "PowerShell 7.4 and 7.5: end of support and enterprise migration to 7.6 LTS",
+      "url": "/en/analysis/powershell-7-6-enterprise-migration/",
+      "summary": "Inventory, module compatibility, automation validation and controlled rollout planning for PowerShell 7.6 LTS.",
+      "topics": [
+        "systems-infrastructure",
+        "automation-engineering"
+      ],
+      "date": "2026-11-11",
+      "read": "12 min"
+    }
+  ]
 }

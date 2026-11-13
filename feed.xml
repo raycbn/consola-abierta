@@ -7,15 +7,15 @@
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Fri, 13 Nov 2026 14:20:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 13 Nov 2026 23:50:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
-      <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
-      <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
-      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</guid>
-      <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
-      <description>Plan de migración empresarial: lifecycle, inventario, compatibilidad de módulos, despliegue por anillos, validación y rollback.</description>
-      <category>Systems Engineering</category>
+      <title>SQL Server tempdb: crecimiento del log provocado por una transacción abierta</title>
+      <link>https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/</guid>
+      <pubDate>Fri, 13 Nov 2026 23:50:00 +0100</pubDate>
+      <description>Laboratorio reproducido en SQL Server 2022: ACTIVE_TRANSACTION, 26 crecimientos del log, diagnóstico con DMVs y validación tras rollback.</description>
+      <category>SQL Server</category>
     </item>
     <item>
       <title>Windows Server bajo presión: diagnóstico avanzado de CPU, memoria, almacenamiento y red</title>
@@ -24,6 +24,14 @@
       <pubDate>Wed, 11 Nov 2026 20:00:00 +0100</pubDate>
       <description>Diagnóstico reproducible en Windows Server 2025: CPU, memoria, DiskSpd, correlación ETW, tres transferencias TCP repetidas con conteo exacto de bytes y captura PerfMon de red; límites de muestreo y causa raíz de I/O no confirmada.</description>
       <category>Windows Server</category>
+    </item>
+    <item>
+      <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
+      <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</guid>
+      <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
+      <description>Plan de migración empresarial: lifecycle, inventario, compatibilidad de módulos, despliegue por anillos, validación y rollback.</description>
+      <category>Systems Engineering</category>
     </item>
   </channel>
 </rss>

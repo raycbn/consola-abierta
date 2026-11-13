@@ -7,8 +7,16 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Fri, 13 Nov 2026 14:20:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 13 Nov 2026 23:50:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>SQL Server tempdb: diagnosing log growth caused by an open transaction</title>
+      <link>https://consolaabierta.com/en/analysis/sql-server-tempdb-log-growth-open-transaction/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/sql-server-tempdb-log-growth-open-transaction/</guid>
+      <pubDate>Fri, 13 Nov 2026 23:50:00 +0100</pubDate>
+      <description>Reproduced SQL Server 2022 lab: ACTIVE_TRANSACTION, 26 log growth events, DMV diagnosis and rollback validation.</description>
+      <category>SQL Server</category>
+    </item>
     <item>
       <title>Windows Server under pressure: advanced CPU, memory, storage and network diagnostics</title>
       <link>https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</link>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>SQL Server tempdb: diagnosticar el crecimiento del log por transacciones abiertas | Consola Abierta</title>
+<meta name="description" content="Laboratorio reproducido en SQL Server 2022: una transacción abierta bloquea la reutilización del log de tempdb, provoca autogrowth y se diagnostica con DMVs y SSMS.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/sql-server-tempdb-log-growth-open-transaction/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article"><meta property="og:title" content="SQL Server tempdb: diagnosticar el crecimiento del log por transacciones abiertas"><meta property="og:description" content="Reproducción lab-verified: 8 MB a 216 MB, 99,16 % de ocupación y recuperación sin reducir el fichero."><meta property="og:url" content="https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/"><meta property="og:site_name" content="Consola Abierta">
+<meta property="og:image" content="https://consolaabierta.com/assets/labs/tempdb-log-growth/ssms-visual-diagnosis-active.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1600"><meta property="og:image:height" content="900"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"SQL Server tempdb: diagnosticar el crecimiento del log por transacciones abiertas","description":"Laboratorio reproducido en SQL Server 2022 para identificar ACTIVE_TRANSACTION, autogrowth y reutilización del log de tempdb.","datePublished":"2026-11-13","dateModified":"2026-11-13","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/" aria-label="Consola Abierta, inicio"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación independiente</span><a href="/en/analysis/sql-server-tempdb-log-growth-open-transaction/" lang="en">EN</a></div></div>
+<nav class="primary-nav" aria-label="Navegación principal"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/#especialidades">Especialidades</a><a href="/#criterio">Criterio editorial</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">LABORATORIO · SQL SERVER</span><a class="text-link" href="/es/articulos/">Volver al índice ↗</a></div></nav></div></header>
+<main id="contenido" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/#especialidades">Systems & Infrastructure</a> / SQL Server</div><div class="kicker">Database Engineering · Troubleshooting · Lab verified</div>
+<h1>SQL Server tempdb: diagnosticar el crecimiento del log provocado por una transacción abierta</h1>
+<p class="article-deck">Un log de tempdb que crece no se resuelve reduciendo el fichero a ciegas. Primero hay que entender por qué SQL Server no puede reutilizar su espacio. Reproducimos el escenario, identificamos la transacción que mantiene activo el log y validamos la recuperación desde SQLCMD y SQL Server Management Studio.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>Publicado 13 noviembre 2026</span><span>15–18 min de lectura</span><span>Mid-senior · Senior · Specialist</span></div>
+<div class="status-line">Lab verified · Windows Server 2025 Standard Evaluation · SQL Server 2022 Developer RTM 16.0.1000.6 · SSMS 22.12.0 · entorno aislado · pruebas reproducidas el 13 noviembre 2026</div></header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En este análisis</div><ol>
+<li><a href="#finding">Qué estaba ocurriendo</a></li><li><a href="#environment">Entorno y alcance</a></li><li><a href="#baseline">Establecer baseline</a></li><li><a href="#reproduce">Reproducir la transacción</a></li><li><a href="#diagnose">Diagnosticar en caliente</a></li><li><a href="#growth">Contabilizar autogrowth</a></li><li><a href="#recovery">Rollback y validación</a></li><li><a href="#runbook">Runbook de producción</a></li><li><a href="#lessons">Qué no hacer</a></li><li><a href="#sources">Fuentes y laboratorio</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>Conclusión principal</strong><p>La transacción abierta mantuvo registros activos e impidió reutilizar parte del log. SQL Server informó de <code>ACTIVE_TRANSACTION</code>; el fichero pasó de 8 MB a 216 MB y alcanzó el 99,16 % de ocupación. Después del rollback y de ejecutar <code>CHECKPOINT</code>, el uso cayó al 1,78 % y el motivo de espera volvió a <code>NOTHING</code>. El fichero físico siguió midiendo 216 MB: el espacio quedó disponible para reutilizarse, no fue devuelto al sistema operativo.</p></div>
+<h2 id="finding">1. Qué estaba ocurriendo</h2>
+<p>El síntoma investigado es el crecimiento sostenido de <code>templog.ldf</code>, el fichero de log de <code>tempdb</code>. El tamaño o el porcentaje de ocupación no explican por sí solos la causa: hay que averiguar por qué el motor no puede reutilizar los registros inactivos.</p>
+<p>En este laboratorio, una sesión abrió una transacción explícita, insertó filas en una tabla de prueba dentro de <code>tempdb</code> y permaneció en ella durante tres minutos. Mientras tanto, una segunda sesión consultó el uso del log y las DMVs de transacciones. El motivo de espera observado fue <code>ACTIVE_TRANSACTION</code>.</p>
+<p><strong>No es un incidente de producción.</strong> Es una reproducción controlada para estudiar el mecanismo. Una transacción larga es una causa posible de retención del log, no una explicación universal de cualquier crecimiento de <code>tempdb</code>. La investigación debe partir del valor real de <code>log_reuse_wait_desc</code>.</p>
+
+<h2 id="environment">2. Entorno y alcance</h2>
+<table class="data-table"><thead><tr><th>Elemento</th><th>Configuración observada</th></tr></thead><tbody>
+<tr><td>Sistema operativo</td><td>Windows Server 2025 Standard Evaluation</td></tr><tr><td>Motor</td><td>SQL Server 2022 Developer RTM · 16.0.1000.6</td></tr><tr><td>Cliente gráfico</td><td>SSMS 22.12.0 · interfaz en español</td></tr><tr><td>Máquina virtual</td><td>4 GB RAM · 2 vCPU</td></tr><tr><td>Memoria máxima SQL</td><td>1.024 MB · MAXDOP 2</td></tr><tr><td>tempdb</td><td>2 data files · 1 log file · recuperación SIMPLE</td></tr><tr><td>Log del laboratorio</td><td>8 MB iniciales · autogrowth fijo de 8 MB</td></tr><tr><td>Conectividad</td><td>TCP/IP y Named Pipes deshabilitados; Windows Authentication local</td></tr>
+</tbody></table>
+<p>El crecimiento fijo de 8 MB se configuró deliberadamente para que los eventos fueran visibles en la prueba. No es una recomendación para producción ni debe confundirse con el valor predeterminado de otras instalaciones. Dimensiona <code>tempdb</code> a partir de la carga y de los picos observados.</p>
+<p>La tabla <code>dbo.CA_TempdbLogGrowthLab</code> se crea únicamente dentro de <code>tempdb</code>. Los datos de <code>tempdb</code> no son persistentes entre reinicios del motor: la base se vuelve a crear al iniciar SQL Server y no admite backup/restore como una base de usuario.</p>
+
+<h2 id="baseline">3. Establecer baseline</h2>
+<p>Antes de generar carga, registra los ficheros, el consumo actual y el motivo de reutilización del log. Ejecuta la consulta con contexto en <code>tempdb</code>:</p>
+<pre><code>USE tempdb;
+GO
+
+SELECT name, type_desc, physical_name,
+       CAST(size * 8.0 / 1024 AS decimal(12,2)) AS size_mb,
+       CASE WHEN is_percent_growth = 1 THEN CONCAT(growth, '%')
+            ELSE CONCAT(CAST(growth * 8.0 / 1024 AS decimal(12,2)), ' MB')
+       END AS filegrowth
+FROM sys.database_files
+ORDER BY file_id;
+
+SELECT total_log_size_in_bytes / 1048576.0 AS total_log_mb,
+       used_log_space_in_bytes / 1048576.0 AS used_log_mb,
+       used_log_space_in_percent
+FROM sys.dm_db_log_space_usage;
+
+SELECT name, state_desc, recovery_model_desc, log_reuse_wait_desc
+FROM sys.databases
+WHERE database_id = DB_ID(N'tempdb');</code></pre>
+<p><code>sys.dm_db_log_space_usage</code> devuelve el tamaño total y el espacio ocupado del log. En SQL Server 2022, las DMVs utilizadas en este artículo requieren <code>VIEW SERVER PERFORMANCE STATE</code> o un rol de servidor que incluya ese permiso, como <code>sysadmin</code>. Comprueba los permisos en la versión y edición de destino.</p>
+<figure class="evidence-figure"><img src="/assets/labs/tempdb-log-growth/console-baseline.png" alt="Captura real de SQLCMD con el estado inicial del log tempdb de 8 MB"><figcaption>Baseline inicial capturado con SQLCMD: log de 8 MB y uso aproximado del 5,13 %.</figcaption></figure>
+
+<h2 id="reproduce">4. Reproducir una transacción abierta</h2>
+<p>La carga inserta 12.000 filas con una columna <code>char(7000)</code>: 84.000.000 bytes de payload, antes de contar el resto de estructuras y registros. La transacción permanece abierta durante tres minutos para que una segunda sesión pueda diagnosticarla.</p>
+<pre><code>USE tempdb;
+SET NOCOUNT ON;
+
+IF OBJECT_ID(N'dbo.CA_TempdbLogGrowthLab', N'U') IS NOT NULL
+    DROP TABLE dbo.CA_TempdbLogGrowthLab;
+
+CREATE TABLE dbo.CA_TempdbLogGrowthLab
+(
+    id int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    payload char(7000) NOT NULL
+);
+
+BEGIN TRANSACTION CA_TempdbLogGrowthLab;
+
+;WITH n AS
+(
+    SELECT TOP (12000)
+           ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n
+    FROM sys.all_objects AS a
+    CROSS JOIN sys.all_objects AS b
+)
+INSERT INTO dbo.CA_TempdbLogGrowthLab (payload)
+SELECT REPLICATE('X', 7000)
+FROM n;
+
+SELECT @@SPID AS repro_session_id,
+       COUNT_BIG(*) AS rows_inserted,
+       SUM(DATALENGTH(payload)) AS payload_bytes
+FROM dbo.CA_TempdbLogGrowthLab;
+
+-- Mantiene la transacción abierta para el diagnóstico desde otra sesión.
+WAITFOR DELAY '00:03:00';
+
+ROLLBACK TRANSACTION CA_TempdbLogGrowthLab;
+DROP TABLE dbo.CA_TempdbLogGrowthLab;</code></pre>
+<p><strong>Uso exclusivo en laboratorio desechable.</strong> Esta carga inserta datos y mantiene una transacción abierta durante tres minutos. No la ejecutes en producción ni en una instancia compartida. El paquete descargable contiene los scripts y estas advertencias.</p>
+<figure class="evidence-figure"><img src="/assets/labs/tempdb-log-growth/ssms-visual-reproduction.png" alt="SSMS ejecutando la sesión A que reproduce el crecimiento del log de tempdb"><figcaption>Sesión A en SSMS: carga controlada y transacción abierta; el diagnóstico se realiza desde una segunda conexión.</figcaption></figure>
+
+<h2 id="diagnose">5. Diagnosticar mientras la transacción sigue abierta</h2>
+<p>Primero mide el tamaño y la ocupación. Después correlaciona el motivo de espera con la transacción, la sesión, el login, el host y la aplicación:</p>
+<pre><code>USE tempdb;
+SET NOCOUNT ON;
+
+SELECT total_log_size_in_bytes / 1048576.0 AS total_log_mb,
+       used_log_space_in_bytes / 1048576.0 AS used_log_mb,
+       used_log_space_in_percent
+FROM sys.dm_db_log_space_usage;
+
+SELECT name, state_desc, log_reuse_wait_desc
+FROM sys.databases
+WHERE database_id = DB_ID(N'tempdb');
+
+SELECT at.transaction_id, at.name AS transaction_name,
+       at.transaction_begin_time,
+       dt.database_transaction_log_bytes_used / 1048576.0 AS log_used_mb,
+       st.session_id, s.login_name, s.host_name, s.program_name
+FROM sys.dm_tran_database_transactions AS dt
+JOIN sys.dm_tran_session_transactions AS st
+  ON st.transaction_id = dt.transaction_id
+JOIN sys.dm_tran_active_transactions AS at
+  ON at.transaction_id = dt.transaction_id
+JOIN sys.dm_exec_sessions AS s
+  ON s.session_id = st.session_id
+WHERE dt.database_id = DB_ID(N'tempdb')
+ORDER BY at.transaction_begin_time;</code></pre>
+<p>La combinación de estas consultas responde cuánto log está ocupado, qué impide reutilizarlo, desde cuándo existe la transacción y qué sesión/aplicación debemos investigar. No mates un SPID hasta entender qué trabajo está ejecutando y quién es su propietario funcional.</p>
+<figure class="evidence-figure"><img src="/assets/labs/tempdb-log-growth/ssms-visual-diagnosis-active.png" alt="Captura real de SSMS: log tempdb 216 MB, 99,16 por ciento ocupado y ACTIVE_TRANSACTION asociado a la sesión 52"><figcaption>Diagnóstico en caliente: 216 MB, 99,16 % ocupado y <code>ACTIVE_TRANSACTION</code>. La sesión 52 aparece asociada a la transacción de laboratorio.</figcaption></figure>
+
+<h2 id="growth">6. Cuantificar los eventos de autogrowth</h2>
+<p>El tamaño final no muestra cuántas ampliaciones ocurrieron. En este laboratorio el default trace estaba disponible y se utilizó para contar los eventos históricos. Los identificadores 93 y 92 corresponden a <em>Log File Auto Grow</em> y <em>Data File Auto Grow</em>, respectivamente.</p>
+<pre><code>DECLARE @trace nvarchar(4000);
+SELECT @trace = path
+FROM sys.traces
+WHERE is_default = 1;
+
+SELECT EventClass,
+       CASE EventClass WHEN 93 THEN 'Log File Auto Grow'
+                       WHEN 92 THEN 'Data File Auto Grow' END AS event_name,
+       COUNT_BIG(*) AS growth_events,
+       SUM(IntegerData) * 8.0 / 1024 AS total_growth_mb,
+       MIN(StartTime) AS first_event,
+       MAX(StartTime) AS last_event
+FROM sys.fn_trace_gettable(@trace, DEFAULT)
+WHERE EventClass IN (92,93)
+  AND DatabaseName = 'tempdb'
+  AND StartTime >= '2026-11-13T20:00:00'
+GROUP BY EventClass
+ORDER BY EventClass;</code></pre>
+<p>El default trace puede no estar habilitado o no conservar ya los eventos de la ventana investigada; valida su disponibilidad antes de usar la consulta. Para instrumentación nueva y persistente, diseña una sesión de Extended Events con filtros y retención adecuados.</p>
+<figure class="evidence-figure"><img src="/assets/labs/tempdb-log-growth/ssms-visual-autogrowth-trace.png" alt="Resultados reales del default trace con eventos de autogrowth de los ficheros de tempdb"><figcaption>Default trace del laboratorio: 26 ampliaciones de log de 8 MB (208 MB) y dos ampliaciones de data files de 64 MB (128 MB).</figcaption></figure>
+
+<h2 id="recovery">7. Resolver y validar: rollback y reutilización</h2>
+<p>La corrección no consiste en reducir el fichero. Consiste en resolver la transacción que mantiene activo el log, de acuerdo con el propietario de la carga y el impacto funcional. En esta reproducción la sesión que abrió la transacción ejecutó <code>ROLLBACK</code>; después se ejecutó <code>CHECKPOINT</code> en <code>tempdb</code>.</p>
+<pre><code>USE tempdb;
+CHECKPOINT;
+
+SELECT total_log_size_in_bytes / 1048576.0 AS total_log_mb,
+       used_log_space_in_bytes / 1048576.0 AS used_log_mb,
+       used_log_space_in_percent
+FROM sys.dm_db_log_space_usage;
+
+SELECT name, state_desc, recovery_model_desc, log_reuse_wait_desc
+FROM sys.databases
+WHERE database_id = DB_ID(N'tempdb');
+
+SELECT COUNT_BIG(*) AS active_tempdb_user_transactions
+FROM sys.dm_tran_database_transactions AS dt
+JOIN sys.dm_tran_session_transactions AS st
+  ON st.transaction_id = dt.transaction_id
+WHERE dt.database_id = DB_ID(N'tempdb');
+
+SELECT CASE WHEN OBJECT_ID(N'dbo.CA_TempdbLogGrowthLab', N'U') IS NULL
+            THEN 'REMOVED - PASS'
+            ELSE 'STILL EXISTS - CHECK' END AS lab_table_status;</code></pre>
+<table class="data-table"><thead><tr><th>Comprobación</th><th>Durante la transacción</th><th>Después del rollback</th></tr></thead><tbody>
+<tr><td>Tamaño físico del log</td><td>216 MB</td><td>216 MB</td></tr><tr><td>Espacio utilizado</td><td>99,16 %</td><td>1,78 %</td></tr><tr><td><code>log_reuse_wait_desc</code></td><td><code>ACTIVE_TRANSACTION</code></td><td><code>NOTHING</code></td></tr><tr><td>Transacciones de usuario en tempdb</td><td>Transacción de laboratorio activa</td><td>0</td></tr><tr><td>Tabla de prueba</td><td>Existe</td><td>Eliminada</td></tr>
+</tbody></table>
+<figure class="evidence-figure"><img src="/assets/labs/tempdb-log-growth/ssms-visual-after-rollback.png" alt="Captura real de SSMS tras rollback: 216 MB físicos, 1,78 por ciento de uso y NOTHING"><figcaption>Validación final: el espacio vuelve a ser reutilizable; el fichero físico conserva su tamaño.</figcaption></figure>
+<p><strong>Reutilizar espacio de log no equivale a reducir el fichero.</strong> El truncamiento lógico libera VLF inactivos para reutilización; un shrink intenta devolver capacidad al sistema de archivos. Son operaciones diferentes. No reduzcas el fichero como respuesta automática a este síntoma.</p>
+
+<h2 id="runbook">8. Runbook de producción</h2>
+<ol>
+<li><strong>Confirmar impacto y capacidad:</strong> revisa espacio libre del volumen, tamaño actual, crecimiento y tendencia de ocupación. Comprueba si hay riesgo inmediato de llenar el disco.</li>
+<li><strong>Consultar el motivo de espera:</strong> lee <code>sys.databases.log_reuse_wait_desc</code>. No asumas que toda retención se debe a una transacción abierta.</li>
+<li><strong>Si aparece ACTIVE_TRANSACTION:</strong> identifica la transacción con <code>sys.dm_tran_database_transactions</code>, relaciónala con la sesión mediante <code>sys.dm_tran_session_transactions</code> y revisa login, host, programa y hora de inicio.</li>
+<li><strong>Entender antes de actuar:</strong> coordina con el propietario de la carga. Decide si debe terminar normalmente o revertirse según la lógica de la aplicación y la ventana de servicio. Un <code>KILL</code> puede iniciar un rollback largo y prolongar el consumo de recursos.</li>
+<li><strong>Validar la recuperación:</strong> mide de nuevo el espacio usado, <code>log_reuse_wait_desc</code>, las transacciones activas y el espacio libre del volumen. Registra las evidencias y el momento de recuperación.</li>
+<li><strong>Prevenir recurrencias:</strong> dimensiona <code>tempdb</code> para la carga normal y los picos, establece incrementos fijos razonables y monitoriza capacidad y autogrowth. El autogrowth es una salvaguarda, no un plan de capacidad.</li>
+</ol>
+<p><code>ACTIVE_TRANSACTION</code> no demuestra por sí solo que una tabla temporal de usuario sea la responsable. <code>tempdb</code> también contiene objetos internos, worktables, estructuras de sort/hash y row versioning. Correlaciona el motivo de espera y las DMVs antes de atribuir el consumo a una operación concreta.</p>
+
+<h2 id="lessons">9. Qué no hacer</h2>
+<ul>
+<li><strong>No reduzcas templog como primera medida.</strong> Si la transacción sigue activa, el shrink no corrige la causa. Si el workload vuelve a necesitar espacio, el fichero crecerá otra vez y añadirá trabajo de autogrowth.</li>
+<li><strong>No mates una sesión sin identificarla.</strong> Un SPID no es una causa raíz. Revisa programa, host, login, antigüedad y propietario de la transacción.</li>
+<li><strong>No confundas tamaño con ocupación.</strong> Un fichero de 216 MB puede estar ocupado solo al 1,78 % y ofrecer espacio reutilizable.</li>
+<li><strong>No copies la configuración del laboratorio.</strong> El autogrowth de 8 MB se eligió para observar eventos; producción requiere dimensionamiento basado en la carga y la capacidad de almacenamiento.</li>
+<li><strong>No generalices el resultado a todos los motivos de espera.</strong> Consulta el motivo observado y sigue la ruta de diagnóstico específica. No todas las causas de log reuse se resuelven con rollback.</li>
+</ul>
+
+<h2 id="sources">10. Fuentes primarias y material del laboratorio</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/es-es/sql/relational-databases/logs/the-transaction-log-sql-server?view=sql-server-ver16" target="_blank" rel="noopener">Microsoft Learn — Registro de transacciones de SQL Server</a>. Truncamiento, reutilización y motivos de espera.</li>
+<li><a href="https://learn.microsoft.com/es-es/sql/relational-databases/logs/troubleshoot-a-full-transaction-log-sql-server-error-9002?view=sql-server-ver17" target="_blank" rel="noopener">Microsoft Learn — Solucionar problemas de log lleno (error 9002)</a>. Diagnóstico de transacciones de larga duración y causas de log lleno.</li>
+<li><a href="https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-objects/sys-dm-db-log-space-usage-transact-sql?view=sql-server-ver16" target="_blank" rel="noopener">Microsoft Learn — sys.dm_db_log_space_usage</a>. Tamaño y espacio utilizado del log.</li>
+<li><a href="https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-objects/sys-dm-tran-database-transactions-transact-sql?view=sql-server-ver16" target="_blank" rel="noopener">Microsoft Learn — sys.dm_tran_database_transactions</a>. Estado, antigüedad y bytes de log por transacción.</li>
+<li><a href="https://learn.microsoft.com/es-es/sql/relational-databases/databases/tempdb-database?view=sql-server-ver16" target="_blank" rel="noopener">Microsoft Learn — Base de datos tempdb</a>. Uso, ciclo de vida y configuración.</li>
+<li><a href="https://learn.microsoft.com/en-us/sql/relational-databases/logs/manage-the-size-of-the-transaction-log-file?view=sql-server-ver17" target="_blank" rel="noopener">Microsoft Learn — Administrar el tamaño del log</a>. Dimensionamiento, autogrowth y shrink.</li>
+<li><a href="https://learn.microsoft.com/es-es/sql/relational-databases/event-classes/log-file-auto-grow-event-class?view=sql-server-ver17" target="_blank" rel="noopener">Microsoft Learn — Log File Auto Grow</a>. Evento 93.</li>
+<li><a href="https://learn.microsoft.com/en-us/sql/relational-databases/event-classes/data-file-auto-grow-event-class?view=sql-server-ver17" target="_blank" rel="noopener">Microsoft Learn — Data File Auto Grow</a>. Evento 92.</li>
+</ul>
+<p><a class="text-link" href="/assets/labs/tempdb-log-growth/tempdb-log-growth-lab.zip" download>Descargar scripts y README del laboratorio ↗</a></p>
+<p class="page-end">Entorno validado: Windows Server 2025 Standard Evaluation · SQL Server 2022 Developer RTM 16.0.1000.6 · SSMS 22.12.0 · 13 noviembre 2026. La carga se ejecutó independientemente mediante SQLCMD y SSMS. No es un benchmark ni un incidente de producción. El autogrowth de 8 MB es intencionado para la reproducción. Las capturas son evidencias reales del entorno aislado. Revisión documental: 13 noviembre 2026.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">Ficha técnica</div><p><strong>Plataforma</strong><br>SQL Server 2022 Developer RTM</p><p><strong>Base de datos</strong><br>tempdb · recuperación SIMPLE</p><p><strong>Herramientas</strong><br>SQLCMD · SSMS · DMVs · default trace</p><p><strong>Resultado</strong><br>216 MB · 99,16 % · ACTIVE_TRANSACTION</p><p><strong>Validación</strong><br>1,78 % usado · NOTHING · cero transacciones activas</p><p><strong>Etiqueta de evidencia</strong><br>Lab verified · no es producción</p></aside>
+</div></main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script><script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.googlefc.callbackQueue.push({'CONSENT_API_READY': () => { if (typeof window.googlefc.showRevocationMessage === 'function') window.googlefc.showRevocationMessage(); }});
+  });
+  window.googlefc.callbackQueue.push({'CONSENT_API_READY': () => {
+    if (typeof window.__tcfapi !== 'function') return;
+    window.__tcfapi('addEventListener', 0, (tcData, success) => { link.hidden = !(success && tcData && tcData.gdprApplies); });
+  }});
+})();
+</script>
+</body></html>
