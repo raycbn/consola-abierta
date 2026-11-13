@@ -11,4 +11,26 @@
 <nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/" aria-current="page">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto</a></div><div class="nav-tools"><form class="search-form" data-search-form data-search-lang="es"><input data-search-input type="search" placeholder="Buscar en todos los artículos" aria-label="Buscar en todos los artículos"><button>Buscar ↗</button></form></div></nav></div></header>
 <main class="site-shell" id="content"><header class="article-header"><div class="kicker">Índice de publicaciones</div><h1>Artículos y análisis técnicos</h1><p class="article-deck">Índice completo de las publicaciones, organizado por especialidades de ingeniería. Busca en el catálogo o filtra por área.</p></header><div class="search-results" data-search-results aria-live="polite"></div>
 <nav class="topic-filters" aria-label="Filtrar por especialidad"><a class="topic-filter" href="/es/articulos/">Todas las áreas</a><a class="topic-filter" href="/es/articulos/?topic=systems-infrastructure" data-topic-filter="systems-infrastructure">Systems & Infrastructure</a><a class="topic-filter" href="/es/articulos/?topic=it-operations" data-topic-filter="it-operations">IT Operations</a><a class="topic-filter" href="/es/articulos/?topic=resilience-recovery" data-topic-filter="resilience-recovery">Resilience & Recovery</a><a class="topic-filter" href="/es/articulos/?topic=automation-engineering" data-topic-filter="automation-engineering">Automation Engineering</a><a class="topic-filter" href="/es/articulos/?topic=platform-software" data-topic-filter="platform-software">Platform & Software</a><a class="topic-filter" href="/es/articulos/?topic=ai-for-it" data-topic-filter="ai-for-it">AI for IT</a></nav><div class="archive-list"><article class="archive-card" data-archive-card data-topic="systems-infrastructure it-operations"><div class="archive-meta">Systems & Infrastructure · IT Operations <span>2026-11-11</span></div><h2><a href="/es/analisis/diagnostico-rendimiento-windows-server/">Diagnóstico avanzado de rendimiento en Windows Server</a></h2><p>Investigación reproducible de CPU, memoria, almacenamiento y red en Windows Server 2025, con PerfMon, ETW, DiskSpd y límites documentados.</p><div class="archive-foot"><span>25–29 min</span><a class="text-link" href="/es/analisis/diagnostico-rendimiento-windows-server/">Leer análisis ↗</a></div></article><article class="archive-card" data-archive-card data-topic="systems-infrastructure automation-engineering"><div class="archive-meta">Systems & Infrastructure · Automation Engineering <span>2026-11-11</span></div><h2><a href="/es/analisis/powershell-7-6-migracion-empresarial/">PowerShell 7.4 y 7.5: fin de soporte y migración empresarial a 7.6 LTS</a></h2><p>Inventario de instalaciones, compatibilidad de módulos, validación de automatizaciones y despliegue controlado hacia PowerShell 7.6 LTS.</p><div class="archive-foot"><span>12 min</span><a class="text-link" href="/es/analisis/powershell-7-6-migracion-empresarial/">Leer análisis ↗</a></div></article></div><p class="archive-empty" id="archive-empty" hidden>Todavía no hay artículos publicados en esta especialidad.</p></main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer><script src="/assets/site.js" defer></script></body></html>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer><script src="/assets/site.js" defer></script><script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
+      window.googlefc.showRevocationMessage();
+    }
+  });
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  window.googlefc.callbackQueue.push({
+    "CONSENT_API_READY": () => {
+      if (typeof window.__tcfapi !== "function") return;
+      window.__tcfapi('addEventListener', 0, (tcData, success) => {
+        link.hidden = !(success && tcData && tcData.gdprApplies);
+      });
+    }
+  });
+})();
+</script>
+</body></html>

@@ -39,5 +39,27 @@
 <a class="topic-card" href="/es/articulos/?topic=ai-for-it"><span class="topic-number">06 / AI</span><h3>AI for IT</h3><p>Agentes, LLM, MCP y automatización inteligente de operaciones.</p></a></div></section>
 <section id="criterio" class="editorial-note"><h2>Menos ruido. Más criterio técnico.</h2><p>Publicamos para profesionales que necesitan tomar decisiones y operar sistemas de verdad. Cada contenido distingue entre documentación contrastada, laboratorio reproducido, análisis de terceros y experiencia propia. No confundimos una hipótesis con una causa raíz ni un comando con un procedimiento validado.</p></section>
 </main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Una publicación independiente fundada y editada por Ray Vega.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
-<script src="/assets/site.js" defer></script></body></html>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Una publicación independiente fundada y editada por Ray Vega.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
+<script src="/assets/site.js" defer></script><script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
+      window.googlefc.showRevocationMessage();
+    }
+  });
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  window.googlefc.callbackQueue.push({
+    "CONSENT_API_READY": () => {
+      if (typeof window.__tcfapi !== "function") return;
+      window.__tcfapi('addEventListener', 0, (tcData, success) => {
+        link.hidden = !(success && tcData && tcData.gdprApplies);
+      });
+    }
+  });
+})();
+</script>
+</body></html>

@@ -12,7 +12,10 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - RSS feeds: /feed.xml (Spanish) and /en/feed.xml (English), with an XSLT browser view and Atom self links.
 - Sitemap and robots: /sitemap.xml and /robots.txt.
 - Public corrections: /es/contacto/ and /en/contact/ via GitHub Issues (public); private contact: contacto@consolaabierta.com (published).
-- Legal/privacy routes remain noindex drafts until the owner confirms legal identity, suitable address, NIF and any applicable registration/authorisation details; the contact email is now published.
+- Privacy routes now disclose Google AdSense, advertising technologies, cookies, consent management, providers and user rights in Spanish and English. They remain noindex until the owner confirms legal identity and address.
+- ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
+- Twelve public pages expose a cookie/privacy preferences link wired to Google's googlefc.showRevocationMessage API; the link appears for visitors where the TCF reports GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
+- Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
 - GitHub Pages deploys the repository root on pushes to main, using .github/workflows/pages.yml.
 
 ## Local preview

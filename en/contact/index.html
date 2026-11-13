@@ -4,4 +4,26 @@
 <a class="skip-link" href="#content">Skip to content</a><header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><div class="header-meta"><span>Independent publication</span><a href="/es/contacto/">ES</a></div></div><nav class="primary-nav"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Contact</a></div></nav></div></header>
 <main class="site-shell" id="content"><header class="article-header"><div class="kicker">The private editorial contact address is listed. The owner's full legal identification is still pending.</div><h1>Editorial contact</h1><p class="article-deck">Public channel for editorial corrections and suggestions to Consola Abierta.</p></header><article class="article-body legal-draft"><h2>Public corrections and suggestions</h2><p>For corrections, errata and editorial suggestions, use the public issue tracker of the project repository. A GitHub account is required.</p><p><a class="text-link" href="https://github.com/raycbn/consola-abierta/issues/new" target="_blank" rel="noopener">Open a public issue on GitHub ↗</a></p><p>Issues are public and may be indexed. Do not include personal information, confidential material, customer or employer data, credentials or security-sensitive details.</p>
 <h2>Private contact and data protection requests</h2><p>For private correspondence, legal notices and requests relating to your personal data, write to <a href="mailto:contacto@consolaabierta.com">contacto@consolaabierta.com</a>. Do not use public issues for these matters.</p><p>The owner's full legal identity and address are still awaiting confirmation and will be added to the legal notice once verified.</p><p class="page-end">This email is the private contact channel. No response time is guaranteed.</p></article></main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Independent publication</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer><script src="/assets/site.js" defer></script></body></html>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Independent publication</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Cookie &amp; privacy settings</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer><script src="/assets/site.js" defer></script><script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
+      window.googlefc.showRevocationMessage();
+    }
+  });
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  window.googlefc.callbackQueue.push({
+    "CONSENT_API_READY": () => {
+      if (typeof window.__tcfapi !== "function") return;
+      window.__tcfapi('addEventListener', 0, (tcData, success) => {
+        link.hidden = !(success && tcData && tcData.gdprApplies);
+      });
+    }
+  });
+})();
+</script>
+</body></html>

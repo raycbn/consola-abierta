@@ -48,6 +48,28 @@
   </div></section>
   <section id="editorial" class="editorial-note"><h2>Less noise. More engineering judgement.</h2><p>We publish for professionals who need to make decisions and operate real systems. Each piece distinguishes documented facts, reproduced lab work, third-party incident analysis and first-hand experience. A hypothesis is not a root cause; a command is not a validated procedure.</p></section>
 </main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>An independent publication founded and edited by Ray Vega.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta.</div></footer>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>An independent publication founded and edited by Ray Vega.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Cookie &amp; privacy settings</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta.</div></footer>
 <script src="/assets/site.js" defer></script>
+<script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
+      window.googlefc.showRevocationMessage();
+    }
+  });
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  window.googlefc.callbackQueue.push({
+    "CONSENT_API_READY": () => {
+      if (typeof window.__tcfapi !== "function") return;
+      window.__tcfapi('addEventListener', 0, (tcData, success) => {
+        link.hidden = !(success && tcData && tcData.gdprApplies);
+      });
+    }
+  });
+})();
+</script>
 </body></html>

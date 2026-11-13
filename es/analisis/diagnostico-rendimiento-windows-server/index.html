@@ -284,5 +284,27 @@ wpr -stop C:\PerfLogs\cpu-investigation.etl "CPU contention during request laten
 <p><strong>Plataforma</strong><br>Windows Server 2019 / 2022 / 2025</p><p><strong>Ámbito</strong><br>CPU · Memoria · Storage · Network</p><p><strong>Herramientas</strong><br>PerfMon · logman · PowerShell · WPR/WPA · Pktmon</p><p><strong>Audiencia</strong><br>Senior · Specialist · Infrastructure / SRE</p><p><strong>Validaci&oacute;n</strong><br>CPU, memoria, almacenamiento y TCP entre invitados medidos; ETW correlacionado; causa de anomal&iacute;a de I/O no confirmada</p><p><strong>Riesgo operativo</strong><br>Impacto de captura, volumen de logs y datos sensibles</p>
 </aside>
 </div></main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Una publicación independiente fundada y editada por Ray Vega.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
-<script src="/assets/site.js" defer></script></body></html>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Una publicación independiente fundada y editada por Ray Vega.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© <span data-year>2026</span> Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
+<script src="/assets/site.js" defer></script><script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
+      window.googlefc.showRevocationMessage();
+    }
+  });
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  window.googlefc.callbackQueue.push({
+    "CONSENT_API_READY": () => {
+      if (typeof window.__tcfapi !== "function") return;
+      window.__tcfapi('addEventListener', 0, (tcData, success) => {
+        link.hidden = !(success && tcData && tcData.gdprApplies);
+      });
+    }
+  });
+})();
+</script>
+</body></html>

@@ -284,5 +284,27 @@ wpr -stop C:\PerfLogs\cpu-investigation.etl "CPU contention during request laten
 <p><strong>Platform</strong><br>Windows Server 2019 / 2022 / 2025</p><p><strong>Scope</strong><br>CPU · Memory · Storage · Network</p><p><strong>Tooling</strong><br>PerfMon · logman · PowerShell · WPR/WPA · Pktmon</p><p><strong>Audience</strong><br>Senior · Specialist · Infrastructure / SRE</p><p><strong>Validation</strong><br>CPU, memory, storage and guest-to-guest TCP measured; ETW correlated; storage I/O root cause unconfirmed</p><p><strong>Operational risk</strong><br>Capture overhead, log volume and sensitive data</p>
 </aside>
 </div></main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>An independent publication founded and edited by Ray Vega.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
-<script src="/assets/site.js" defer></script></body></html>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>An independent publication founded and edited by Ray Vega.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Cookie &amp; privacy settings</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script><script>
+(() => {
+  const link = document.getElementById('privacy-settings-link');
+  if (!link) return;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
+      window.googlefc.showRevocationMessage();
+    }
+  });
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  window.googlefc.callbackQueue.push({
+    "CONSENT_API_READY": () => {
+      if (typeof window.__tcfapi !== "function") return;
+      window.__tcfapi('addEventListener', 0, (tcData, success) => {
+        link.hidden = !(success && tcData && tcData.gdprApplies);
+      });
+    }
+  });
+})();
+</script>
+</body></html>
