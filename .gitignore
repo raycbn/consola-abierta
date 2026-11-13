@@ -14,5 +14,6 @@
 # Local browser / QA scripts and metrics
 /mobile-check.cjs
 /validate-site.cjs
+/structure-functional-check.cjs
 /mobile-metrics.json
 /article-mobile-metrics.json

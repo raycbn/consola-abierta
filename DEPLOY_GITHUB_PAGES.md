@@ -1,73 +1,35 @@
-# Deployment — GitHub Pages + consolaabierta.com
+# GitHub Pages — production runbook
 
-Static HTML/CSS/JavaScript. No build system is required.
+## Current production
+- Repository: raycbn/consola-abierta
+- Branch: main
+- Hosting: GitHub Pages via GitHub Actions.
+- Workflow: .github/workflows/pages.yml
+- Deployment source: repository root (static HTML/CSS/JavaScript).
+- Canonical host: https://consolaabierta.com/
+- Custom domain source file: CNAME containing consolaabierta.com.
+- No local build step or package installation is required for production.
 
-## Repository
+## Release procedure
+1. Fetch origin and verify the local main branch is aligned with origin/main before editing.
+2. Run node validate-site.cjs.
+3. Run node --check assets/site.js and the mobile checker where Chromium/Playwright are installed.
+4. Check ES/EN translation pairs, canonical/hreflang, sitemap, both RSS feeds, Open Graph images and git diff --check.
+5. Stage only publication source files. Keep lab evidence and local browser previews outside this repository.
+6. Commit and push to origin main only after all checks pass.
+7. Verify the GitHub Actions run for the new commit reaches success.
+8. Check live HTTP 200 for both homepages, both archives, contact pages, all articles, sitemap, robots, RSS ES/EN, CSS, JS and Open Graph PNG images.
+9. Confirm http:// and www redirect to https://consolaabierta.com/.
+10. Compare local and live pages after normalising newline conventions.
 
-Create a new **public** GitHub repository named `consola-abierta` under `raycbn`. Keep it separate from the existing `rayvega` portfolio and `Projects` repository.
+## Rollback
+- Identify the last known-good commit and successful Pages workflow.
+- Revert a faulty deployment with a new commit; do not force-push main.
+- Wait for the Pages workflow to complete and verify the restored canonical URLs.
+- Preserve the failing commit and its QA output for diagnosis.
 
-Push the complete contents of this directory to the repository's `main` branch. The workflow at `.github/workflows/pages.yml` deploys the repository root to GitHub Pages on every push to `main`.
+## DNS and mail — protected
+No DNS change was made during the 13 November 2026 structural close-out. Do not modify nameservers, apex A records, www CNAME, MX, SPF, DKIM, DMARC or other verification records as part of a routine content release. A future DNS change requires explicit approval, a complete zone export, verification of current records and a documented rollback plan. Mail delivery must be tested separately from website availability.
 
-## GitHub Pages setup
-
-1. In the new repository, open **Settings → Pages**.
-2. Set Build and deployment to **GitHub Actions**.
-3. Wait for the first successful deployment workflow.
-4. Verify ownership of `consolaabierta.com` in GitHub Pages / account domain settings before attaching it.
-5. In the repository's Pages settings, set the custom domain to `consolaabierta.com` and save.
-6. Only after the custom domain is attached, update the web DNS records in Arsys.
-7. Enable **Enforce HTTPS** after GitHub has issued the certificate.
-
-For a GitHub Actions deployment, the custom domain is configured in Pages settings; a `CNAME` source file is not required.
-
-## Current DNS baseline (checked from PCRAY, 11 Nov 2026)
-
-- Nameservers: `dns97.servidoresdns.net` and `dns98.servidoresdns.net`
-- A `@`: `217.76.128.47`
-- A `www`: `217.76.128.47`
-- MX `@`: `mx.serviciodecorreo.es`, priority `10`
-- TXT SPF `@`: `v=spf1 include:_spf.serviciodecorreo.es ~all`
-
-The current nameservers should remain in place. Do not move the domain to another DNS provider just to use GitHub Pages.
-
-## Arsys DNS changes (only after GitHub Pages domain setup)
-
-At the Arsys DNS zone editor:
-
-Replace the apex `A @` record currently pointing to `217.76.128.47` with all four GitHub Pages IPv4 records:
-
-- A `@` → `185.199.108.153`
-- A `@` → `185.199.109.153`
-- A `@` → `185.199.110.153`
-- A `@` → `185.199.111.153`
-
-For `www`, remove the current A record to `217.76.128.47` and create:
-
-- CNAME `www` → `raycbn.github.io`
-
-**Do not modify**:
-- NS records (`dns97.servidoresdns.net`, `dns98.servidoresdns.net`)
-- MX record (`mx.serviciodecorreo.es`, priority 10)
-- SPF TXT record (`v=spf1 include:_spf.serviciodecorreo.es ~all`)
-- Any DKIM, DMARC, verification or other mail-related TXT records
-
-Export or screenshot the complete DNS zone before making the changes. Do not delete unrelated records.
-
-## Verification after DNS propagation
-
-Use PowerShell `Resolve-DnsName` to check the apex A records and the www CNAME. GitHub notes that DNS propagation can take up to 24 hours.
-
-Validate:
-- https://consolaabierta.com/
-- https://consolaabierta.com/en/
-- https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/
-- https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/
-- https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/
-- https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/
-- https://consolaabierta.com/es/sobre/
-- https://consolaabierta.com/en/about/
-- https://consolaabierta.com/sitemap.xml
-- https://consolaabierta.com/robots.txt
-- https://consolaabierta.com/feed.xml
-
-Check certificate issuance, redirects, canonical URLs, hreflang, metadata, mobile layout and mail delivery. Keep NS/MX/SPF intact throughout.
+## Legal and contact publication gate
+The legal notice and privacy routes are deliberately noindex drafts. Do not remove the robots restriction or add them to the sitemap until the site owner confirms the legal name, suitable business/professional address, direct contact email and any applicable public-register or authorisation details. The public GitHub issue tracker is for public corrections only, not privacy-rights requests or confidential correspondence.
