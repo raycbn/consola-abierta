@@ -62,6 +62,8 @@ Validate:
 - https://consolaabierta.com/en/
 - https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/
 - https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/
+- https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/
+- https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/
 - https://consolaabierta.com/es/sobre/
 - https://consolaabierta.com/en/about/
 - https://consolaabierta.com/sitemap.xml

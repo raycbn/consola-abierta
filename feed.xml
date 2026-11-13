@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
     <title>Consola Abierta</title>
     <link>https://consolaabierta.com/</link>
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
-    <lastBuildDate>Wed, 11 Nov 2026 20:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 13 Nov 2026 12:25:23 +0100</lastBuildDate>
     <item>
       <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
       <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
@@ -15,11 +15,11 @@
       <category>Systems Engineering</category>
     </item>
     <item>
-      <title>Diagnóstico avanzado de rendimiento en Windows Server: de la métrica al cuello de botella</title>
+      <title>Windows Server bajo presión: diagnóstico avanzado de CPU, memoria, almacenamiento y red</title>
       <link>https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/</guid>
       <pubDate>Wed, 11 Nov 2026 20:00:00 +0100</pubDate>
-      <description>Método avanzado de diagnóstico con PerfMon, ETW, WPR/WPA y correlación de CPU, memoria, almacenamiento y red.</description>
+      <description>Diagnóstico reproducible en Windows Server 2025: CPU, memoria, DiskSpd, correlación ETW, tres transferencias TCP repetidas con conteo exacto de bytes y captura PerfMon de red; límites de muestreo y causa raíz de I/O no confirmada.</description>
       <category>Windows Server</category>
     </item>
   </channel>
