@@ -1,7 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel>
-<title>Consola Abierta — English edition</title><link>https://consolaabierta.com/en/</link>
-<description>Systems engineering, infrastructure and technical operations explained from the inside.</description><language>en</language><lastBuildDate>Fri, 13 Nov 2026 13:00:00 +0100</lastBuildDate>
-<item><title>Windows Server under pressure: advanced CPU, memory, storage and network diagnostics</title><link>https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</link><guid isPermaLink="true">https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</guid><pubDate>Wed, 11 Nov 2026 20:00:00 +0100</pubDate><description>A reproducible Windows Server 2025 investigation covering CPU, memory, DiskSpd, ETW and guest-to-guest TCP with dedicated PerfMon sampling and documented limits.</description><category>Windows Server</category></item>
-<item><title>PowerShell 7.4 and 7.5: end of support and enterprise migration to 7.6 LTS</title><link>https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/</link><guid isPermaLink="true">https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/</guid><pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate><description>Inventory, module compatibility, automation validation and a controlled rollout plan for PowerShell 7.6 LTS.</description><category>Automation Engineering</category></item>
-</channel></rss>
+<?xml-stylesheet type="text/xsl" href="/assets/rss.xsl"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Consola Abierta — English edition</title>
+    <link>https://consolaabierta.com/en/</link>
+    <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
+    <language>en</language>
+    <generator>Consola Abierta</generator>
+    <lastBuildDate>Fri, 13 Nov 2026 14:20:00 +0100</lastBuildDate>
+    <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Windows Server under pressure: advanced CPU, memory, storage and network diagnostics</title>
+      <link>https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</guid>
+      <pubDate>Wed, 11 Nov 2026 20:00:00 +0100</pubDate>
+      <description>A reproducible Windows Server 2025 investigation covering CPU, memory, DiskSpd, ETW and guest-to-guest TCP with dedicated PerfMon sampling and documented limits.</description>
+      <category>Windows Server</category>
+    </item>
+    <item>
+      <title>PowerShell 7.4 and 7.5: end of support and enterprise migration to 7.6 LTS</title>
+      <link>https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/</guid>
+      <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
+      <description>Inventory, module compatibility, automation validation and a controlled rollout plan for PowerShell 7.6 LTS.</description>
+      <category>Automation Engineering</category>
+    </item>
+  </channel>
+</rss>

@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<?xml-stylesheet type="text/xsl" href="/assets/rss.xsl"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Consola Abierta</title>
     <link>https://consolaabierta.com/</link>
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
-    <lastBuildDate>Fri, 13 Nov 2026 13:00:00 +0100</lastBuildDate>
+    <generator>Consola Abierta</generator>
+    <lastBuildDate>Fri, 13 Nov 2026 14:20:00 +0100</lastBuildDate>
+    <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
       <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
