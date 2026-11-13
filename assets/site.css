@@ -54,3 +54,39 @@ main{padding-bottom:80px}.kicker{color:var(--rust);font-size:10px;font-weight:75
   .article-body .data-table{display:block;width:100%;max-width:100%;box-sizing:border-box;overflow-x:auto;white-space:nowrap}
   .article-body p,.article-body li,.article-body td{overflow-wrap:anywhere}
 }
+
+
+/* Strict responsive media sizing across all pages and languages. */
+img, video, canvas, iframe {
+  max-width: 100%;
+}
+figure, picture {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+main img, article img, figure img, picture img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+@media (max-width: 680px) {
+  main, main > *, article, .article-body, .article-layout, figure, picture {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .article-body figure {
+    width: 100%;
+    margin-inline: 0;
+    overflow: clip;
+  }
+  .article-body figure img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+}
