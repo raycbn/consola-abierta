@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Consola Abierta — Ingeniería, sistemas y tecnología</title>
 <meta name="description" content="Publicación técnica independiente sobre ingeniería IT, sistemas, infraestructura, operaciones, resiliencia, automatización e inteligencia artificial.">
 <meta name="robots" content="index,follow"><link rel="canonical" href="https://consolaabierta.com/">
@@ -44,17 +44,21 @@
 (() => {
   const link = document.getElementById('privacy-settings-link');
   if (!link) return;
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
-      window.googlefc.showRevocationMessage();
-    }
-  });
   window.googlefc = window.googlefc || {};
   window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.googlefc.callbackQueue.push({
+      'CONSENT_API_READY': () => {
+        if (typeof window.googlefc.showRevocationMessage === 'function') {
+          window.googlefc.showRevocationMessage();
+        }
+      }
+    });
+  });
   window.googlefc.callbackQueue.push({
-    "CONSENT_API_READY": () => {
-      if (typeof window.__tcfapi !== "function") return;
+    'CONSENT_API_READY': () => {
+      if (typeof window.__tcfapi !== 'function') return;
       window.__tcfapi('addEventListener', 0, (tcData, success) => {
         link.hidden = !(success && tcData && tcData.gdprApplies);
       });

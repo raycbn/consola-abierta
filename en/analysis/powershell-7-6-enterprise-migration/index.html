@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
 <title>PowerShell 7.4 and 7.5 end of support: enterprise migration to 7.6 LTS | Consola Abierta</title>
 <meta name="description" content="An enterprise migration framework for PowerShell 7.4 and 7.5 to 7.6 LTS: lifecycle, inventory, module compatibility, deployment rings, validation and rollback.">
 <link rel="canonical" href="https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/">
@@ -125,17 +125,21 @@ Get-FileHash .\PowerShell-7.6.6-win-x64.msi -Algorithm SHA256
 (() => {
   const link = document.getElementById('privacy-settings-link');
   if (!link) return;
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
-      window.googlefc.showRevocationMessage();
-    }
-  });
   window.googlefc = window.googlefc || {};
   window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.googlefc.callbackQueue.push({
+      'CONSENT_API_READY': () => {
+        if (typeof window.googlefc.showRevocationMessage === 'function') {
+          window.googlefc.showRevocationMessage();
+        }
+      }
+    });
+  });
   window.googlefc.callbackQueue.push({
-    "CONSENT_API_READY": () => {
-      if (typeof window.__tcfapi !== "function") return;
+    'CONSENT_API_READY': () => {
+      if (typeof window.__tcfapi !== 'function') return;
       window.__tcfapi('addEventListener', 0, (tcData, success) => {
         link.hidden = !(success && tcData && tcData.gdprApplies);
       });

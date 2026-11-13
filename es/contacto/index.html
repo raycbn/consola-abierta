@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contacto editorial | Consola Abierta</title><meta name="description" content="Canal público para correcciones editoriales y sugerencias a Consola Abierta."><meta name="robots" content="index,follow"><link rel="canonical" href="https://consolaabierta.com/es/contacto/"><link rel="alternate" hreflang="es" href="/es/contacto/"><link rel="alternate" hreflang="en" href="/en/contact/"><link rel="icon" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css"><meta property="og:type" content="website"><meta property="og:title" content="Contacto editorial | Consola Abierta"><meta property="og:description" content="Canal público para correcciones editoriales y sugerencias a Consola Abierta."><meta property="og:url" content="https://consolaabierta.com/es/contacto/"><meta name="twitter:card" content="summary_large_image"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941"
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Contacto editorial | Consola Abierta</title><meta name="description" content="Canal público para correcciones editoriales y sugerencias a Consola Abierta."><meta name="robots" content="index,follow"><link rel="canonical" href="https://consolaabierta.com/es/contacto/"><link rel="alternate" hreflang="es" href="/es/contacto/"><link rel="alternate" hreflang="en" href="/en/contact/"><link rel="icon" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css"><meta property="og:type" content="website"><meta property="og:title" content="Contacto editorial | Consola Abierta"><meta property="og:description" content="Canal público para correcciones editoriales y sugerencias a Consola Abierta."><meta property="og:url" content="https://consolaabierta.com/es/contacto/"><meta name="twitter:card" content="summary_large_image"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941"
      crossorigin="anonymous"></script>
 </head><body>
 <a class="skip-link" href="#content">Saltar al contenido</a><header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación independiente</span><a href="/en/contact/">EN</a></div></div><nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto</a></div></nav></div></header>
@@ -8,17 +8,21 @@
 (() => {
   const link = document.getElementById('privacy-settings-link');
   if (!link) return;
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (window.googlefc && typeof window.googlefc.showRevocationMessage === "function") {
-      window.googlefc.showRevocationMessage();
-    }
-  });
   window.googlefc = window.googlefc || {};
   window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    window.googlefc.callbackQueue.push({
+      'CONSENT_API_READY': () => {
+        if (typeof window.googlefc.showRevocationMessage === 'function') {
+          window.googlefc.showRevocationMessage();
+        }
+      }
+    });
+  });
   window.googlefc.callbackQueue.push({
-    "CONSENT_API_READY": () => {
-      if (typeof window.__tcfapi !== "function") return;
+    'CONSENT_API_READY': () => {
+      if (typeof window.__tcfapi !== 'function') return;
       window.__tcfapi('addEventListener', 0, (tcData, success) => {
         link.hidden = !(success && tcData && tcData.gdprApplies);
       });
