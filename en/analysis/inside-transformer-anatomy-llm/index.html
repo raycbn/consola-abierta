@@ -110,8 +110,8 @@ input_ids.dtype = torch.int64</code></pre>
 
 <h2 id="multihead">5. Multi-Head Attention: multiple subspaces in parallel</h2>
 <p>A single head performs aggregation in one subspace. Multi-Head Attention projects Q, K and V into several learned subspaces, computes attention in parallel and concatenates the results. The output is projected back to <code>d_model</code>:</p>
-<pre class="equation"><code>MultiHead(Q, K, V) = Concat(head_1, ..., head_h) · W_O
-head_i = Attention(Q · W_Q^(i), K · W_K^(i), V · W_V^(i))</code></pre>
+<pre class="equation"><code>MultiHead(Q, K, V) = Concat(head_1, ..., head_h) @ W_O
+head_i = Attention(Q @ W_Q^(i), K @ W_K^(i), V @ W_V^(i))</code></pre>
 <p>In a common configuration, <code>d_h = d_model / h</code>. Our model uses <code>d_model=64</code> and four heads, so each head operates on 16 dimensions. The division must be exact in this implementation.</p>
 <p>One head may assign weight to different positions from another, but we should not label a head as “the verb head” or “the memory head” without specific analysis. Attention weights describe one operation; by themselves they do not provide a complete explanation of model behaviour.</p>
 
