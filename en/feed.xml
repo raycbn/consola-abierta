@@ -7,9 +7,17 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 08:45:00 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 20:34:12 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
+      <title>How an LLM Learns: Next-Token Prediction, Cross Entropy, Backpropagation and AdamW</title>
+      <link>https://consolaabierta.com/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/</guid>
+      <pubDate>Sat, 14 Nov 2026 20:34:12 +0100</pubDate>
+      <description>Autoregressive objective, Cross Entropy, gradients and AdamW. CPU-reproduced lab with two learning-rate policies and twelve checks.</description>
+      <category>LLM Engineering</category>
+    </item>
+<item>
       <title>Self-Attention Deep Dive: mathematics, gradients and modern variants</title>
       <link>https://consolaabierta.com/en/analysis/self-attention-deep-dive/</link>
       <guid isPermaLink="true">https://consolaabierta.com/en/analysis/self-attention-deep-dive/</guid>
@@ -17,7 +25,7 @@
       <description>Q/K/V derivation, gradients, causal masking, MHA/GQA/MQA and RoPE. CPU-reproduced PyTorch lab with seven numerical checks.</description>
       <category>LLM Engineering</category>
     </item>
-    <item>
+<item>
       <title>Inside a Transformer: from tokens to a decoder-only LLM</title>
       <link>https://consolaabierta.com/en/analysis/inside-transformer-anatomy-llm/</link>
       <guid isPermaLink="true">https://consolaabierta.com/en/analysis/inside-transformer-anatomy-llm/</guid>
@@ -25,7 +33,7 @@
       <description>A deep dive into embeddings, Q/K/V, scaled dot-product attention, causal masking, Pre-LayerNorm and next-token prediction. Includes a reproduced TinyGPT PyTorch lab.</description>
       <category>LLM Engineering</category>
     </item>
-    <item>
+<item>
       <title>SQL Server tempdb: diagnosing log growth caused by an open transaction</title>
       <link>https://consolaabierta.com/en/analysis/sql-server-tempdb-log-growth-open-transaction/</link>
       <guid isPermaLink="true">https://consolaabierta.com/en/analysis/sql-server-tempdb-log-growth-open-transaction/</guid>
@@ -33,7 +41,7 @@
       <description>Reproduced SQL Server 2022 lab: ACTIVE_TRANSACTION, 26 log growth events, DMV diagnosis and rollback validation.</description>
       <category>SQL Server</category>
     </item>
-    <item>
+<item>
       <title>Windows Server under pressure: advanced CPU, memory, storage and network diagnostics</title>
       <link>https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</link>
       <guid isPermaLink="true">https://consolaabierta.com/en/analysis/windows-server-performance-diagnostics/</guid>
@@ -41,13 +49,10 @@
       <description>A reproducible Windows Server 2025 investigation covering CPU, memory, DiskSpd, ETW and guest-to-guest TCP with dedicated PerfMon sampling and documented limits.</description>
       <category>Windows Server</category>
     </item>
-    <item>
-      <title>PowerShell 7.4 and 7.5: end of support and enterprise migration to 7.6 LTS</title>
-      <link>https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/</link>
-      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/powershell-7-6-enterprise-migration/</guid>
-      <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
-      <description>Inventory, module compatibility, automation validation and a controlled rollout plan for PowerShell 7.6 LTS.</description>
-      <category>Automation Engineering</category>
-    </item>
+
+
+
+
+
   </channel>
 </rss>

@@ -7,9 +7,17 @@
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 08:45:00 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 20:34:12 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
+      <title>Cómo aprende un LLM: next-token prediction, Cross Entropy, backpropagation y AdamW</title>
+      <link>https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/</guid>
+      <pubDate>Sat, 14 Nov 2026 20:34:12 +0100</pubDate>
+      <description>Objetivo autoregresivo, Cross Entropy, gradientes y AdamW. Laboratorio CPU reproducido con dos políticas de learning rate y doce comprobaciones.</description>
+      <category>LLM Engineering</category>
+    </item>
+<item>
       <title>Self-Attention en profundidad: matemáticas, gradientes y variantes modernas</title>
       <link>https://consolaabierta.com/es/analisis/self-attention-en-profundidad/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/self-attention-en-profundidad/</guid>
@@ -17,7 +25,7 @@
       <description>Derivación de Q/K/V, gradientes, causal masking, MHA/GQA/MQA y RoPE. Laboratorio PyTorch reproducido en CPU con siete comprobaciones numéricas.</description>
       <category>LLM Engineering</category>
     </item>
-    <item>
+<item>
       <title>Anatomía interna de un Transformer: de los tokens a un LLM decoder-only</title>
       <link>https://consolaabierta.com/es/analisis/anatomia-interna-transformer-llm/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/anatomia-interna-transformer-llm/</guid>
@@ -25,7 +33,7 @@
       <description>Deep dive en embeddings, Q/K/V, scaled dot-product attention, causal masking, Pre-LayerNorm y next-token prediction. Laboratorio TinyGPT reproducido con PyTorch.</description>
       <category>LLM Engineering</category>
     </item>
-    <item>
+<item>
       <title>SQL Server tempdb: crecimiento del log provocado por una transacción abierta</title>
       <link>https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/</guid>
@@ -33,7 +41,7 @@
       <description>Laboratorio reproducido en SQL Server 2022: ACTIVE_TRANSACTION, 26 crecimientos del log, diagnóstico con DMVs y validación tras rollback.</description>
       <category>SQL Server</category>
     </item>
-    <item>
+<item>
       <title>Windows Server bajo presión: diagnóstico avanzado de CPU, memoria, almacenamiento y red</title>
       <link>https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/diagnostico-rendimiento-windows-server/</guid>
@@ -41,13 +49,10 @@
       <description>Diagnóstico reproducible en Windows Server 2025: CPU, memoria, DiskSpd, correlación ETW, tres transferencias TCP repetidas con conteo exacto de bytes y captura PerfMon de red; límites de muestreo y causa raíz de I/O no confirmada.</description>
       <category>Windows Server</category>
     </item>
-    <item>
-      <title>PowerShell 7.4 y 7.5 llegan al fin de soporte: cómo planificar la migración empresarial a 7.6 LTS</title>
-      <link>https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</link>
-      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/powershell-7-6-migracion-empresarial/</guid>
-      <pubDate>Wed, 11 Nov 2026 13:00:00 +0100</pubDate>
-      <description>Plan de migración empresarial: lifecycle, inventario, compatibilidad de módulos, despliegue por anillos, validación y rollback.</description>
-      <category>Systems Engineering</category>
-    </item>
+
+
+
+
+
   </channel>
 </rss>

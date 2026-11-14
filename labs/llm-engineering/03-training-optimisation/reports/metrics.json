@@ -1,0 +1,91 @@
+{
+  "lab": "Consola Abierta - How an LLM Learns 03",
+  "run_timestamp_local": "2026-11-14 20:44:32",
+  "host": "PCRAY",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10",
+  "pytorch": "2.14.0+cpu",
+  "device": "cpu",
+  "cpu_threads": 4,
+  "cuda_available": false,
+  "xpu_available": false,
+  "data": {
+    "source": "Chapter 01 authored Spanish teaching corpus",
+    "train_characters": 7571,
+    "validation_characters": 2413,
+    "vocabulary_characters": 66,
+    "tokenization": "character-level teaching tokenizer",
+    "validation_used_for_optimizer_updates": false
+  },
+  "model": {
+    "architecture": "2-layer Pre-LN decoder-only Transformer with causal SDPA",
+    "block_size": 64,
+    "d_model": 48,
+    "heads": 4,
+    "parameters": 62880,
+    "batch_size": 12,
+    "dropout": 0.05,
+    "trainable_parameters_shared_between_runs": true
+  },
+  "training": {
+    "steps_per_run": 240,
+    "seed": 20261115,
+    "optimizer": "AdamW, betas=(0.9, 0.95), eps=1e-8",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "peak_learning_rate": 0.0005,
+    "minimum_learning_rate": 5e-05,
+    "warmup_steps": 24,
+    "runs": [
+      {
+        "mode": "constant",
+        "initial_train_loss": 4.190773367881775,
+        "final_train_loss": 2.386856585741043,
+        "initial_validation_loss": 4.191405534744263,
+        "final_validation_loss": 2.463010609149933,
+        "train_loss_reduction": 1.8039167821407318,
+        "validation_loss_reduction": 1.7283949255943298,
+        "train_validation_gap_final": 0.07615402340888977,
+        "wall_time_seconds": 8.994
+      },
+      {
+        "mode": "warmup_cosine",
+        "initial_train_loss": 4.190773367881775,
+        "final_train_loss": 2.5902074575424194,
+        "initial_validation_loss": 4.191405534744263,
+        "final_validation_loss": 2.636316657066345,
+        "train_loss_reduction": 1.6005659103393555,
+        "validation_loss_reduction": 1.5550888776779175,
+        "train_validation_gap_final": 0.04610919952392578,
+        "wall_time_seconds": 7.712
+      }
+    ]
+  },
+  "checks": {
+    "shift_alignment_check": true,
+    "cross_entropy_vs_log_softmax_nll_max_abs_error": 0.0,
+    "cross_entropy_equivalence_check": true,
+    "cross_entropy_gradient_max_abs_error": 1.3877787807814457e-17,
+    "cross_entropy_gradient_check": true,
+    "adamw_zero_gradient_expected_parameter": 0.98,
+    "adamw_zero_gradient_actual_parameter": 0.9800000190734863,
+    "adamw_decoupled_decay_check": true,
+    "gradient_norm_before_clip": 5.0,
+    "gradient_norm_after_clip": 0.9999998211860657,
+    "gradient_clipping_check": true,
+    "warmup_start_positive_check": true,
+    "warmup_peak_reached_check": true,
+    "cosine_minimum_reached_check": true,
+    "cosine_decay_monotonic_check": true,
+    "both_policies_reduce_train_loss_check": true,
+    "both_policies_reduce_validation_loss_check": true,
+    "all_final_losses_finite_check": true
+  },
+  "interpretation": [
+    "The two runs start from identical weights and consume the same precomputed batches.",
+    "This controlled comparison isolates the learning-rate policy within this small experiment; it does not prove one schedule is universally superior.",
+    "The corpus is a small authored character-level teaching corpus, not a representative pretraining dataset.",
+    "Validation loss is measured but never used for gradient updates.",
+    "No GPU, API, hosted model, external dataset or paid service is used."
+  ]
+}

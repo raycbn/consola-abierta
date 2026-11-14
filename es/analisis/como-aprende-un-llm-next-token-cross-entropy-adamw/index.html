@@ -1,0 +1,229 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Cómo aprende un LLM: next-token prediction, Cross Entropy y AdamW | Consola Abierta</title>
+<meta name="description" content="Del objetivo autoregresivo al update de AdamW: desplazamiento de targets, Cross Entropy sobre logits, backpropagation, gradient clipping, learning-rate schedules y generalización. Incluye un laboratorio PyTorch reproducido en CPU.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-training-03">
+<meta property="og:type" content="article"><meta property="og:title" content="Cómo aprende un LLM: next-token prediction, Cross Entropy y AdamW"><meta property="og:description" content="El objetivo autoregresivo, la loss, los gradientes y el optimizador, medidos en un laboratorio PyTorch CPU reproducible."><meta property="og:url" content="https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/"><meta property="og:site_name" content="Consola Abierta">
+<meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Cómo aprende un LLM: next-token prediction, Cross Entropy y AdamW","description":"Derivación del objetivo autoregresivo, Cross Entropy, gradientes, AdamW, learning-rate schedules y validación con un laboratorio PyTorch reproducible.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top">
+<a class="brand" href="/" aria-label="Consola Abierta, inicio"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a>
+<div class="header-meta"><span>Publicación independiente</span><a href="/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/" lang="en">EN</a></div></div>
+<nav class="primary-nav" aria-label="Navegación principal"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">Serie LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 03 / 08</span><a class="text-link" href="/es/series/llm-engineering/">Ver la serie ↗</a></div></nav></div></header>
+<main id="contenido" class="site-shell">
+<header class="article-header">
+<div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/series/llm-engineering/">LLM Engineering</a> / Training &amp; Optimisation</div>
+<div class="kicker">LLM Engineering · Training &amp; Optimisation · Lab verified</div>
+<h1>Cómo aprende un LLM: next-token prediction, Cross Entropy, backpropagation y AdamW</h1>
+<p class="article-deck">Un Transformer no aprende porque alguien le explique qué significa un texto. Aprende ajustando sus parámetros para elevar la probabilidad del siguiente token observado. Seguiremos ese proceso desde la alineación entre inputs y targets hasta la actualización de pesos, y mediremos qué cambia al modificar el learning-rate schedule.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>Publicado 14 noviembre 2026</span><span>25–30 min de lectura</span><span>Mid-senior · Senior · Specialist</span></div>
+<div class="status-line">LAB VERIFIED · Python 3.12.10 · PyTorch 2.14.0+cpu · Windows 11 · Intel Core i5-1155G7 · CPU-only · 12 comprobaciones · 14 noviembre 2026</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En este análisis</div><ol>
+<li><a href="#scope">Qué significa aprender</a></li><li><a href="#objective">El objetivo autoregresivo</a></li><li><a href="#shift">Shift de inputs y targets</a></li><li><a href="#logits">Logits y Cross Entropy</a></li><li><a href="#gradient">El gradiente de la loss</a></li><li><a href="#backprop">Backpropagation</a></li><li><a href="#adamw">AdamW y weight decay</a></li><li><a href="#schedule">Learning-rate schedules</a></li><li><a href="#clipping">Gradient clipping</a></li><li><a href="#generalisation">Train, validation y generalización</a></li><li><a href="#lab">Laboratorio reproducido</a></li><li><a href="#results">Resultados medidos</a></li><li><a href="#failure">Errores frecuentes</a></li><li><a href="#limits">Límites del experimento</a></li><li><a href="#next">Qué viene después</a></li><li><a href="#sources">Fuentes primarias</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>La pregunta central</strong><p>Tenemos una secuencia de tokens y un modelo que produce logits para cada posición. ¿Cómo convertimos esa salida en una señal de aprendizaje, cómo llega esa señal a cada parámetro y cómo decidimos cuánto modificarlo en cada update? Separaremos el objetivo estadístico, la derivación del gradiente y la política de optimización.</p></div>
+
+<h2 id="scope">1. Qué significa que un LLM aprenda</h2>
+<p>En un decoder-only language model, el entrenamiento habitual consiste en modelar la probabilidad de una secuencia como una cadena de predicciones condicionadas por el prefijo. El modelo recibe tokens previos y estima una distribución para el siguiente. Durante el pretraining, los propios textos aportan los targets: no es necesario que una persona etiquete manualmente cada token siguiente.</p>
+<p>La arquitectura Transformer del capítulo 01 y la operación de self-attention del capítulo 02 ya están construidas. Aquí tratamos sus pesos como parámetros θ. Aprender consiste en encontrar valores de θ que reduzcan una función objetivo sobre ejemplos de entrenamiento. El optimizador no introduce conocimiento externo: transforma gradientes en actualizaciones de parámetros.</p>
+<p>Conviene separar tres capas de razonamiento:</p>
+<ul><li><strong>Objetivo:</strong> qué probabilidad queremos aumentar o qué error queremos reducir.</li><li><strong>Gradiente:</strong> cómo cambia el objetivo cuando modificamos cada parámetro.</li><li><strong>Optimizador:</strong> cómo combina gradientes, learning rate, estado histórico y regularización para producir un update.</li></ul>
+
+<h2 id="objective">2. Next-token prediction: el objetivo autoregresivo</h2>
+<p>Sea una secuencia tokenizada x₁, x₂, …, xT. La regla de la cadena permite factorizar su probabilidad conjunta:</p>
+<pre><code>pθ(x1, ..., xT) = ∏t=1..T pθ(xt | x1, ..., x(t-1))</code></pre>
+<p>El modelo aprende a asignar probabilidad al token real condicionado por el prefijo. Maximizar la probabilidad de la secuencia equivale, en su forma negativa, a minimizar la <strong>negative log-likelihood (NLL)</strong>:</p>
+<pre><code>L(θ) = - Σt log pθ(xt | x&lt;t)</code></pre>
+<p>Para optimizar minibatches y comparar longitudes, lo habitual es promediar sobre las posiciones objetivo válidas. La reducción <code>mean</code> produce una pérdida media por token, no la suma de todas las pérdidas del batch.</p>
+<p>Esta formulación es la base del causal language modeling. El modelo debe construir una distribución sobre el vocabulario y recibe una señal mayor cuando el token observado obtiene poca probabilidad. La capacidad posterior de resolver tareas con prompts es una cuestión distinta de la definición del objetivo de pretraining.</p>
+
+<h2 id="shift">3. Shift de inputs y targets: el detalle que no puede fallar</h2>
+<p>Considera el texto tokenizado como:</p>
+<pre><code>tokens:  [La, atención, mezcla, información, .]
+input:   [La, atención, mezcla, información]
+target:  [atención, mezcla, información, .]</code></pre>
+<p>La misma secuencia proporciona varios ejemplos de entrenamiento. En la posición 0 el modelo predice el token 1; en la posición 1 predice el token 2, y así sucesivamente. Input y target tienen la misma longitud tras desplazar una posición, pero no contienen los mismos IDs en la misma posición.</p>
+<pre><code>input_ids = batch[:, :-1]   # [B, T]
+targets   = batch[:, 1:]    # [B, T]
+logits = model(input_ids)   # [B, T, vocab_size]</code></pre>
+<p>El modelo procesa el prefijo conocido para cada posición. Gracias al causal masking, el estado de la posición t no puede consultar tokens posteriores, aunque el entrenamiento calcule las salidas de todas las posiciones del bloque en paralelo. Esta combinación aporta eficiencia sin permitir que la respuesta futura se filtre hacia la predicción.</p>
+<div class="callout"><strong>Teacher forcing no equivale a fuga de futuro</strong><p>Durante training, cada posición recibe el prefijo correcto del corpus, no las predicciones muestreadas previamente por el modelo. Eso se denomina habitualmente teacher forcing. La máscara causal sigue siendo imprescindible: sin ella, una posición podría consultar tokens que deberían ser desconocidos al predecir. En inference, el token generado se incorpora al contexto para producir el siguiente.</p></div>
+<p>Un error de una sola posición altera todo el objetivo: si se compara cada logit con el token que ya estaba en su propia posición, el modelo aprende otra tarea. El test de alineación del laboratorio comprueba este desplazamiento antes de entrenar.</p>
+
+<h2 id="logits">4. Logits y Cross Entropy: medir la predicción</h2>
+<p>La última proyección del modelo produce un vector de puntuaciones para cada token del vocabulario. Son <strong>logits</strong>, no probabilidades. Para una posición, z ∈ ℝᴠ, donde V es el tamaño del vocabulario. Softmax transforma esos scores en una distribución:</p>
+<pre><code>p_i = exp(z_i) / Σj exp(z_j)</code></pre>
+<p>Si el target correcto es la clase y, la Cross Entropy para esa posición es:</p>
+<pre><code>CE(z, y) = -log(softmax(z)[y])
+         = -z_y + log(Σj exp(z_j))</code></pre>
+<p>La segunda expresión importa por estabilidad numérica: la implementación puede calcular log-softmax mediante técnicas como log-sum-exp, sin materializar una probabilidad diminuta y tomar después su logaritmo. Por eso <code>torch.nn.CrossEntropyLoss</code> espera logits sin normalizar. Aplicar softmax antes cambia la escala y la semántica de la pérdida; no lo hagas.</p>
+<pre><code>loss = F.cross_entropy(
+    logits.reshape(-1, vocab_size),
+    targets.reshape(-1)
+)</code></pre>
+<p>Con logits [B, T, V] y targets [B, T], se aplanan batch y secuencia para tratar cada una de las B × T posiciones como una clasificación sobre V clases. En batches con padding, los targets de posiciones no válidas deben excluirse mediante <code>ignore_index</code> o una máscara equivalente. No basta con ignorar el padding en la atención si sigue entrando en la media de la loss.</p>
+<h3>Qué significa realmente una loss menor</h3>
+<p>La Cross Entropy penaliza mucho las predicciones que asignan poca probabilidad al target real. Si el modelo asigna 0,8 al token correcto, la pérdida es −log(0,8), aproximadamente 0,223. Si asigna 0,01, la pérdida sube a aproximadamente 4,605. El modelo no tiene que acertar siempre el argmax para obtener una loss útil: la función también mide la confianza relativa que asigna al target correcto.</p>
+<p>La media de NLL en logaritmos naturales se relaciona con <strong>perplexity</strong> mediante:</p>
+<pre><code>perplexity = exp(mean_negative_log_likelihood)</code></pre>
+<p>Perplexity es una transformación exponencial de la loss, no una medida directa de comprensión. Su valor depende del tokenizer, del conjunto de evaluación, de cómo se cuentan los tokens y del dominio. No es válido comparar sin más una perplexity character-level con otra subword-level.</p>
+
+<h2 id="gradient">5. El gradiente de Cross Entropy: la señal por logit</h2>
+<p>Para una posición y una Cross Entropy estándar, la derivada respecto a los logits tiene una forma especialmente intuitiva. Si p es el vector softmax e y es el índice del target:</p>
+<pre><code>∂L/∂z = p - one_hot(y)</code></pre>
+<p>Cuando se promedia sobre N posiciones, el gradiente también queda dividido por N. En la coordenada del target se resta uno a la probabilidad predicha; en las demás coordenadas permanece la probabilidad estimada. El resultado empuja el logit correcto hacia arriba en relación con el resto.</p>
+<p>Esta derivada es solo el primer tramo del backward pass. Los logits dependen de la proyección de salida; esta depende de las representaciones ocultas; y esas representaciones atraviesan normalizaciones, residuals, MLPs y atención. La regla de la cadena propaga la señal hacia cada matriz y embedding que participó en el forward pass.</p>
+<p>El laboratorio genera logits sintéticos en float64, calcula la derivada con autograd y la compara con la expresión manual. El error absoluto máximo observado es 1,39 × 10⁻¹⁷, compatible con redondeo de punto flotante para esa prueba.</p>
+
+<h2 id="backprop">6. Backpropagation: del error a los parámetros</h2>
+<p>Autograd construye durante el forward pass un grafo de operaciones diferenciables. Al llamar a <code>loss.backward()</code>, PyTorch ejecuta reverse-mode automatic differentiation y acumula en <code>parameter.grad</code> la derivada de la pérdida respecto a cada parámetro que requiere gradiente.</p>
+<pre><code>optimizer.zero_grad(set_to_none=True)
+logits = model(input_ids)
+loss = F.cross_entropy(
+    logits.reshape(-1, vocab_size),
+    targets.reshape(-1)
+)
+loss.backward()
+torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+optimizer.step()</code></pre>
+<p>Los gradientes se acumulan por defecto. Si no se limpian antes del siguiente backward pass, se suman a los anteriores. <code>zero_grad(set_to_none=True)</code> deja los gradientes en None hasta que se calculen y puede reducir escrituras de memoria frente a rellenarlos con ceros.</p>
+<p>La actualización de gradiente más sencilla es:</p>
+<pre><code>θ(t+1) = θ(t) - η · ∇θ L</code></pre>
+<p>η es el <strong>learning rate</strong>: determina el tamaño del paso. Un gradiente indica una dirección local de incremento del objetivo; el signo negativo mueve los parámetros en la dirección que, localmente, reduce la loss. En redes profundas, sin embargo, la escala de gradientes varía entre parámetros y pasos. Por eso se usan optimizadores adaptativos y políticas de learning rate.</p>
+
+<h2 id="adamw">7. AdamW: momentos adaptativos y weight decay desacoplado</h2>
+<p>Adam mantiene estimaciones exponenciales del primer y segundo momento del gradiente. En forma simplificada:</p>
+<pre><code>m(t) = β1 · m(t-1) + (1 - β1) · g(t)
+v(t) = β2 · v(t-1) + (1 - β2) · g(t)^2
+m_hat = m(t) / (1 - β1^t)
+v_hat = v(t) / (1 - β2^t)
+θ ← θ - η · m_hat / (sqrt(v_hat) + ε)</code></pre>
+<p>El primer momento suaviza la dirección del gradiente; el segundo estima su escala por coordenada. Las correcciones de bias compensan que ambas estimaciones comienzan en cero. Cada parámetro obtiene una escala de actualización adaptada a su historial, aunque esto no elimina la necesidad de elegir bien el learning rate global.</p>
+<p><strong>AdamW</strong> separa el weight decay de la actualización basada en el gradiente. De forma intuitiva, combina el paso adaptativo de Adam con una contracción multiplicativa de los parámetros sujetos a decay:</p>
+<pre><code>θ ← θ - η · update_adam - η · λ · θ</code></pre>
+<p>La separación importa. Los autores de <em>Decoupled Weight Decay Regularization</em> muestran que, con optimizadores adaptativos como Adam, añadir una penalización L2 al objetivo no es equivalente a aplicar weight decay desacoplado. PyTorch implementa AdamW con el decay separado del cálculo de los momentos.</p>
+<p>En entrenamiento real no siempre se aplica decay a todos los tensores. Es común crear grupos para que las matrices de pesos reciban weight decay y que bias y parámetros de LayerNorm no lo reciban. Es una decisión de configuración, no una propiedad automática de toda implementación. El laboratorio aplica decay a matrices lineales y lo excluye de embeddings, bias y parámetros unidimensionales.</p>
+<p>Una prueba escalar aísla el concepto: con parámetro inicial 1, gradiente cero, learning rate 0,1 y weight decay 0,2, AdamW deja el parámetro en 0,98. No hay señal de la loss que empuje el peso; el cambio procede del término desacoplado de decay.</p>
+
+<h2 id="schedule">8. Learning-rate schedules: controlar el tamaño del paso</h2>
+<p>Un learning rate constante es una referencia sencilla, pero muchos entrenamientos usan una política que cambia η durante el proceso. Dos fases habituales son:</p>
+<ul><li><strong>Warmup:</strong> comienza con una tasa pequeña y la incrementa gradualmente durante un número definido de updates.</li><li><strong>Decay:</strong> después de alcanzar el pico, reduce la tasa para que las actualizaciones sean progresivamente más pequeñas.</li></ul>
+<p>En cosine decay, la transición desde ηmax hasta ηmin sigue media onda de coseno:</p>
+<pre><code>η(t) = ηmin + 0.5 · (ηmax - ηmin) · (1 + cos(π · progress))</code></pre>
+<p>progress recorre de 0 a 1 durante la fase de decay. Un warmup lineal anterior puede escribirse así:</p>
+<pre><code>η(t) = ηmax · (t + 1) / warmup_steps</code></pre>
+<figure class="evidence-figure"><img src="/assets/labs/training/warmup-cosine-schedule.svg" alt="Curva de learning rate con warmup lineal y descenso cosenoidal"><figcaption>La tasa crece durante 24 updates y después desciende hasta el mínimo configurado. La marca vertical indica el final del warmup.</figcaption></figure>
+<p>El paper original del Transformer popularizó una política con warmup e inverse-square-root decay; cosine decay es otra familia de schedule, no una reproducción exacta de aquella receta. PyTorch ofrece implementaciones como <code>LinearLR</code>, <code>CosineAnnealingLR</code> y <code>SequentialLR</code>. En una rutina por update, el scheduler suele avanzar después de <code>optimizer.step()</code>, siguiendo el contrato de la API concreta.</p>
+<p>No hay un schedule que sea mejor para cualquier entrenamiento. Presupuesto total de tokens, arquitectura, tamaño de batch, inicialización, optimizador y dataset afectan a la política que funciona. Una comparación justa debe mantener constantes el resto de condiciones.</p>
+
+<h2 id="clipping">9. Gradient clipping y estabilidad del update</h2>
+<p>El <strong>global norm clipping</strong> calcula la norma conjunta de los gradientes. Si supera un umbral c, multiplica todos por el mismo factor para que la norma final no exceda c:</p>
+<pre><code>scale = min(1, c / (||g||2 + ε))
+g ← scale · g</code></pre>
+<p>Esto limita el tamaño del vector de gradiente antes de que el optimizador lo utilice. No cambia la dirección relativa entre gradientes de parámetros, aunque sí reduce su magnitud. En PyTorch, <code>clip_grad_norm_</code> modifica los gradientes in-place y devuelve la norma total previa al clipping.</p>
+<p>Clipping no arregla una máscara incorrecta, un target mal alineado, una loss no finita, un learning rate inadecuado ni un problema de datos. Es una salvaguarda frente a normas excesivas; conviene registrar la norma previa para saber con qué frecuencia se activa.</p>
+
+<h2 id="generalisation">10. Train loss, validation loss y generalización</h2>
+<p>La training loss mide el objetivo sobre ejemplos que participan en la actualización de parámetros. La validation loss mide el mismo objetivo sobre ejemplos reservados que no intervienen en el backward pass. La segunda sirve para vigilar si el modelo mejora fuera de los datos que está optimizando directamente.</p>
+<p>Una training loss que cae mientras la validation loss deja de mejorar o empieza a subir puede ser señal de overfitting. Una brecha pequeña no prueba generalización robusta: depende del tamaño y diversidad del conjunto, de la partición, del tokenizer y de si los ejemplos son realmente independientes. Una split aleatoria por ventanas sobre un documento puede producir solapamiento de contexto; para una evaluación seria hay que separar por documentos o por una frontera temporal/dominio adecuada.</p>
+<p>También hay una diferencia entre <strong>pretraining</strong> y <strong>fine-tuning</strong>. El primero suele optimizar el objetivo autoregresivo sobre corpus amplios y variados. El segundo adapta un modelo ya entrenado a una distribución u objetivo más específico, normalmente con otro dataset y otro presupuesto. La loss de fine-tuning no se compara directamente con la de pretraining si cambian los datos, tokenizer o cálculo.</p>
+<p>La loss responde a una pregunta acotada: ¿qué probabilidad asigna el modelo a los siguientes tokens reales de este conjunto? No mide por sí sola factualidad, razonamiento, seguridad, utilidad ni comportamiento en despliegue.</p>
+
+<h2 id="lab">11. Laboratorio reproducido: dos políticas de optimización</h2>
+<p>Para pasar de la teoría a una medición controlada, he construido un decoder-only pequeño en PyTorch. No descarga modelos ni datasets. Reutiliza una copia local del corpus técnico español creado para el capítulo 01 y entrena en CPU.</p>
+<table class="data-table"><thead><tr><th>Componente</th><th>Configuración</th></tr></thead><tbody>
+<tr><td>Entorno</td><td>Windows 11 · Python 3.12.10 · PyTorch 2.14.0+cpu · 4 CPU threads</td></tr>
+<tr><td>Hardware</td><td>Intel Core i5-1155G7 · CPU-only</td></tr>
+<tr><td>Corpus</td><td>7.571 caracteres train · 2.413 validation · 66 caracteres únicos</td></tr>
+<tr><td>Modelo</td><td>Decoder-only Pre-LN · 2 layers · 4 heads · d_model 48 · 62.880 parámetros</td></tr>
+<tr><td>Contexto y batch</td><td>Block size 64 · batch size 12 · dropout 0,05</td></tr>
+<tr><td>Optimizador</td><td>AdamW · betas (0,9; 0,95) · eps 1e-8 · weight decay 0,01</td></tr>
+<tr><td>Estabilidad</td><td>Global gradient norm clipping a 1,0</td></tr>
+<tr><td>Presupuesto</td><td>240 updates por política · semilla 20261115</td></tr>
+</tbody></table>
+<p>La comparación utiliza dos ejecuciones con los mismos pesos iniciales, la misma secuencia precomputada de minibatches y la misma configuración del optimizador. Solo cambia la política de learning rate:</p>
+<ul><li><strong>Constant:</strong> 5e-4 en los 240 updates.</li><li><strong>Warmup + cosine:</strong> warmup lineal durante 24 updates; después descenso cosenoidal desde 5e-4 hasta 5e-5.</li></ul>
+<p>La evaluación usa ventanas fijas: ocho minibatches de entrenamiento y ocho de validación. La validación no se utiliza en ningún backward pass. Es suficiente para una comparación pedagógica reproducible, pero no equivale a evaluar exhaustivamente cada carácter del split. Para que la codificación character-level pueda representar todos los caracteres del corpus, el alfabeto se construye con ambos splits; esto revela el inventario de caracteres de validation, pero no aporta sus ejemplos a los gradientes. Un pipeline de producción ajustaría el tokenizer sobre training y definiría explícitamente el tratamiento de tokens desconocidos.</p>
+<p>El laboratorio se ejecuta con <code>.\run.ps1</code>. El ZIP incluye código, corpus local, dependencias, informe, CSV, métricas JSON y SVG.</p>
+<p><a class="text-link" href="/assets/labs/training/training-optimisation-03-lab.zip">Descargar laboratorio 03 (ZIP) ↗</a></p>
+
+<h2 id="results">12. Resultados medidos</h2>
+<p>La ejecución local terminó con <strong>LAB STATUS: PASS</strong>. Ambas políticas redujeron training loss y validation loss:</p>
+<table class="data-table"><thead><tr><th>Política</th><th>Train loss</th><th>Validation loss</th><th>Tiempo</th></tr></thead><tbody>
+<tr><td>Inicial</td><td>4,1908</td><td>4,1914</td><td>—</td></tr>
+<tr><td>AdamW · constante</td><td>2,3869</td><td>2,4630</td><td>~8 s</td></tr>
+<tr><td>AdamW · warmup + cosine</td><td>2,5902</td><td>2,6363</td><td>~8 s</td></tr>
+</tbody></table>
+<p>El tiempo aproximado de cada run es orientativo y varía con la carga del equipo; no debe interpretarse como benchmark de rendimiento.</p>
+<figure class="evidence-figure"><img src="/assets/labs/training/training-policy-comparison.svg" alt="Comparación de training loss y validation loss entre learning rate constante y warmup más cosine decay"><figcaption>Los dos métodos parten del mismo modelo y de los mismos minibatches. En este presupuesto corto, la tasa constante acaba con una loss menor; el schedule reduce progresivamente el tamaño de los updates.</figcaption></figure>
+<p>En esta ejecución, AdamW con tasa constante termina con validation loss 2,4630, mientras que warmup + cosine termina en 2,6363. No es una prueba de superioridad general de la tasa constante. El schedule pasa una fracción del presupuesto por debajo de la tasa máxima; con más updates, otro dataset o una arquitectura mayor, la relación puede cambiar. El resultado muestra por qué conviene medir el schedule elegido en vez de asumir que un patrón conocido siempre mejora el resultado.</p>
+<p>La brecha final entre train y validation es 0,0762 para la política constante y 0,0461 para warmup + cosine. En este experimento no aparece una brecha grande; con una única semilla, una muestra pequeña y un corpus estrecho no debemos convertir esa observación en una conclusión fuerte sobre generalización.</p>
+<h3>Comprobaciones numéricas</h3>
+<table class="data-table"><thead><tr><th>Prueba</th><th>Resultado</th><th>Verificación</th></tr></thead><tbody>
+<tr><td>1. Alineación input/target</td><td>Targets desplazados un token</td><td>PASS</td></tr>
+<tr><td>2. Cross Entropy vs. log_softmax + NLLLoss</td><td>Error absoluto máximo 0</td><td>PASS</td></tr>
+<tr><td>3. Gradiente manual vs. autograd</td><td>Error absoluto máximo 1,39 × 10<sup>−17</sup></td><td>PASS</td></tr>
+<tr><td>4. AdamW con gradiente cero</td><td>1,0 → 0,98 con lr 0,1 y decay 0,2</td><td>PASS</td></tr>
+<tr><td>5. Gradient clipping</td><td>Norma global 5,0 → 1,0</td><td>PASS</td></tr>
+<tr><td>6. Warmup inicia con tasa positiva</td><td>El primer learning rate es mayor que cero</td><td>PASS</td></tr>
+<tr><td>7. Warmup alcanza el pico</td><td>5e-4 al update 24</td><td>PASS</td></tr>
+<tr><td>8. Cosine decay alcanza el mínimo</td><td>5e-5 en el último update</td><td>PASS</td></tr>
+<tr><td>9. Cosine decay es monótono</td><td>No aumenta durante la fase de decay</td><td>PASS</td></tr>
+<tr><td>10. Ambas políticas reducen train loss</td><td>La loss de entrenamiento final es menor en ambos runs</td><td>PASS</td></tr>
+<tr><td>11. Ambas políticas reducen validation loss</td><td>La loss de validación final es menor en ambos runs</td><td>PASS</td></tr>
+<tr><td>12. Pérdidas finales finitas</td><td>No hay NaN ni infinito en train/validation</td><td>PASS</td></tr>
+</tbody></table>
+<p>Los archivos de evidencia permiten auditar la ejecución: <code>reports/metrics.json</code> registra versiones, host, configuración y checks; <code>evidence/training-comparison.csv</code> recoge learning rate, batch loss y grad norm previo al clipping; <code>evidence/loss-history.json</code> contiene las medidas de train y validation usadas para dibujar la gráfica.</p>
+
+<h2 id="failure">13. Errores frecuentes al entrenar</h2>
+<ul>
+<li><strong>Targets sin desplazar:</strong> el modelo aprende a reproducir el token que ya ve en vez de predecir el siguiente.</li>
+<li><strong>Softmax antes de Cross Entropy:</strong> se entrega una distribución normalizada donde la función espera logits.</li>
+<li><strong>Gradientes acumulados:</strong> se omite zero_grad y los updates mezclan accidentalmente minibatches anteriores.</li>
+<li><strong>Scheduler desfasado:</strong> se llama step en el orden equivocado o se cuentan epochs cuando la configuración está definida por updates.</li>
+<li><strong>Validación dentro del entrenamiento:</strong> se calculan gradientes sobre validation o se ajustan hiperparámetros continuamente a un conjunto que luego se presenta como test independiente.</li>
+<li><strong>Interpretar solo train loss:</strong> una pérdida de entrenamiento que baja puede coexistir con peor rendimiento fuera del corpus de ajuste.</li>
+<li><strong>Copiar hiperparámetros sin contexto:</strong> valores de un paper no son presets universales; importan batch global, tokens por update, arquitectura, precision y presupuesto total.</li>
+</ul>
+
+<h2 id="limits">14. Qué no demuestra el laboratorio</h2>
+<p>El modelo tiene 62.880 parámetros y trabaja a nivel de carácter con un corpus técnico breve. No es una réplica de GPT-2, GPT-3 ni de un LLM actual. No mide calidad conversacional, capacidades emergentes, razonamiento, factualidad, seguridad, throughput de GPU, uso de memoria acelerada ni escalabilidad distribuida.</p>
+<p>La comparación usa una única semilla, 240 updates por política y una muestra fija de evaluación. Para evaluar robustez habría que repetir con varias semillas, varios datasets y más presupuesto, documentar incertidumbre y controlar decisiones adicionales de optimización. Tampoco puede aislarse el efecto de un schedule en un modelo grande a partir de este microexperimento.</p>
+<div class="callout"><strong>Qué sí podemos afirmar</strong><p>El objetivo next-token está alineado y comprobado; la derivada de Cross Entropy coincide con autograd; AdamW aplica weight decay desacoplado; clipping limita la norma; y, en esta comparación concreta, ambas políticas reducen la pérdida, con una ventaja de la tasa constante al final de los 240 updates. Eso es lo que miden las evidencias, ni más ni menos.</p></div>
+
+<h2 id="next">15. Qué viene después</h2>
+<p>Ya sabemos cómo aprende el modelo: el objetivo define qué token debe predecir, Cross Entropy convierte logits en una señal, backpropagation distribuye gradientes y AdamW transforma esa señal en actualizaciones. El siguiente capítulo cambia de fase: una vez entrenado el modelo, ¿qué ocurre cuando recibe una petición y tiene que generar tokens?</p>
+<p>El capítulo 04 estudiará <strong>LLM Inference: Prefill, Decode y KV Cache</strong>. Separaremos el procesamiento del prompt de la generación autoregresiva, seguiremos los tensores que se reutilizan y veremos por qué la memoria y el ancho de banda importan tanto como los FLOPs.</p>
+
+<h2 id="sources">16. Fuentes primarias y documentación</h2>
+<ul>
+<li>Brown et al. (2020), <a href="https://arxiv.org/abs/2005.14165" target="_blank" rel="noopener">Language Models are Few-Shot Learners</a>. Modelo autoregresivo GPT-3 y pretraining a escala.</li>
+<li>Loshchilov y Hutter (2017), <a href="https://arxiv.org/abs/1711.05101" target="_blank" rel="noopener">Decoupled Weight Decay Regularization</a>. Diferencia entre L2 regularization y weight decay desacoplado para Adam.</li>
+<li>PyTorch 2.14, <a href="https://docs.pytorch.org/docs/2.14/generated/torch.nn.CrossEntropyLoss.html" target="_blank" rel="noopener">CrossEntropyLoss</a>. Entrada de logits sin normalizar, targets y reducción.</li>
+<li>PyTorch 2.14, <a href="https://docs.pytorch.org/docs/2.14/generated/torch.optim.AdamW.html" target="_blank" rel="noopener">AdamW</a>. Implementación y weight decay desacoplado.</li>
+<li>PyTorch 2.14, <a href="https://docs.pytorch.org/docs/2.14/generated/torch.optim.lr_scheduler.CosineAnnealingLR.html" target="_blank" rel="noopener">CosineAnnealingLR</a> y <a href="https://docs.pytorch.org/docs/2.14/generated/torch.optim.lr_scheduler.LinearLR.html" target="_blank" rel="noopener">LinearLR</a>. Schedulers disponibles.</li>
+<li>PyTorch 2.14, <a href="https://docs.pytorch.org/docs/2.14/generated/torch.nn.utils.clip_grad_norm_.html" target="_blank" rel="noopener">clip_grad_norm_</a>. Cálculo y escalado de la norma conjunta de gradientes.</li>
+<li>Hugging Face Transformers, <a href="https://huggingface.co/docs/transformers/tasks/language_modeling" target="_blank" rel="noopener">Causal language modeling</a>. Preparación de labels desplazados, bloques de tokens y evaluación.</li>
+<li>Vaswani et al. (2017), <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention Is All You Need</a>. Arquitectura Transformer y schedule original con warmup e inverse square root decay.</li>
+</ul>
+<p class="page-end">Fuentes revisadas el 14 de noviembre de 2026. El laboratorio se reprodujo en CPU con el entorno indicado; los valores no se extrapolan a modelos de producción.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">Estado de la serie</div><p><strong>Publicados</strong><br>3 / 8</p><p><strong>Laboratorios</strong><br>TinyGPT · Attention · Training</p><p><strong>Siguiente bloque</strong><br>Inference · Prefill · Decode · KV Cache</p><p><strong>Idioma</strong><br>Español · English</p><p><a class="text-link" href="/es/series/llm-engineering/">Volver a LLM Engineering ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

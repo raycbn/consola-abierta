@@ -2,6 +2,34 @@
   "generated": "2026-11-14",
   "articles": [
     {
+      "labels": "AI · LLM Engineering · Training & Optimisation",
+      "lang": "es",
+      "title": "Cómo aprende un LLM: next-token prediction, Cross Entropy, backpropagation y AdamW",
+      "url": "/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/",
+      "summary": "Objetivo autoregresivo, shift de targets, Cross Entropy sobre logits, backpropagation, AdamW y comparación reproducible de learning-rate schedules en CPU.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "25–30 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · Training & Optimisation",
+      "lang": "en",
+      "title": "How an LLM Learns: Next-Token Prediction, Cross Entropy, Backpropagation and AdamW",
+      "url": "/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/",
+      "summary": "Autoregressive objective, shifted targets, Cross Entropy on logits, backpropagation, AdamW and a reproducible CPU learning-rate schedule comparison.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "25–30 min"
+    },
+    {
       "labels": "AI · LLM Engineering · Transformer Internals",
       "lang": "es",
       "title": "Anatomía interna de un Transformer: de los tokens a un LLM decoder-only",
