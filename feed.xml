@@ -7,9 +7,18 @@
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 20:34:12 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 20:05:33 GMT</lastBuildDate>
     <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
+
     <item>
+      <title>LLM Inference: Prefill, Decode y KV Cache</title>
+      <link>https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/</guid>
+      <pubDate>Sat, 14 Nov 2026 20:05:33 GMT</pubDate>
+      <description>Prefill, Decode y KV Cache: fases de inferencia, reutilizaci?n de K/V y dimensionamiento de memoria. Laboratorio CPU reproducible.</description>
+      <category>LLM Engineering</category>
+    </item>
+<item>
       <title>Cómo aprende un LLM: next-token prediction, Cross Entropy, backpropagation y AdamW</title>
       <link>https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/</guid>

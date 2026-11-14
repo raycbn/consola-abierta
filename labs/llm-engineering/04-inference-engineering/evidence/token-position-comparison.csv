@@ -1,0 +1,6 @@
+prompt_tokens,decode_inputs,cached_positions,full_prefix_recompute_positions,structural_reduction_percent
+32,4,36,138,73.91
+32,8,40,292,86.30
+32,16,48,648,92.59
+32,32,64,1552,95.88
+32,64,96,4128,97.67

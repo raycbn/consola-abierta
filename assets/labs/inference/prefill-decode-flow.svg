@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="t d">
+<title id="t">Prefill and decode</title><desc id="d">Prefill evaluates prompt positions in parallel and seeds key and value caches. Decode evaluates one new token against the cached prefix.</desc>
+<rect width="1200" height="520" fill="#fbfaf7"/>
+<text x="48" y="48" font-family="Arial" font-size="24" font-weight="700" fill="#192630">Two phases, different query shapes</text>
+<rect x="48" y="74" width="520" height="390" rx="7" fill="#e3ecec" stroke="#b8c9c9"/>
+<rect x="632" y="74" width="520" height="390" rx="7" fill="#f3e9df" stroke="#d9c5b6"/>
+<text x="78" y="116" font-family="Arial" font-size="21" font-weight="700" fill="#17394b">01 / PREFILL</text>
+<text x="662" y="116" font-family="Arial" font-size="21" font-weight="700" fill="#7b412e">02 / DECODE</text>
+<text x="78" y="144" font-family="Arial" font-size="14" fill="#34444d">All prompt positions processed together</text>
+<text x="662" y="144" font-family="Arial" font-size="14" fill="#34444d">One new query attends to past and current K/V</text>
+<g font-family="Arial" font-size="13" text-anchor="middle" fill="white">
+<rect x="82" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="106" y="200">t0</text>
+<rect x="142" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="166" y="200">t1</text>
+<rect x="202" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="226" y="200">t2</text>
+<rect x="262" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="286" y="200">t3</text>
+<rect x="322" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="346" y="200">t4</text>
+<rect x="382" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="406" y="200">t5</text>
+<rect x="442" y="174" width="48" height="42" rx="4" fill="#28566b"/><text x="466" y="200">…</text>
+</g>
+<path d="M286 220 V248 M278 240 L286 250 L294 240" stroke="#28566b" stroke-width="3" fill="none"/>
+<rect x="108" y="258" width="356" height="54" rx="5" fill="#17394b"/><text x="286" y="291" text-anchor="middle" font-family="Arial" font-size="17" fill="white">Transformer layers · Q / K / V</text>
+<path d="M286 313 V338 M278 330 L286 340 L294 330" stroke="#28566b" stroke-width="3" fill="none"/>
+<rect x="108" y="350" width="168" height="76" rx="5" fill="white" stroke="#28566b"/><text x="192" y="380" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#17394b">K cache</text><text x="192" y="404" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">prompt positions</text>
+<rect x="296" y="350" width="168" height="76" rx="5" fill="white" stroke="#28566b"/><text x="380" y="380" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#17394b">V cache</text><text x="380" y="404" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">prompt positions</text>
+<g font-family="Arial" font-size="13" text-anchor="middle" fill="white">
+<rect x="672" y="174" width="64" height="42" rx="4" fill="#8e9b98"/><text x="704" y="200">past</text>
+<rect x="748" y="174" width="64" height="42" rx="4" fill="#8e9b98"/><text x="780" y="200">past</text>
+<rect x="824" y="174" width="64" height="42" rx="4" fill="#8e9b98"/><text x="856" y="200">past</text>
+<rect x="900" y="174" width="64" height="42" rx="4" fill="#8e9b98"/><text x="932" y="200">past</text>
+<rect x="976" y="174" width="64" height="42" rx="4" fill="#a9573d"/><text x="1008" y="200">new</text>
+</g>
+<path d="M892 220 V248 M884 240 L892 250 L900 240" stroke="#a9573d" stroke-width="3" fill="none"/>
+<rect x="688" y="258" width="408" height="54" rx="5" fill="#6c4032"/><text x="892" y="291" text-anchor="middle" font-family="Arial" font-size="16" fill="white">Q(new) × K(all) → softmax → V(all)</text>
+<path d="M892 313 V338 M884 330 L892 340 L900 330" stroke="#a9573d" stroke-width="3" fill="none"/>
+<rect x="690" y="350" width="190" height="76" rx="5" fill="white" stroke="#a9573d"/><text x="785" y="380" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#6c4032">Append K(new)</text><text x="785" y="404" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">at every layer</text>
+<rect x="904" y="350" width="190" height="76" rx="5" fill="white" stroke="#a9573d"/><text x="999" y="380" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#6c4032">Append V(new)</text><text x="999" y="404" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">at every layer</text>
+<text x="600" y="493" text-anchor="middle" font-family="Arial" font-size="13" fill="#647078">Conceptual dataflow · cache is maintained independently at each attention layer</text></svg>

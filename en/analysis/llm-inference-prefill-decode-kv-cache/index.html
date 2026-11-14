@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>LLM Inference: Prefill, Decode and KV Cache | Consola Abierta</title>
+<meta name="description" content="A deep dive into autoregressive inference: Prefill and Decode phases, incremental attention, KV Cache, complexity, memory trade-offs and a reproducible CPU PyTorch lab.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-inference-04">
+<meta property="og:type" content="article"><meta property="og:title" content="LLM Inference: Prefill, Decode and KV Cache"><meta property="og:description" content="What happens after training: prompt processing, token-by-token generation and attention memory management."><meta property="og:url" content="https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"LLM Inference: Prefill, Decode and KV Cache","description":"Technical analysis of autoregressive inference phases and per-layer Key/Value state storage and reuse, with a reproducible CPU laboratory.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top">
+<a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering &amp; technology</span></span></a>
+<div class="header-meta"><span>Independent technical publication</span><a href="/es/analisis/inferencia-llm-prefill-decode-kv-cache/" lang="es">ES</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 04 / 08</span><a class="text-link" href="/en/series/llm-engineering/">View the series ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header">
+<div class="breadcrumbs"><a href="/en/">Home</a> / <a href="/en/series/llm-engineering/">LLM Engineering</a> / Inference Engineering</div>
+<div class="kicker">LLM Engineering · Inference Engineering · Lab verified</div>
+<h1>LLM Inference: Prefill, Decode and KV Cache</h1>
+<p class="article-deck">Training is complete. A request arrives, and the model must answer. Understanding the real cost of that operation means separating two phases: processing the prompt and generating its continuation. At the centre is a memory structure that avoids repeating part of the work: the Key/Value Cache.</p>
+<div class="article-meta"><span>By Ray Vega</span><span>Published 14 November 2026</span><span>24–28 min read</span><span>Mid-senior · Senior · Specialists</span></div>
+<div class="status-line">LAB VERIFIED · Python 3.12.10 · PyTorch 2.14.0+cpu · Windows 11 · Intel Core i5-1155G7 · CPU-only · 7 checks · 14 November 2026</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contents"><div class="toc-title">In this investigation</div><ol>
+<li><a href="#scope">From training to inference</a></li><li><a href="#generation">The autoregressive loop</a></li><li><a href="#prefill">Prefill</a></li><li><a href="#decode">Decode</a></li><li><a href="#kv">What the KV Cache stores</a></li><li><a href="#reuse">Why it avoids work</a></li><li><a href="#memory">How much memory it uses</a></li><li><a href="#bottlenecks">Compute-bound vs memory-bound</a></li><li><a href="#optimisations">Variants and trade-offs</a></li><li><a href="#metrics">Measuring inference</a></li><li><a href="#lab">Reproduced laboratory</a></li><li><a href="#results">Results</a></li><li><a href="#pitfalls">Implementation pitfalls</a></li><li><a href="#limits">Boundaries</a></li><li><a href="#next">What comes next</a></li><li><a href="#sources">Primary sources</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>The central question</strong><p>When we send a prompt, why does the model process all its tokens together but then generate one token at a time? Which calculations can be reused, which cannot, and how does that reusable state translate into GPU memory? We will follow the tensors and validate the mechanism with a small implementation.</p></div>
+
+<h2 id="scope">1. From training to inference</h2>
+<p>In the previous chapter, we studied how a decoder-only Transformer adjusts its parameters to increase the probability of the next token. During training, sequences are processed with <em>teacher forcing</em>: each position receives the correct corpus prefix, and a causal mask prevents access to future positions. The loss and backpropagation update the weights.</p>
+<p>During inference, the weights are fixed. We receive an input sequence — the prompt — and want to produce a continuation. There is no backward pass and no parameter update. We run a forward pass, obtain logits for the next token, select a token and repeat until a stopping condition is reached.</p>
+<p>The distinction sounds simple, but it changes the compute pattern. The prompt may contain hundreds or thousands of tokens that are known before generation begins. Those positions can be processed in parallel while preserving causality. The next output token, however, depends on the token just selected: generation is sequential over time.</p>
+<p>LLM serving commonly separates this operation into two conceptual phases:</p>
+<ul><li><strong>Prefill:</strong> process the complete prompt and prepare the attention state needed by later iterations.</li><li><strong>Decode:</strong> incorporate generated tokens, usually one per iteration, while reusing the previous state.</li></ul>
+<figure class="evidence-figure"><img src="/assets/labs/inference/prefill-decode-flow.svg" alt="Prefill and Decode diagram: prompt positions are processed together and each generated token extends the Key/Value cache"><figcaption>Key/Value state is retained at every attention layer. During Decode, the new query attends to previous and current keys and values.</figcaption></figure>
+
+<h2 id="generation">2. The autoregressive loop, step by step</h2>
+<p>Assume the prompt contains P tokens. The model computes a distribution for the next position and we select the first generated token. That token is appended to the context. The next forward pass uses the previous state and the new token to produce the distribution for the second generated token.</p>
+<pre><code>prompt = [x1, x2, ..., xP]
+
+logits_1 = prefill(prompt)
+token_1 = sample_or_select(logits_1)
+
+logits_2 = decode(token_1, cache)
+token_2 = sample_or_select(logits_2)
+
+logits_3 = decode(token_2, cache)
+token_3 = sample_or_select(logits_3)</code></pre>
+<p>One timing detail is easy to miss: <strong>Prefill already produces the logits used to select the first output token</strong>. We do not need to feed that token through the model to predict itself. The first Decode call consumes the token we have just selected to calculate the logits for the following token.</p>
+<p>Selection may be greedy, sampling with temperature and top-p/top-k, or a more elaborate algorithm. This policy turns logits into a token, but it does not change the basic cache concept. Cache contents depend on the processed prefix and model, not on whether selection used greedy or sampling.</p>
+<p>The loop ends when an EOS token is generated, an output limit is reached, the runtime triggers a stopping condition or the request is cancelled. In batch serving, requests can have different sequence lengths; coordinating those sequences is one of a serving engine's responsibilities, which we will study later.</p>
+
+<h2 id="prefill">3. Prefill: processing the known context</h2>
+<p>During Prefill, the model receives all P prompt tokens. Each layer computes Query, Key and Value projections from hidden representations. Each position may attend to previous positions and itself, never to future positions. A causal mask preserves this property while the framework computes many positions in parallel.</p>
+<p>For one attention layer, the projection shapes are conceptually:</p>
+<pre><code>input:  X  [B, P, d_model]
+Q:      [B, Hq, P, Dh]
+K:      [B, Hkv, P, Dh]
+V:      [B, Hkv, P, Dh]</code></pre>
+<p>B is batch size, P is prompt length, Hq is the number of query heads, Hkv is the number of Key/Value heads and Dh is the dimension per head. In conventional Multi-Head Attention, Hq and Hkv match. With Grouped-Query Attention or Multi-Query Attention, Hkv may be smaller.</p>
+<p>The complete prompt passes through the layers. The last position produces the logits used to select the first output token. In addition, each layer retains its K and V tensors so they do not need to be calculated again in following iterations.</p>
+<p>Prefill does not mean all operations are independent or that the causal mask disappears. Parallelism is across sequence positions: the attention matrix preserves allowed dependencies through the mask. The cost of dense attention depends on context length and the actual kernel implementation.</p>
+
+<h2 id="decode">4. Decode: one new token, one new query</h2>
+<p>Once the first generated token is selected, the runtime adds it to the input of the next iteration. The layer computes its new Q, K and V projections. The Query is new and has one position; the available keys and values span the previous prefix plus the current token.</p>
+<pre><code>Q_new:       [B, Hq, 1, Dh]
+K_all:       [B, Hkv, P + t, Dh]
+V_all:       [B, Hkv, P + t, Dh]
+
+scores = Q_new @ transpose(K_all) / sqrt(Dh)
+weights = softmax(scores)
+context = weights @ V_all</code></pre>
+<p>The block output produces logits for selecting the next token. The K and V for the newly processed position are appended to that layer's cache. This happens at every layer. The cache is therefore not one global matrix: it is a collection of K/V states, one for each attention block.</p>
+<p>During Decode, the query has length 1, but its keys and values may cover thousands of positions. Each new token attends to a growing context. The cache avoids propagating the already-processed prefix through every layer again; it does not make attention constant-cost with respect to context length.</p>
+<div class="callout"><strong>Why the order matters</strong><p>If we already have past K and V, we do not need to calculate them again. But we do need a new Query for the current token and must calculate its attention against the accumulated keys. The KV Cache avoids recomputing previous states; it does not remove context reads.</p></div>
+
+<h2 id="kv">5. What exactly does the KV Cache store?</h2>
+<p>At every self-attention layer, a hidden representation is projected into three spaces:</p>
+<ul><li><strong>Query (Q):</strong> represents what information the current position is looking for.</li><li><strong>Key (K):</strong> enables compatibility scores between the query and each available position.</li><li><strong>Value (V):</strong> carries the information combined according to attention weights.</li></ul>
+<p>In simplified form, attention computes QKᵀ similarities, scales them, applies softmax and uses the result to weight V. Earlier positions' K and V do not change when a new token is appended in a standard causal Transformer with fixed weights: those positions could only depend on their own prefix, which is already known.</p>
+<p>That is why they can be stored. In contrast:</p>
+<ul><li>The model weights are not copied once per token; the same weights are shared by every position.</li><li>Query is not stored for future reuse: queries belong to specific positions and the next position will produce a different query.</li><li>The cache is not simply a copy of the prompt text: it contains per-layer, per-head and per-position tensor projections.</li><li>The cache does not by itself contain every network activation or the full state of the generation process.</li></ul>
+<p>The cache is tied to the identity and configuration of the model, the token sequence that produced it and options such as RoPE/positional encoding, dtype, architecture and attention pattern. Reusing it with a different prefix, incompatible model or misaligned positions is invalid.</p>
+
+<h2 id="reuse">6. Why the cache avoids so much work</h2>
+<p>Consider a prompt of P tokens and D Decode inputs. Without a cache, a reference implementation may run the model over the entire prefix again for each new token. The number of positions processed through the model would be:</p>
+<pre><code>(P + 1) + (P + 2) + ... + (P + D)</code></pre>
+<p>With Prefill and incremental caching, the model processes the initial P positions once and then one position for every Decode input:</p>
+<pre><code>P + D</code></pre>
+<p>For P=32 and D=32, full-prefix recomputation processes 1,552 accumulated positions, compared with 64 on the incremental path. That is a 95.88% reduction in the structural count of positions. It does not mean an equivalent reduction in FLOPs or latency: each new query still compares against a growing K/V context, and attention cost, memory traffic and kernels depend on the architecture.</p>
+<figure class="evidence-figure"><img src="/assets/labs/inference/token-position-comparison.svg" alt="Bars comparing model input positions for full-prefix recomputation and Prefill plus incremental Decode"><figcaption>Structural count for a fixed 32-token prompt and several generation lengths. It is not a timing measurement or hardware benchmark.</figcaption></figure>
+<p>The cache opportunity is especially clear in token-by-token generation: without it, old-position projections are repeated at every step. With it, historical projections are retained and only the new position is incorporated.</p>
+
+<h2 id="memory">7. How much space does it use? The memory formula</h2>
+<p>The trade-off is that storing K and V costs memory. For a homogeneous dense-attention architecture, storage can be estimated as:</p>
+<pre><code>KV_bytes =
+  2 × L × B × T × Hkv × Dh × bytes_per_element</code></pre>
+<p>Where:</p>
+<ul><li><strong>2:</strong> Key and Value.</li><li><strong>L:</strong> number of layers with attention cache.</li><li><strong>B:</strong> batch size, or the number of sequences maintaining their own state.</li><li><strong>T:</strong> cached context positions.</li><li><strong>Hkv:</strong> number of Key/Value heads.</li><li><strong>Dh:</strong> dimension per head.</li><li><strong>bytes_per_element:</strong> numeric storage size (2 for FP16/BF16, 4 for FP32).</li></ul>
+<p>Illustrative example: 32 layers, batch 1, 8 KV heads, head_dim 128 and two bytes per element. Each token needs 128 KiB of K/V. At 16,384 tokens, storage totals 2 GiB, excluding weights, activations, temporary buffers, metadata and allocator fragmentation.</p>
+<figure class="evidence-figure"><img src="/assets/labs/inference/kv-cache-memory.svg" alt="Chart showing KV Cache size growing linearly with context length"><figcaption>FP16/BF16 example: 32 layers, batch 1, eight KV heads and dimension 128. This is a K/V tensor estimate, not total server memory.</figcaption></figure>
+<p>Size grows linearly with T and B. Doubling context or batch doubles cache storage, all else being equal. More layers, KV heads or head dimension increase it as well.</p>
+<p>The formula is a sizing baseline, not a universal value. MQA/GQA reduce Hkv relative to Hq; sliding-window attention may limit T in selected layers; hybrid models can mix attention types; and a runtime may allocate blocks, padding or auxiliary structures. Check the actual architecture and storage format before reserving memory.</p>
+<p>The cache usually resides in accelerator memory because Decode accesses it repeatedly. Some runtimes support CPU offload or other storage strategies: they reduce VRAM pressure but introduce transfers and latency/throughput trade-offs.</p>
+
+<h2 id="bottlenecks">8. Compute-bound Prefill and memory-bound Decode</h2>
+<p>In many workloads, Prefill processes a substantial number of tokens simultaneously. More matrix work is available and the accelerator can use parallelism more effectively. It is therefore commonly described as the more <em>compute-bound</em> phase.</p>
+<p>Decode processes very few new tokens per sequence and iterates through dependent steps. For every token, model weights participate in the forward pass and K/V states for a growing context must be read. At small batch sizes, the operation can be limited more by moving data from memory than by peak arithmetic capability: hence the term <em>memory-bound</em>.</p>
+<p>This is a typical characterisation, not a universal law. Batch size, context length, concurrent requests, accelerator, kernels, quantisation, speculative decoding and prefix caching can change the bottleneck. A short prompt with a cached prefix may behave differently; speculative decoding can also change the amount of work per iteration.</p>
+<p>The distinction helps explain why an attention-kernel improvement may benefit the phases differently, and why “tokens per second” alone does not explain user experience. First-token latency and inter-token latency are different dimensions.</p>
+
+<h2 id="optimisations">9. Cache variants and engineering decisions</h2>
+<h3>Dynamic Cache and Static Cache</h3>
+<p>A Dynamic Cache grows its tensors as tokens arrive. It is flexible for variable-length sequences, but dynamic growth can involve allocations and management overhead. A Static Cache reserves a known capacity ahead of time; it can make compilation and execution with stable shapes easier, but reserves space even while a sequence is short. The choice depends on the runtime, traffic pattern and memory constraints.</p>
+<h3>GQA and MQA</h3>
+<p>With Multi-Query Attention, several query heads share one K/V head pair. Grouped-Query Attention groups multiple query heads per KV head. Reducing Hkv lowers cache memory and the volume of K/V that must be stored and read. It is not a free optimisation: it changes the attention design and its representational/cost trade-off.</p>
+<h3>Sliding window and hybrid architectures</h3>
+<p>Some layers attend only to a local window. In those layers it may not be necessary to retain every old position: effective cache length can be bounded. Other models mix global and local layers, so memory cannot be estimated accurately by multiplying one homogeneous configuration without checking each layer's attention pattern.</p>
+<h3>Prefix caching is not the same as a request's cache</h3>
+<p>The ordinary KV Cache avoids recomputing the prefix within one generation. <em>Prefix caching</em> attempts to reuse states for a shared prefix across separate requests. For example, multiple requests may begin with the same system context or a common document. An engine can identify matching token blocks and share already-computed state, provided model identity, tokens and configuration allow reuse. This is an additional serving layer, not an automatic property of every per-request cache.</p>
+<h3>Offload, quantisation and paging</h3>
+<p>Offload moves part of the cache out of VRAM, trading memory for transfers. Quantisation reduces bytes per element but introduces scaling, precision and error decisions that require validation. Paged allocation manages KV blocks to reduce fragmentation and accommodate requests of different lengths. These are complementary techniques, not synonyms for KV Cache. We will go deeper into the engine and its scheduler in the vLLM chapter.</p>
+
+<h2 id="metrics">10. Measuring real inference</h2>
+<p>Before comparing engines or configurations, define which latency is being measured and under what load. Common metrics include:</p>
+<ul><li><strong>TTFT (Time To First Token):</strong> time from request arrival until the system can emit the first token. End-to-end measurement may include queuing and Prefill, depending on instrumentation boundaries.</li><li><strong>TPOT (Time Per Output Token):</strong> average time per generated token after the first, according to the measurement convention.</li><li><strong>ITL (Inter-Token Latency):</strong> time between consecutive tokens, useful for studying smoothness and variability.</li><li><strong>Throughput:</strong> tokens per second; specify whether it counts input tokens, output tokens or both and whether it is per request or aggregate.</li><li><strong>Concurrency and percentiles:</strong> active requests, input/output length distributions, p50/p95/p99 and error rate.</li></ul>
+<p>A reproducible test should pin model and revision, tokenizer, hardware, dtype, input/output lengths, batch/concurrency, warm-up, duration, sampling policy and exact metric definitions. Queues and timeouts should also be reported; one isolated call does not represent service behaviour under load.</p>
+<p>Chapter 08 will examine benchmarking in depth: TTFT, TPOT, throughput, percentiles, saturation and cost per request. For now, it is enough to distinguish that Prefill conditions the start and Decode the output cadence, although real workloads mix both phases across many requests.</p>
+
+<h2 id="lab">11. Reproduced laboratory: incremental cache vs recomputation</h2>
+<p>I built a small decoder-only Transformer in PyTorch with three layers, four attention heads and a model dimension of 64. Its weights are random: the purpose is not to generate convincing language but to isolate tensor flow and verify that the incremental path is equivalent to recomputing the entire prefix.</p>
+<table class="data-table"><thead><tr><th>Parameter</th><th>Configuration</th></tr></thead><tbody>
+<tr><td>Environment</td><td>Windows 11 · Python 3.12.10 · PyTorch 2.14.0+cpu</td></tr>
+<tr><td>Hardware</td><td>Intel Core i5-1155G7 · CPU-only · 4 threads</td></tr>
+<tr><td>Model</td><td>3 decoder blocks · 4 heads · d_model 64 · head_dim 16</td></tr>
+<tr><td>Batch and context</td><td>Batch 2 · prompt 24 tokens · 12 Decode inputs</td></tr>
+<tr><td>Numeric type</td><td>FP32 · no GPU required</td></tr>
+<tr><td>Seed</td><td>20261114</td></tr>
+<tr><td>Checks</td><td>7 automated assertions</td></tr>
+</tbody></table>
+<p>The lab runs Prefill once and collects the K/V state from every layer. It then adds a known sequence of 12 tokens. At each step, it compares incremental Decode logits with the last-position logits from a full forward pass over the accumulated prefix.</p>
+<p>It also checks cache length and shape, counts the positions that pass through the model in both schemes and compares actual tensor storage with the memory formula. It does not measure relative latency between the two routes: full-prefix forward is used as a numerical reference, not as a performance benchmark.</p>
+<p><a class="text-link" href="/assets/labs/inference/inference-engineering-04-lab.zip">Download lab 04 (ZIP) ↗</a></p>
+
+<h2 id="results">12. Measured results</h2>
+<p>The local run on 14 November 2026 finished with <strong>LAB STATUS: PASS</strong>. Results:</p>
+<table class="data-table"><thead><tr><th>Check</th><th>Result</th><th>Status</th></tr></thead><tbody>
+<tr><td>Prefill vs full forward</td><td>Maximum absolute logit error: 0</td><td>PASS</td></tr>
+<tr><td>Incremental Decode vs recomputation</td><td>Maximum absolute error: 1.1444 × 10<sup>−5</sup></td><td>PASS</td></tr>
+<tr><td>Cache length</td><td>24 → 36 positions, one per appended token</td><td>PASS</td></tr>
+<tr><td>Shapes across three layers</td><td>[2, 4, 36, 16] for K and V</td><td>PASS</td></tr>
+<tr><td>Measured bytes vs formula</td><td>110,592 bytes in both calculations</td><td>PASS</td></tr>
+<tr><td>Processed positions</td><td>36 incremental vs 366 with full-prefix recomputation</td><td>PASS</td></tr>
+<tr><td>Finite values</td><td>Finite errors at every step</td><td>PASS</td></tr>
+</tbody></table>
+<p>The comparison tolerance is 2 × 10<sup>−5</sup>. The small difference between paths comes from floating-point operation order and different matrix/kernel shapes; it should not be interpreted as a model-quality deviation. The important result is that outputs match within the tolerance defined for this test.</p>
+<p>The 36 vs 366 count represents token positions passed through model layers: the 24-position prompt once, followed by 12 new positions, versus recomputing prefixes of lengths 25 through 36. The structural reduction is 90.16%. It is not a 90.16% reduction in FLOPs, power use or latency.</p>
+<p>The small model's cache occupies 110,592 bytes: three layers × batch two × 36 positions × four KV heads × dimension 16 × two tensors × four-byte FP32. This exactly matches observed storage. The sizing CSV also includes larger FP16/BF16 examples; 16,384 tokens with 32 layers and eight KV heads use 2 GiB for K/V alone.</p>
+<h3>Evidence files</h3>
+<ul><li><code>reports/metrics.json</code>: hardware, versions, configuration, results and checks.</li><li><code>reports/lab-report.md</code>: readable experiment report.</li><li><code>evidence/cache-equivalence.csv</code>: numerical error for Prefill and every Decode step.</li><li><code>evidence/token-position-comparison.csv</code>: position counts with and without cache.</li><li><code>evidence/kv-cache-memory.csv</code>: memory sizing calculations.</li><li><code>evidence/visuals/</code>: original SVG diagrams.</li></ul>
+
+<h2 id="pitfalls">13. Common Decode implementation mistakes</h2>
+<ul>
+<li><strong>Recomputing the entire prefix:</strong> it works as a baseline but wastes projections and activations that were already computed.</li>
+<li><strong>Forgetting to append K/V:</strong> a cache that is not updated makes the model ignore recently generated tokens.</li>
+<li><strong>Misaligning positions:</strong> with RoPE or positional embeddings, the new token must receive its correct absolute or relative position; restarting every call at position zero changes the result.</li>
+<li><strong>Applying the wrong causal mask:</strong> for a query of length one and long K/V, a non-square mask can have unexpected alignment. The lab attends to every cache entry because they are all past or current, never future.</li>
+<li><strong>Confusing Hq and Hkv:</strong> GQA/MQA may have fewer KV heads than query heads. Cache shapes must not always assume they match.</li>
+<li><strong>Mixing incompatible requests:</strong> reusing cache with another model, tokenization, prefix or positional configuration can invalidate the state.</li>
+<li><strong>Sizing only for weights:</strong> in long contexts and high batch sizes, KV Cache may become a dominant part of serving memory.</li>
+<li><strong>Comparing non-equivalent metrics:</strong> TTFT, aggregate throughput and per-request latency are not interchangeable.</li>
+</ul>
+
+<h2 id="limits">14. What the laboratory does and does not show</h2>
+<p>The experiment shows that, for this teaching model and within the specified numerical tolerance, Prefill and incremental Decode reproduce the logits obtained by recomputing each full prefix. It also validates cache shape and memory accounting.</p>
+<p>It does not demonstrate GPU acceleration, lower latency in a real engine, generation quality, production throughput, scalability, GQA/MQA behaviour, quantised-cache accuracy or statistical advantages across architectures. The weights are random and the model has not been trained.</p>
+<div class="callout"><strong>Verifiable conclusion</strong><p>The KV Cache retains the keys and values computed by each layer for already-processed positions. Decode appends K/V for the new position and computes a new Query against the accumulated context. In the lab, this path matches full-prefix recomputation within 2 × 10⁻⁵ and avoids reprocessing old positions. The trade-off is memory proportional to context, batch, layers and number of KV heads.</p></div>
+
+<h2 id="next">15. What comes next</h2>
+<p>We now have the base inference path: Prefill computes the prompt state; Decode adds tokens one at a time; the KV Cache prevents recomputing historical projections but consumes memory and still requires reading the context.</p>
+<p>Chapter 05 moves into serving engines: <strong>vLLM, PagedAttention, Continuous Batching and GPU memory management</strong>. We will move from a per-sequence cache to understanding how a runtime manages many concurrent sequences without wasting memory through rigid reservations.</p>
+
+<h2 id="sources">16. Primary sources and documentation</h2>
+<ul>
+<li>Hugging Face Transformers, <a href="https://huggingface.co/docs/transformers/en/kv_cache" target="_blank" rel="noopener">Cache strategies</a>. Cache types, dynamic growth, static cache and offloading.</li>
+<li>NVIDIA, <a href="https://developer.nvidia.com/blog/co-designing-ai-model-attention-for-fast-interactive-long-context-inference/" target="_blank" rel="noopener">Co-Designing AI Model Attention for Fast, Interactive Long-Context Inference</a> (31 July 2026). Prefill/Decode patterns and workload-dependent caveats.</li>
+<li>NVIDIA, <a href="https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/" target="_blank" rel="noopener">Mastering LLM Techniques: Inference Optimization</a>. K/V reuse, memory bandwidth and inference techniques.</li>
+<li>PyTorch, <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html" target="_blank" rel="noopener">scaled_dot_product_attention</a>. Causal mask semantics and scaled attention.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener">Automatic Prefix Caching</a>. Reuse of prefix blocks across requests.</li>
+<li>Vaswani et al. (2017), <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention Is All You Need</a>. Transformer and attention foundations.</li>
+</ul>
+<p class="page-end">Sources reviewed on 14 November 2026. Experimental results belong to the CPU laboratory described here and are not extrapolated to production systems.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">Series status</div><p><strong>Published</strong><br>4 / 8</p><p><strong>Laboratories</strong><br>TinyGPT · Attention · Training · Inference</p><p><strong>Next block</strong><br>vLLM · PagedAttention · Continuous Batching</p><p><strong>Language</strong><br>English · Español</p><p><a class="text-link" href="/en/series/llm-engineering/">Back to LLM Engineering ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering &amp; technology</span></span></a><p>Independent technical publication.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

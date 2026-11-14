@@ -1,0 +1,127 @@
+{
+  "host": "PCRAY",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10",
+  "pytorch": "2.14.0+cpu",
+  "device": "CPU",
+  "dtype": "float32",
+  "cuda_available": false,
+  "configuration": {
+    "vocab_size": 97,
+    "d_model": 64,
+    "layers": 3,
+    "query_heads": 4,
+    "kv_heads": 4,
+    "head_dim": 16,
+    "batch_size": 2,
+    "prompt_tokens": 24,
+    "decode_inputs": 12,
+    "seed": 20261114
+  },
+  "results": {
+    "prefill_max_abs_logit_error": 0.0,
+    "decode_max_abs_logit_error": 1.1444091796875e-05,
+    "steps_checked": 12,
+    "final_cache_length": 36,
+    "measured_cache_bytes": 110592,
+    "formula_cache_bytes": 110592,
+    "cached_positions": 36,
+    "full_prefix_recompute_positions": 366,
+    "structural_reduction_percent": 90.1639344262295
+  },
+  "checks": {
+    "prefill_logits_match_full_forward": true,
+    "all_decode_logits_match_full_recompute": true,
+    "cache_length_increments_once_per_token": true,
+    "all_layers_have_expected_cache_shape": true,
+    "measured_cache_bytes_match_formula": true,
+    "cached_path_processes_fewer_token_positions": true,
+    "logit_errors_are_finite": true
+  },
+  "step_evidence": [
+    {
+      "stage": "prefill",
+      "step": 0,
+      "cache_length": 24,
+      "max_abs_logit_error": 0.0
+    },
+    {
+      "stage": "decode",
+      "step": 1,
+      "cache_length": 25,
+      "max_abs_logit_error": 9.5367431640625e-06
+    },
+    {
+      "stage": "decode",
+      "step": 2,
+      "cache_length": 26,
+      "max_abs_logit_error": 8.106231689453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 3,
+      "cache_length": 27,
+      "max_abs_logit_error": 1.1444091796875e-05
+    },
+    {
+      "stage": "decode",
+      "step": 4,
+      "cache_length": 28,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 5,
+      "cache_length": 29,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 6,
+      "cache_length": 30,
+      "max_abs_logit_error": 3.814697265625e-06
+    },
+    {
+      "stage": "decode",
+      "step": 7,
+      "cache_length": 31,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 8,
+      "cache_length": 32,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 9,
+      "cache_length": 33,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 10,
+      "cache_length": 34,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 11,
+      "cache_length": 35,
+      "max_abs_logit_error": 7.62939453125e-06
+    },
+    {
+      "stage": "decode",
+      "step": 12,
+      "cache_length": 36,
+      "max_abs_logit_error": 5.7220458984375e-06
+    }
+  ],
+  "limitations": [
+    "Randomly initialised toy model; no language quality claim.",
+    "CPU correctness test, not a GPU performance benchmark.",
+    "Structural token-position count is not a FLOP or latency measurement.",
+    "No PagedAttention, prefix sharing, quantised cache or distributed serving."
+  ]
+}
