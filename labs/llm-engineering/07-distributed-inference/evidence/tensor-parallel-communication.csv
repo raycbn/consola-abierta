@@ -1,0 +1,5 @@
+tp_degree,active_sequences_decode_tokens,hidden_size,element_bytes,collectives_per_layer_assumption,layers,allreduce_ops_per_decode_iteration,ring_send_bytes_per_rank_per_allreduce,ring_send_MiB_per_rank_per_decode_iteration,ideal_weight_GiB_per_rank_fp16,traffic_model,illustrative_fabric_a_ms_per_decode_iteration,illustrative_fabric_b_ms_per_decode_iteration
+1,16,4096,2,2,32,0,0,0.0,12.0625,"ring payload formula; excludes headers, padding, fusion and overlap",0.0,0.0
+2,16,4096,2,2,32,64,131072,8.0,6.03125,"ring payload formula; excludes headers, padding, fusion and overlap",0.553943,1.447772
+4,16,4096,2,2,32,64,196608,12.0,3.015625,"ring payload formula; excludes headers, padding, fusion and overlap",1.598915,4.091658
+8,16,4096,2,2,32,64,229376,14.0,1.507812,"ring payload formula; excludes headers, padding, fusion and overlap",3.6574,9.253601

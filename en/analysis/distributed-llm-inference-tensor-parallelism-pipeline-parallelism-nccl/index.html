@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL | Consola Abierta</title>
+<meta name="description" content="A deep dive into distributed LLM inference: tensor and pipeline parallelism, row/column sharding, All-Reduce, All-Gather, Reduce-Scatter, NCCL, NVLink, PCIe, RDMA, vLLM multi-node and reproducible benchmarking.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-llm-07">
+<meta property="og:type" content="article"><meta property="og:title" content="Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL"><meta property="og:description" content="How to partition an inference across GPUs, what NCCL communicates, and how to diagnose topology and bottlenecks."><meta property="og:url" content="https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL","description":"Technical investigation into model partitioning, collective communication, GPU topology and multi-node serving. Includes a reproducible TP, PP and NCCL concepts simulator written with the Python standard library.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><div class="header-meta"><span>Independent technical publication</span><a href="/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/" lang="es">ES</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 07 / 08</span><a class="text-link" href="/en/series/llm-engineering/">View the series ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/en/">Home</a> / <a href="/en/series/llm-engineering/">LLM Engineering</a> / Distributed Inference</div><div class="kicker">LLM Engineering · Distributed Inference · Documentation reviewed · Lab verified</div>
+<h1>Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL</h1>
+<p class="article-deck">One GPU runs out of room. The solution seems simple: add more. But a distributed LLM is not a model that magically gets faster when accelerators are connected. We must decide which dimension to partition, which tensors remain replicated, which data moves between ranks, which collectives synchronize each layer and which physical links carry those bytes. This chapter moves from the algebra of a Linear layer to the multi-node topology that determines whether eight GPUs collaborate or spend their time waiting for the network.</p>
+<div class="article-meta"><span>By Ray Vega</span><span>14 November 2026</span><span>35–42 min read</span><span>Mid-senior · Senior · ML / Platform Engineering</span></div>
+<div class="status-line">DOCUMENTATION REVIEWED · vLLM · NVIDIA NCCL · PyTorch Distributed · Megatron Core · 14 NOV 2026 · LAB VERIFIED · Python 3.12.10 · CPU-only · 16 checks · €0</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contents"><div class="toc-title">In this investigation</div><ol>
+<li><a href="#problem">Why distribute</a></li><li><a href="#axes">Parallelism axes</a></li><li><a href="#ranks">Ranks, world size and groups</a></li><li><a href="#linear">Linear layer mathematics</a></li><li><a href="#transformer">TP inside a Transformer</a></li><li><a href="#collectives">NCCL collectives</a></li><li><a href="#ring">Ring All-Reduce cost</a></li><li><a href="#sequence">Sequence Parallelism</a></li><li><a href="#pipeline">Pipeline Parallelism</a></li><li><a href="#bubble">Pipeline bubble and microbatches</a></li><li><a href="#hybrid">Combining TP × PP × DP</a></li><li><a href="#topology">Physical topology</a></li><li><a href="#runtime">NCCL and distributed runtime</a></li><li><a href="#vllm">Serving with vLLM</a></li><li><a href="#memory">Memory and KV Cache</a></li><li><a href="#cost">Performance model</a></li><li><a href="#benchmark">Measuring real systems</a></li><li><a href="#observability">Logs and observability</a></li><li><a href="#failures">Common failures</a></li><li><a href="#runbook">Diagnostic runbook</a></li><li><a href="#lab">Reproduced laboratory</a></li><li><a href="#results">Results and evidence</a></li><li><a href="#limits">Limits and conclusions</a></li><li><a href="#sources">Primary sources</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>The central idea</strong><p>Distributed inference is not about dividing the GPU count by the model size. It is about choosing a tensor layout and an execution topology. Tensor Parallelism divides computation inside layers; Pipeline Parallelism divides model depth; Data Parallelism replicates the model to distribute requests. Each strategy moves different data and has a different cost. Physical interconnect is part of the design, not an infrastructure detail to solve afterwards.</p></div>
+
+<h2 id="problem">1. Why distribute: capacity, latency and throughput are different goals</h2>
+<p>In previous chapters we reduced weight precision through quantization and learned how vLLM manages KV memory and requests with Continuous Batching. Even so, a model may not fit on one GPU, may consume too much memory to retain enough KV Cache, or may fail to meet a throughput target. Distributed inference lets us split weights, operations or request load across accelerators.</p>
+<p>Keep three goals separate:</p>
+<ul>
+<li><strong>Capacity:</strong> the model or its state does not fit on one GPU. The priority is to store a fraction of the model on each device and make inference possible.</li>
+<li><strong>Latency:</strong> we want to reduce one request's response time. Parallelism can accelerate matrix operations, but it introduces communication and synchronization. Not every strategy reduces end-to-end latency.</li>
+<li><strong>Throughput:</strong> we want to serve more tokens or requests per second. We can gain throughput by overlapping independent work, replicating models or keeping several pipeline stages busy.</li>
+</ul>
+<p>A strategy can solve Capacity without improving Latency. Pipeline Parallelism, for example, can let a model that does not fit on one device run across several, but one sequence still has to traverse every stage. Throughput benefits appear when enough independent requests can occupy the pipeline.</p>
+<p>The first criterion remains simple: if the model fits on one GPU and meets the SLO, do not add distributed execution just because more accelerators are available. Process management, networking, failure recovery and observability are operational costs too. The current vLLM guide recommends starting with one GPU when sufficient, using TP within a node when the model requires several GPUs, and combining TP/PP when scaling across nodes. <a href="https://docs.vllm.ai/en/latest/serving/parallelism_scaling/" rel="noopener">vLLM — Parallelism and Scaling</a>.</p>
+
+<h2 id="axes">2. Parallelism axes: not every strategy splits the same thing</h2>
+<figure class="evidence-figure"><img src="/assets/labs/distributed-inference/parallelism-strategy-map.svg" alt="Conceptual map of Tensor Parallelism, Pipeline Parallelism, Data Parallelism and Context Parallelism"><figcaption>Each strategy cuts a different dimension of the workload. Several can be combined in a device mesh.</figcaption></figure>
+<table class="data-table"><thead><tr><th>Strategy</th><th>What it splits</th><th>What it replicates</th><th>Primary goal</th></tr></thead><tbody>
+<tr><td>Tensor Parallelism (TP)</td><td>Weight and operation dimensions inside a layer.</td><td>Parts of activations or intermediate results, depending on layout.</td><td>Distribute large matrices and weight memory.</td></tr>
+<tr><td>Pipeline Parallelism (PP)</td><td>Consecutive model layers across stages.</td><td>Each stage's work across different microbatches.</td><td>Distribute model depth and memory across devices.</td></tr>
+<tr><td>Data Parallelism (DP)</td><td>Batch or requests across replicas.</td><td>The complete model on every replica.</td><td>Scale the number of concurrent requests.</td></tr>
+<tr><td>Context Parallelism (CP)</td><td>Sequence/context dimension.</td><td>Model and parts of state depending on implementation.</td><td>Process long contexts across devices.</td></tr>
+<tr><td>Expert Parallelism (EP)</td><td>Expert networks in a Mixture-of-Experts model.</td><td>Router and shared components according to architecture.</td><td>Distribute dynamically activated experts.</td></tr>
+</tbody></table>
+<p>For serving a dense LLM replica, TP and PP are the main axes for splitting one model. DP usually operates on another dimension: several independent replicas receive different requests. CP appears when context is so long that distributing the sequence becomes useful. EP matters for MoE models, where routing introduces All-to-All communication and traffic between experts.</p>
+<p>Do not confuse Model Parallelism with Data Parallelism. With TP/PP, one inference needs ranks to collaborate to produce the next token. With DP, a request normally executes on one replica; it does not synchronize its weights with other replicas for every token.</p>
+
+<h2 id="ranks">3. Rank, local rank, world size and process groups</h2>
+<p>In distributed execution, each participating process receives a global identifier called a <strong>rank</strong>. The total number of participating processes is the <strong>world size</strong>. In multi-GPU systems, one process often controls one GPU, although exact mapping depends on the runtime. <strong>Local rank</strong> identifies its position within a node. It is not the same as a physical GPU index, and rank 0 must not be assumed to map to GPU 0.</p>
+<p>A process group defines which ranks collaborate in an operation. This matters when TP, PP and DP are combined. In a 2D TP×PP mesh, each pipeline stage can contain a TP group. Layer collectives run inside the appropriate group, while activations move point-to-point to the next stage.</p>
+<pre><code>world_size = TP × PP × DP
+
+global_rank = rank in the entire job
+local_rank  = rank within a node
+tp_group    = ranks that shard one layer
+pp_group    = ranks that own consecutive model stages
+dp_group    = independent model replicas</code></pre>
+<p>This formula is a simplification of a standard rectangular device mesh. Context Parallelism and Expert Parallelism add more dimensions and groups. In heterogeneous or non-uniform layouts, the mapping must be documented explicitly.</p>
+<p>A common error is creating groups with a different order on different processes. Collectives must be called compatibly by all ranks in the participating group. NCCL specifies that count and datatype must match across participants; a mismatch can cause hangs, crashes or data corruption. <a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html" rel="noopener">NCCL — Collective Operations</a>.</p>
+
+<h2 id="linear">4. Linear layer mathematics: column-wise and row-wise sharding</h2>
+<p>Start with a linear layer:</p>
+<pre><code>Y = X W
+
+X ∈ R[B,H]
+W ∈ R[H,O]
+Y ∈ R[B,O]</code></pre>
+<p>With TP=P, there are two main partitions. For simplicity, assume O and H can be divided evenly by P. Real models have additional constraints involving head count, head dimension, alignment and kernels.</p>
+<h3>Column-wise Parallel Linear</h3>
+<p>Split W by columns, along the output dimension:</p>
+<pre><code>W = concat(W₀, W₁, ..., Wₚ₋₁) along output dimension
+Yᵢ = X Wᵢ
+
+Y = concat(Y₀, Y₁, ..., Yₚ₋₁)</code></pre>
+<p>Each rank receives input X and computes a slice of output features. If the next operator can consume the sharded result, we can avoid reconstructing the full tensor immediately. When a replicated output is required, the shards must be gathered, for example with AllGather. Communication can be deferred until the layout actually requires it.</p>
+<h3>Row-wise Parallel Linear</h3>
+<p>Split W by rows along the input dimension. X is divided compatibly:</p>
+<pre><code>X = concat(X₀, X₁, ..., Xₚ₋₁) along hidden dimension
+W = concat(W₀, W₁, ..., Wₚ₋₁) along input dimension
+
+Yᵢ = Xᵢ Wᵢ
+Y = sum(Y₀, Y₁, ..., Yₚ₋₁)</code></pre>
+<p>Each rank computes a partial contribution to the output. The contributions must then be reduced and combined. The common form is AllReduce when every rank needs the complete result; a ReduceScatter/AllGather combination may fit better when the next operator keeps a sharded layout.</p>
+<figure class="evidence-figure"><img src="/assets/labs/distributed-inference/tensor-parallel-sharding.svg" alt="Column-wise and row-wise partitioning of a Linear matrix"><figcaption>Column-wise produces output slices; row-wise produces partial sums. The tensor layout determines where communication is required.</figcaption></figure>
+<p>PyTorch exposes primitives such as ColwiseParallel and RowwiseParallel through DTensor. The API declares input and output layouts and manages communication operations required to connect modules. <a href="https://docs.pytorch.org/tutorials/intermediate/TP_tutorial.html" rel="noopener">PyTorch — Tensor Parallel</a>.</p>
+
+<h2 id="transformer">5. Tensor Parallelism inside a Transformer</h2>
+<p>A dense Transformer block contains attention projections and a Feed Forward Network (FFN). Exact dimensions vary by architecture, but a common sharding pattern looks like this:</p>
+<table class="data-table"><thead><tr><th>Operator</th><th>Typical sharding</th><th>Reason</th><th>Frequent communication</th></tr></thead><tbody>
+<tr><td>Q, K, V projections</td><td>Column-wise</td><td>Distribute heads or head groups across ranks.</td><td>Sharded output can stay local until the next operator.</td></tr>
+<tr><td>Attention output projection</td><td>Row-wise</td><td>Combine local head contributions.</td><td>AllReduce or equivalent layout transition.</td></tr>
+<tr><td>MLP gate / up projections</td><td>Column-wise</td><td>Distribute intermediate features.</td><td>Sharded activations.</td></tr>
+<tr><td>MLP down projection</td><td>Row-wise</td><td>Sum contributions from intermediate dimensions.</td><td>AllReduce or ReduceScatter.</td></tr>
+</tbody></table>
+<p>In a gated MLP, gate and up projections can run in parallel on local shards; activation and element-wise multiplication are then applied before the down projection. PyTorch documents this pattern with w1/w3 column-wise and w2 row-wise, allowing the AllReduce to be placed after the combination rather than after every individual Linear operation.</p>
+<p>Attention adds constraints. If there are Hq query heads and TP=P, the usual strategy distributes heads across ranks. Hq must be compatible with the parallel degree, or the runtime needs a specific strategy. Grouped Query Attention and Multi-Query Attention reduce KV head count; if KV heads do not divide evenly across ranks, some implementations replicate groups or restrict supported combinations. Do not assume TP=8 works with any checkpoint just because eight GPUs exist.</p>
+<p>Weights are not the only tensors involved. Activations, heads, logits, embeddings and KV state are distributed too. Sharding must be designed end-to-end to avoid unnecessary Gather/Scatter operations between modules. PyTorch DTensor and Megatron Core document different layout conventions; not every runtime follows exactly the same path.</p>
+
+<h2 id="collectives">6. NCCL collectives: what data actually moves</h2>
+<p>NCCL is a GPU-optimized collective communication library for NVIDIA devices. It provides operations where several ranks exchange or reduce buffers. It is not an inference scheduler, node orchestrator or a replacement for the runtime that creates processes and assigns models. Frameworks such as PyTorch and engines such as vLLM use a runtime layer plus low-level collectives to coordinate devices.</p>
+<figure class="evidence-figure"><img src="/assets/labs/distributed-inference/nccl-collectives-ring.svg" alt="Conceptual Ring AllReduce with ReduceScatter and AllGather phases"><figcaption>A Ring AllReduce can be understood as ReduceScatter followed by AllGather. NCCL may choose other algorithms.</figcaption></figure>
+<table class="data-table"><thead><tr><th>Collective</th><th>What it does</th><th>Result on each rank</th><th>Typical use</th></tr></thead><tbody>
+<tr><td>AllReduce</td><td>Reduces buffers from all ranks (SUM, MAX, etc.).</td><td>Every rank receives the complete result.</td><td>Sum partial outputs from a row-wise operation.</td></tr>
+<tr><td>AllGather</td><td>Concatenates shards from all ranks.</td><td>Every rank receives the concatenated tensor.</td><td>Rebuild features or sequences when a module needs the full tensor.</td></tr>
+<tr><td>ReduceScatter</td><td>Reduces buffers and distributes equal result chunks.</td><td>Each rank keeps one shard of the reduced result.</td><td>Sharded layouts and Sequence Parallelism.</td></tr>
+<tr><td>Broadcast</td><td>One root rank distributes the same buffer.</td><td>Every rank receives a copy.</td><td>Initialization or data/control distribution.</td></tr>
+<tr><td>AlltoAll</td><td>Each rank sends a different chunk to every destination.</td><td>Each rank receives one chunk from every source.</td><td>Expert Parallelism and token dispatch to experts.</td></tr>
+<tr><td>Send / Recv</td><td>Point-to-point communication between ranks.</td><td>Only the destination receives the buffer.</td><td>Move activations between pipeline stages.</td></tr>
+</tbody></table>
+<p>AllReduce can be conceptually decomposed into ReduceScatter followed by AllGather. This does not mean every implementation always executes two separate calls; NCCL can select a different implementation and algorithm. There is also a practical difference between input tensor size, output size and the bytes each rank transmits: do not use global tensor size as a synonym for bytes sent per rank.</p>
+
+<h2 id="ring">7. Ring All-Reduce: volume and latency formulas</h2>
+<p>Ring AllReduce is a useful reference for estimating communication. For P ranks and a buffer of N elements, the classic algorithm has two phases:</p>
+<ul><li><strong>ReduceScatter:</strong> P−1 steps. Each rank sends a chunk and accumulates the chunk it receives.</li><li><strong>AllGather:</strong> P−1 steps. Reduced chunks circulate until every rank has the complete result.</li></ul>
+<p>In each phase, a rank transmits approximately (P−1)/P of the buffer. Total bytes sent per rank are:</p>
+<pre><code>bytes_sent_per_rank ≈ 2 × (P − 1) / P × N × element_bytes
+
+ring_time ≈ 2 × (P − 1) × α + bytes_sent_per_rank / BW</code></pre>
+<p>α represents latency per step and BW is the effective bandwidth available to that communication. This is a simplified model, not an exact NCCL predictor. It does not include protocol, headers, multiple rails, congestion, topology, contention, kernel overhead, synchronization or compute overlap.</p>
+<p>The model still reveals a trade-off. As P grows, each rank's transmitted payload approaches two buffers, but the number of steps and fixed latency cost also increase. A small AllReduce can be dominated by α and launch overhead; a large one can be bandwidth-bound.</p>
+<p>Do not assume NCCL always uses Ring. Current documentation lists algorithms such as Ring, Tree, CollNetChain, CollNetDirect, NVLS, NVLSTree and PAT, with availability depending on version and platform. If no algorithm is forced, NCCL chooses automatically based on hardware, topology, collective function and message size. <a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html" rel="noopener">NCCL — Environment Variables</a>.</p>
+<p>Forcing NCCL_ALGO is not the first optimization step. Measure first, identify the algorithm and transport selected, and establish a baseline. An environment variable that improves one microbenchmark can make other message shapes or the real workload worse.</p>
+
+<h2 id="sequence">8. Sequence Parallelism: changing layouts to move fewer activations</h2>
+<p>Sequence Parallelism distributes the sequence dimension of selected activations and element-wise operations when used with TP. Instead of fully replicating an activation across ranks, the runtime keeps a sequence shard and uses operations such as ReduceScatter and AllGather to transition between layouts.</p>
+<p>The distinction matters: Sequence Parallelism is not Context Parallelism, even though both split a token dimension. Sequence Parallelism typically aims to reduce activation memory and redundant operations within a TP mesh. Context Parallelism distributes context/sequence to scale attention over long contexts, with specific communication to obtain the information attention needs.</p>
+<p>In training, Sequence Parallelism can reduce activation memory for LayerNorm and Dropout. In inference, the optimizations and layouts depend on the engine and model. Do not enable a sequence-parallel flag without confirming that runtime and checkpoint support the combination.</p>
+<p>Avoid double-counting optimizations. If one path introduces AllGather before a layer and another triggers another AllGather for the next layer, the result may move more data than it saves. Follow tensor layout from the output of one operation to the input of the next.</p>
+
+<h2 id="pipeline">9. Pipeline Parallelism: splitting model depth</h2>
+<p>PP splits layers into consecutive stages. If a model has 32 transformer blocks and PP=4, each stage may own eight blocks. A rank processes its segment and sends activations to the next stage. The last stage produces output or logits and the next token returns to the client or scheduler.</p>
+<p>For one sequence, the flow is sequential: the token must pass through Stage 0, Stage 1, Stage 2 and Stage 3. First-result latency includes the work of all stages plus transfers between them. PP does not turn one request into four parallel requests.</p>
+<figure class="evidence-figure"><img src="/assets/labs/distributed-inference/pipeline-fill-drain.svg" alt="Four-stage pipeline with four microbatches showing fill, overlap and drain"><figcaption>Stages overlap while processing independent microbatches. The first request still traverses every stage before returning a result.</figcaption></figure>
+<p>The activation crossing a boundary is usually the previous stage's output. During Prefill it may have an approximate shape of [batch, sequence, hidden]; during Decode, when each active sequence produces one token, it is typically [active_sequences, hidden]. Pipeline communication volume therefore depends on active tokens, hidden size, dtype and layout. It is not equal to model weight size.</p>
+<p>Stage balance is critical. A stage with more layers, a heavier embedding/LM head module or a less efficient kernel becomes the bottleneck. Other stages wait for that stage to release the next microbatch. Equal layer counts do not always imply equal work.</p>
+
+<h2 id="bubble">10. Pipeline bubble, microbatches and the latency/throughput difference</h2>
+<p>For an ideal pipeline with P balanced stages and M microbatches, utilization for a simple forward fill/drain schedule can be approximated by:</p>
+<pre><code>ideal_utilization ≈ M / (M + P − 1)
+bubble_fraction ≈ (P − 1) / (M + P − 1)</code></pre>
+<p>The formula describes the penalty of filling and draining a pipeline with M independent jobs. Increasing M amortizes fill/drain, but is not free: microbatches can become too small, scheduling overhead increases and the system needs enough concurrent independent requests.</p>
+<p>Training has schedules such as GPipe and 1F1B, which must manage forward activations and backward gradients. Their bubble formulas should not be copied blindly into an autoregressive server. In serving, sequences have different lengths, clients arrive at different times, Decode produces small iterations, and the scheduler can dynamically admit or retire requests. This chapter's simulation is FIFO, not a real serving engine.</p>
+<p>The latency/throughput difference is essential:</p>
+<ul><li><strong>Single-request latency:</strong> an isolated request must traverse the entire pipeline. More stages do not automatically reduce time to first token.</li><li><strong>Steady-state throughput:</strong> with enough independent sequences, multiple stages can work simultaneously on different microbatches.</li><li><strong>Tail latency:</strong> one slow stage, irregular microbatch or congested network can affect the whole queue.</li></ul>
+<p>For a streaming service, examine TTFT and TPOT per request, not only aggregate throughput averages.</p>
+
+<h2 id="hybrid">11. Combining TP × PP × DP: an eight-GPU mesh</h2>
+<p>Suppose eight GPUs are distributed across two nodes with four GPUs each. Several layouts are possible:</p>
+<table class="data-table"><thead><tr><th>Layout</th><th>TP</th><th>PP</th><th>Interpretation</th></tr></thead><tbody>
+<tr><td>TP8 × PP1</td><td>8</td><td>1</td><td>One stage; the TP group spans all eight GPUs.</td></tr>
+<tr><td>TP4 × PP2</td><td>4</td><td>2</td><td>Two stages; each TP group stays within one node.</td></tr>
+<tr><td>TP2 × PP4</td><td>2</td><td>4</td><td>More stages with smaller TP groups.</td></tr>
+<tr><td>TP1 × PP8</td><td>1</td><td>8</td><td>No TP collectives; many pipeline boundaries.</td></tr>
+</tbody></table>
+<p>All four layouts use eight GPUs, but they are not equivalent. TP8 introduces collectives across all eight devices. TP4×PP2 can keep frequent collectives within a node and transfer activations between nodes at pipeline boundaries. TP1×PP8 reduces intra-layer communication but adds seven stages and seven boundaries. The choice depends on the model, interconnect latency, activation size, stage balance, active request count and SLOs.</p>
+<p>A common recommendation is to keep TP inside the fast-link domain within a node and use PP to scale across nodes. The vLLM guide gives the example of two eight-GPU nodes with TP=8 and PP=2. It also documents the edge case of GPUs without NVLink, such as the L40S example, where PP can be preferable to TP to reduce communication overhead. This is contextual guidance, not a universal rule for every GPU generation or model. <a href="https://docs.vllm.ai/en/latest/serving/parallelism_scaling/" rel="noopener">vLLM — Multi-node parallelism</a>.</p>
+<p>DP adds another dimension. For example, four TP4 replicas can serve separate requests across four groups of four GPUs. This increases serving capacity when demand exists, but each replica needs its own complete set of weight shards. DP does not turn a four-GPU model into one model split across sixteen GPUs; it combines several replicas.</p>
+
+<h2 id="topology">12. Physical topology: HBM, NVLink, PCIe and network fabric</h2>
+<figure class="evidence-figure"><img src="/assets/labs/distributed-inference/gpu-topology-hierarchy.svg" alt="Two GPU nodes connected by a network fabric"><figcaption>Intra-node and inter-node traffic use different paths. Rank assignment should respect these domains whenever possible.</figcaption></figure>
+<p>Before discussing NCCL, draw the physical machine:</p>
+<ul>
+<li><strong>GPU HBM:</strong> each accelerator's local memory. The most efficient operation often avoids moving activations outside the GPU.</li>
+<li><strong>NVLink / NVSwitch:</strong> high-speed GPU interconnect in platforms that include it. Exact topology determines which pairs have direct access and which paths share resources.</li>
+<li><strong>PCIe:</strong> host-device bus and, when topology/driver permit, GPU-to-GPU P2P communication. Not every pair has the same route.</li>
+<li><strong>NIC + InfiniBand / RoCE:</strong> inter-node connectivity. GPUDirect RDMA can enable traffic from GPU memory to the network adapter without classic CPU-buffer staging, when hardware and software requirements are met.</li>
+<li><strong>CPU / NUMA:</strong> process, host memory and NIC affinity relative to CPU sockets. Poor placement can introduce cross-NUMA traffic.</li>
+</ul>
+<p>NCCL favours P2P when CUDA reports direct access between GPUs, typically through NVLink or PCIe when topology and driver allow it. It is not enough that a system advertises NVLink: verify the links between the specific devices. NVIDIA documents commands such as nvidia-smi topo -m and nvidia-smi topo -p2p n to inspect the matrix. <a href="https://github.com/NVIDIA/nccl/blob/master/docs/userguide/source/troubleshooting/gpu_troubleshooting.rst" rel="noopener">NCCL — GPU troubleshooting</a>.</p>
+<p>Topology also determines rank placement. If a TP group needs an AllReduce for every block, placing ranks of that group on GPUs connected within the same fast domain is generally preferable to accidentally spreading them across a multi-node network. A PP boundary may tolerate a less frequent P2P message, although total volume and latency still matter.</p>
+
+<h2 id="runtime">13. NCCL, PyTorch Distributed and the runtime: who does what?</h2>
+<p>Distributed execution involves several layers:</p>
+<table class="data-table"><thead><tr><th>Layer</th><th>Responsibility</th><th>Examples</th></tr></thead><tbody>
+<tr><td>Model partitioning</td><td>Decide which weights, heads, layers or tokens belong to each rank.</td><td>Megatron Core, PyTorch TP / DTensor, model code.</td></tr>
+<tr><td>Distributed runtime</td><td>Create processes, assign ranks, initialize groups, start workers and manage lifecycle.</td><td>torchrun, multiprocessing, Ray, Slurm, Kubernetes.</td></tr>
+<tr><td>Collective communication</td><td>Execute AllReduce, AllGather, ReduceScatter, AllToAll and P2P.</td><td>NCCL on NVIDIA GPUs; other backends depending on platform.</td></tr>
+<tr><td>Inference engine</td><td>Scheduler, batching, KV Cache, layer execution and serving API.</td><td>vLLM, TensorRT-LLM and other runtimes.</td></tr>
+<tr><td>Fabric / hardware</td><td>Move bytes and execute kernels.</td><td>NVLink, PCIe, NIC, InfiniBand, RoCE, GPU.</td></tr>
+</tbody></table>
+<p>NCCL does not create the logical mesh on its own. The framework initializes communicators and calls operations. Collectives must be executed in a compatible order across all ranks. A rank that does not arrive, arrives late or executes another operation can block the rest.</p>
+<p>In PyTorch, torch.distributed exposes ProcessGroup and collective abstractions. The NCCL backend is common with NVIDIA GPUs; Gloo is often used for CPU and certain other cases. Backend, versions and transports depend on the environment. PyTorch documentation also shows how TP uses DTensor and layouts to automate communication.</p>
+
+<h2 id="vllm">14. Multi-GPU and multi-node serving with vLLM</h2>
+<p>For one replica distributed across several GPUs, vLLM exposes tensor_parallel_size and pipeline_parallel_size. The current CLI syntax includes:</p>
+<h3>One machine with four GPUs</h3>
+<pre><code>vllm serve &lt;model&gt; \
+  --tensor-parallel-size 4</code></pre>
+<p>The four ranks collaborate within the TP group. Before choosing this configuration, verify that model dimensions are compatible and the topology has suitable links.</p>
+<h3>Two nodes with eight GPUs each</h3>
+<pre><code>vllm serve &lt;model&gt; \
+  --tensor-parallel-size 8 \
+  --pipeline-parallel-size 2 \
+  --distributed-executor-backend ray</code></pre>
+<p>This arrangement typically places eight TP ranks per node and uses two pipeline stages. Ray is an optional runtime for multi-node; vLLM also documents a multiprocessing path. Processes must be able to access the same model or an equivalent location, and nodes need consistent private-network connectivity.</p>
+<h3>Pipeline-only within one node</h3>
+<pre><code>vllm serve &lt;model&gt; \
+  --tensor-parallel-size 1 \
+  --pipeline-parallel-size 4</code></pre>
+<p>This may make sense when distributing layers without introducing TP collectives, or when GPU-to-GPU topology does not provide suitable links. Stage balance and microbatching must be validated with the actual workload.</p>
+<p>vLLM's documented multi-node recommendation is to set TP to the number of GPUs per node and PP to the number of nodes; it also describes setting TP across all GPUs in the cluster. Runtime and strategy must be validated against the installed release. <a href="https://docs.vllm.ai/en/latest/serving/parallelism_scaling/" rel="noopener">vLLM — Parallelism and Scaling</a>.</p>
+<div class="callout"><strong>Cluster security</strong><p>vLLM documentation warns that Ray cluster communication/control traffic is not encrypted and that an actor with access to the endpoints can reach dangerous capabilities. Keep distributed traffic on a controlled private network. Do not expose internal Ray or worker ports to untrusted networks; the public model HTTP endpoint is not the same as the internal execution network.</p></div>
+
+<h2 id="memory">15. Memory per rank: weights, KV Cache and buffers</h2>
+<p>As a first approximation, weight payload can be divided by TP×PP:</p>
+<pre><code>ideal_weight_bytes_per_gpu ≈ total_weight_bytes / (TP × PP)</code></pre>
+<p>This is a first-order estimate, not an exact allocator calculation. Some embeddings, norms, output heads, buffers, scales or tensors may remain replicated. Actual size also depends on checkpoint, quantization, alignment, workspace and runtime.</p>
+<p>KV Cache needs a separate formula:</p>
+<pre><code>KV_bytes ≈
+  2 × layers_local × active_sequences × context_tokens
+    × local_kv_heads × head_dim × bytes_per_element</code></pre>
+<p>The factor 2 represents Key and Value. With PP, each stage stores KV for the layers it executes. With TP, KV heads may be distributed among ranks, but some GQA/MQA models may replicate heads or impose restrictions. The formula requires the actual layout; do not blindly divide by TP×PP.</p>
+<p>In addition to weights and KV, each GPU needs memory for activations, workspaces, communication buffers, graph capture, temporary memory and allocator reservations. A configuration may fit at initialization and fail when max_model_len or max_num_seqs increases, because KV Cache and runtime buffers consume the remaining margin.</p>
+<p>vLLM startup logs often report estimated GPU KV Cache size and approximate concurrency at a particular request length. That number is more useful than weight-only arithmetic for understanding how many active sequences really fit.</p>
+
+<h2 id="cost">16. A performance model: compute, communication and synchronization</h2>
+<p>A distributed operation's latency can be modelled simply as:</p>
+<pre><code>T_operation ≈ T_compute + T_communication + T_launch + T_sync
+
+T_communication ≈ latency_cost + payload_bytes / effective_bandwidth</code></pre>
+<p>But terms can overlap. If an implementation permits communication to overlap computation, total cost is not necessarily their full sum:</p>
+<pre><code>T_step ≈ max(T_compute, T_communication) + T_unhidden_overhead</code></pre>
+<p>Overlap depends on kernels, streams, data dependencies, scheduling and link capability. A row-parallel operation that needs its AllReduce before continuing creates a dependency; declaring an operation asynchronous is not enough to remove it.</p>
+<p>During Prefill, token batches can be large and GEMMs often perform substantial work per communication. During Decode, each active sequence usually adds one token per iteration; for small batches the collective message can be relatively small and fixed launch/latency cost becomes more important. As active sequence count increases, activation size in collectives grows too. The same TP degree can therefore behave differently during Prefill and Decode.</p>
+<p>A roofline-style analysis should separate:</p>
+<ul><li>Compute peak and real Tensor Core utilization.</li><li>Local HBM bandwidth and weight access.</li><li>GPU-to-GPU bandwidth and latency inside the node.</li><li>Inter-node bandwidth, NIC affinity and fabric contention.</li><li>Scheduler, batch composition, sequence length, KV Cache and CPU overhead.</li></ul>
+<p>The goal is not to maximize isolated theoretical bandwidth. It is to minimize unhidden communication and keep GPUs busy with a balanced workload.</p>
+
+<h2 id="benchmark">17. How to measure real systems: NCCL Tests, nvbandwidth and serving benchmarks</h2>
+<p>Do not measure only with a ping between nodes. TP inference depends on GPU-to-GPU communication and collective operations. A useful benchmark needs to test the message types and sizes used by the engine in addition to model workload.</p>
+<h3>Topology discovery</h3>
+<pre><code>nvidia-smi topo -m
+nvidia-smi topo -p2p n
+nvidia-smi topo -p2p p</code></pre>
+<p>The first command shows links between GPUs, CPUs, NICs and other components. P2P checks reveal whether pairs allow direct NVLink or PCIe access. An uneven route matrix can explain why the same TP degree performs differently when GPUs are remapped.</p>
+<h3>Bandwidth and collectives</h3>
+<p>NVIDIA documents nvbandwidth and nvloom for measuring GPU-to-GPU bandwidth across NVLink/PCIe and between nodes on supported systems. The official NCCL Tests repository includes programs such as all_reduce_perf and tests for other collectives. A size sweep example is documented in the project README:</p>
+<pre><code>mpirun -np 8 -N 8 ./build/all_reduce_perf \
+  -b 8M -e 1G -f 2 -g 1</code></pre>
+<p>Adapt the command to GPUs per process, number of nodes and NCCL Tests build. Do not run it in production without reserving resources; tests can consume much of the interconnect.</p>
+<h3>Serving benchmark</h3>
+<p>Then benchmark vLLM or the final engine with representative prompts and outputs, defined concurrency and warmup. Keep:</p>
+<ul><li>TTFT, TPOT/inter-token latency and p50/p95/p99 percentiles.</li><li>Input/output tokens per second and requests per second.</li><li>Active concurrency, queue time, prompt length, output length and long-context distribution.</li><li>GPU memory, utilization, HBM, links, KV usage, queues and errors.</li><li>TP/PP degree, rank mapping, CUDA/driver/NCCL versions, backend, selected algorithm and transport.</li></ul>
+<p>Microbenchmarks help isolate transport problems. They do not replace end-to-end application measurement. <a href="https://github.com/NVIDIA/nccl-tests" rel="noopener">NVIDIA NCCL Tests</a> · <a href="https://github.com/NVIDIA/nvbandwidth" rel="noopener">NVIDIA nvbandwidth</a>.</p>
+
+<h2 id="observability">18. NCCL logs and observability: identify which path is being used</h2>
+<p>For a controlled investigation, NCCL can increase its logging level:</p>
+<pre><code>export NCCL_DEBUG=INFO
+export NCCL_DEBUG_SUBSYS=INIT,GRAPH,ENV</code></pre>
+<p>Logs can help identify communicator initialization, detected topology, environment variables, transports and route selection. NVIDIA documentation shows INIT, GRAPH and ENV for inspecting affinity/topology together with nvidia-smi topo and lscpu.</p>
+<p>An important practice: do not leave debugging or tuning variables in production scripts without a reason. NCCL documentation distinguishes system configuration variables from debugging variables; some should be removed after an issue is resolved because they can degrade performance or cause other problems. <a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html" rel="noopener">NCCL — Environment Variables</a>.</p>
+<p>When investigating algorithm selection, record the version and topology graph, message size and collective type. Do not attribute every improvement to NVLink if the actual change was an algorithm or number of messages.</p>
+
+<h2 id="failures">19. Common failures in distributed environments</h2>
+<table class="data-table"><thead><tr><th>Symptom</th><th>Likely cause</th><th>What to check</th></tr></thead><tbody>
+<tr><td>AllReduce hangs</td><td>A rank does not arrive, runs another collective, uses different count/dtype or fails earlier.</td><td>Per-rank logs, operation order, shapes, datatypes and ProcessGroup.</td></tr>
+<tr><td>One GPU uses much more memory</td><td>Uneven shards, replicated tensors, LM head/embeddings or workspace.</td><td>Per-module distribution, rank map, KV allocation and memory summary.</td></tr>
+<tr><td>TP scales worse from 2 to 4</td><td>The new rank group crosses a slower link, synchronization increases or local GEMM becomes less efficient.</td><td>topology -m, P2P, collective sizes, kernel shapes and NCCL logs.</td></tr>
+<tr><td>Multi-node fails to start</td><td>Wrong advertised IP, blocked ports, wrong NIC, incomplete runtime cluster or invalid model paths.</td><td>Host IP, routing, firewall, interfaces, Ray/worker state and model mount.</td></tr>
+<tr><td>PP utilization is low</td><td>Too few microbatches, stage bottleneck, imbalance or uneven sequence lengths.</td><td>Per-stage trace, P2P times, microbatch count and token distribution.</td></tr>
+<tr><td>Job freezes when one rank exits</td><td>Other processes wait for a collective or synchronization point.</td><td>First original error, worker exit code, timeouts and complete logs.</td></tr>
+<tr><td>Bandwidth is below expectation</td><td>PCIe P2P inactive, no direct NVLink path, NIC/NUMA affinity or congestion.</td><td>P2P matrix, NVLink counters, nvbandwidth, NIC affinity and fabric errors.</td></tr>
+<tr><td>Inference fits but fails under load</td><td>KV Cache, activations, buffers and communication workspaces exceed margin.</td><td>KV capacity, concurrency, max model length and peak GPU memory.</td></tr>
+</tbody></table>
+
+<h2 id="runbook">20. Diagnostic runbook for a multi-GPU server</h2>
+<ol>
+<li><strong>Freeze the topology:</strong> record nodes, GPU models, driver, CUDA, NCCL, NICs, switch/fabric and cabling. Do not change software and topology simultaneously.</li>
+<li><strong>Map ranks to devices:</strong> record global rank, local rank, GPU UUID, pipeline stage and TP group. Confirm that ranks in the same TP group have the expected physical route.</li>
+<li><strong>Check P2P:</strong> run nvidia-smi topo -m and P2P matrices. Identify pairs using PCIe, NVLink or no direct access.</li>
+<li><strong>Benchmark the fabric:</strong> run nccl-tests and nvbandwidth with representative sizes. Compare results per GPU pair, collective and message.</li>
+<li><strong>Enable temporary NCCL logs:</strong> INFO + INIT/GRAPH/ENV to capture device discovery, transports and route selection.</li>
+<li><strong>Validate process groups:</strong> same world size, valid ranks, compatible collective operation, count/dtype and call order.</li>
+<li><strong>Run a tiny model:</strong> validate a small replica before loading the real checkpoint. Test forward, decode, stop, error and worker shutdown.</li>
+<li><strong>Profile the real workload:</strong> Prefill and Decode separately; TTFT/TPOT, batch, queues, KV, memory, collectives and P2P stage transfers.</li>
+<li><strong>Change one dimension:</strong> compare TP, PP or placement one variable at a time. Preserve baseline and rollback.</li>
+<li><strong>Remove debug overrides:</strong> clean temporary variables; keep only settings justified by reproducible measurements.</li>
+</ol>
+<p>When a collective hangs, start with the first error from the first rank. The last process to report a timeout is usually a victim, not necessarily the origin. A synchronization problem in an earlier layer can leave every other rank waiting indefinitely.</p>
+
+<h2 id="lab">21. Reproduced laboratory: TP, PP, collectives and topology</h2>
+<p>The included lab builds a synthetic model with 32 layers, hidden size 4096 and FFN intermediate size 11008. It calculates ideal weight payload and models communication for one decode iteration with 16 active sequences. It downloads no weights and executes no GPU. The goal is to understand quantities, layouts and dependencies.</p>
+<div class="callout"><strong>Lab scope</strong><p>Python standard library, CPU-only, no PyTorch, CUDA, NCCL, Ray or vLLM. It does not create distributed processes or measure an interconnect. The simulation uses a Ring AllReduce model, two row-parallel collectives per block and a FIFO pipeline of abstract work. Fabric A/B latencies are hypothetical parameters for sensitivity analysis, not NVLink/PCIe specifications or benchmarks.</p></div>
+<p>Included experiments:</p>
+<ul><li>TP=1/2/4/8: ideal weight memory per rank and bytes sent per rank.</li><li>Ring AllReduce latency model with two hypothetical alpha/bandwidth profiles.</li><li>PP=1/2/4/8: layer partitioning, 1–32 microbatches, first-result work units, makespan and utilization.</li><li>Eight-GPU layouts: TP8×PP1, TP4×PP2, TP2×PP4 and TP1×PP8, with a TP4×PP2 rank map for two nodes.</li><li>Pipeline activation transfers and per-boundary costs.</li><li>Numeric proof of column-wise/row-wise sharding with a small matrix.</li><li>Simplified semantics for AllReduce, AllGather, ReduceScatter and AllToAll.</li></ul>
+<p><a href="/assets/labs/distributed-inference/llm-distributed-inference-07-lab.zip">Download lab 07 — Distributed LLM Inference (ZIP)</a></p>
+<p>On Windows:</p>
+<pre><code>Expand-Archive .\llm-distributed-inference-07-lab.zip -DestinationPath .\llm-distributed-inference-07
+cd .\llm-distributed-inference-07
+.\run.ps1</code></pre>
+<p>Or directly:</p>
+<pre><code>python .\src\run_lab.py</code></pre>
+
+<h2 id="results">22. Results and evidence from the reproduced environment</h2>
+<p>The script ran in Python 3.12.10 with fixed seed 20261114. All 16 checks passed.</p>
+<table class="data-table"><thead><tr><th>TP degree</th><th>Ideal FP16 weight per rank</th><th>Ring send per rank / decode iteration</th></tr></thead><tbody>
+<tr><td>1</td><td>12.062 GiB</td><td>0 MiB</td></tr><tr><td>2</td><td>6.031 GiB</td><td>8 MiB</td></tr><tr><td>4</td><td>3.016 GiB</td><td>12 MiB</td></tr><tr><td>8</td><td>1.508 GiB</td><td>14 MiB</td></tr>
+</tbody></table>
+<p>The ideal payload falls proportionally with TP because the lab distributes weights evenly. Ring send traffic per rank increases with TP group size for this workload: 16 active sequences, hidden 4096, two bytes per element and two reductions per layer across 32 layers. It excludes headers, padding, fusion, alternative routes and overlap.</p>
+<p>For PP=1/2/4/8 with 16 microbatches, simulated aggregate stage utilization was 1.000 / 0.903 / 0.796 / 0.664. The number of stages grows while the number of microbatches stays fixed, so fill/drain becomes more expensive. Work units are dimensionless: they must not be interpreted as milliseconds, tokens/s or measured latency.</p>
+<p>In the eight-GPU map, TP4×PP2 forms two four-rank TP groups, one per node, and transfers activations between the two stages. Per-boundary traffic is calculated under a TP-sharded activation assumption. A real runtime may replicate tensors or use different collective transitions; the number is not a universal network estimate.</p>
+<p>The reports generate seven CSVs, a complete metrics.json and a Markdown report. Numeric validation confirms that column-wise and row-wise partitions preserve the reference matrix multiplication within working-precision tolerance.</p>
+
+<h2 id="limits">23. Limits and conclusions</h2>
+<p>Distributed inference is a joint architecture and topology decision. TP splits matrices and needs frequent collective communication. PP splits layers and moves activations between stages. DP replicates the model and distributes requests; CP splits context; EP distributes experts. A real server can combine several of these dimensions.</p>
+<p>More GPUs do not automatically mean more speed. A larger TP degree reduces weights per rank but increases coordination; PP reduces layers per stage but creates fill/drain and stage boundaries; DP increases replicas but each replica retains its model memory; CP and EP change communication patterns. Physical topology determines which traffic uses NVLink, PCIe or an inter-node network.</p>
+<p>The right engineering sequence is to measure the bottleneck, draw the topology, choose a layout, test collectives, validate a small model, profile Prefill/Decode and change one variable per iteration. This chapter's lab teaches the mathematics and flow; it does not replace nccl-tests or a real serving benchmark.</p>
+<div class="callout"><strong>Next chapter · 08</strong><p><strong>LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology.</strong> We will close the series by measuring the end-to-end system: workload design, concurrency, percentiles, long context, tokens/s, cost per million tokens, trace replay and bottleneck analysis.</p></div>
+
+<h2 id="sources">24. Primary sources and reviewed documentation</h2>
+<ul>
+<li><a href="https://docs.vllm.ai/en/latest/serving/parallelism_scaling/" rel="noopener">vLLM — Parallelism and Scaling</a>: TP/PP multi-GPU, multi-node, Ray/multiprocessing runtime and CLI examples.</li>
+<li><a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html" rel="noopener">NVIDIA NCCL — Collective Operations</a>: AllReduce, Broadcast, Reduce, AllGather, ReduceScatter and AlltoAll.</li>
+<li><a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html" rel="noopener">NVIDIA NCCL — Environment Variables</a>: algorithms, automatic selection, interfaces and debugging variables.</li>
+<li><a href="https://github.com/NVIDIA/nccl/blob/master/docs/userguide/source/troubleshooting/performance_and_tuning.rst" rel="noopener">NCCL — Performance and Tuning</a>: nvbandwidth, topology, affinity and debugging.</li>
+<li><a href="https://github.com/NVIDIA/nccl/blob/master/docs/userguide/source/troubleshooting/gpu_troubleshooting.rst" rel="noopener">NCCL — GPU Troubleshooting</a>: P2P, NVLink, PCIe, GPU Direct and RDMA.</li>
+<li><a href="https://github.com/NVIDIA/nccl-tests" rel="noopener">NVIDIA NCCL Tests</a>: collective microbenchmarks, including AllReduce.</li>
+<li><a href="https://github.com/NVIDIA/nvbandwidth" rel="noopener">NVIDIA nvbandwidth</a>: GPU and GPU-to-GPU link bandwidth measurements.</li>
+<li><a href="https://docs.pytorch.org/tutorials/intermediate/TP_tutorial.html" rel="noopener">PyTorch — Tensor Parallel</a>: ColwiseParallel, RowwiseParallel, SequenceParallel and DTensor layouts.</li>
+<li><a href="https://docs.nvidia.com/megatron-core/developer-guide/latest/user-guide/parallelism-guide.html" rel="noopener">Megatron Core — Parallelism Strategies Guide</a>: TP, PP, CP, EP and combined parallelism.</li>
+</ul>
+<p class="page-end">Documentation reviewed on 14 November 2026. Hardware compatibility, algorithms and runtime options depend on the exact installed release; always validate against the production release and model.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">This instalment</div><p><strong>Series</strong><br>LLM Engineering · 07 / 08</p><p><strong>Concepts</strong><br>TP · PP · DP · CP · EP · NCCL · NVLink · PCIe · RDMA</p><p><strong>Lab</strong><br>Python 3.12 · CPU-only · 16 checks PASS</p><p><strong>Cost</strong><br>€0 · no external dependencies</p><p><strong>Next</strong><br>LLM Benchmarking</p><p><a href="/assets/labs/distributed-inference/llm-distributed-inference-07-lab.zip">Download lab ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Independent technical publication.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

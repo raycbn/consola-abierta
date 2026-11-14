@@ -2,6 +2,34 @@
   "generated": "2026-11-14",
   "articles": [
     {
+      "labels": "AI · LLM Engineering · Distributed Inference",
+      "lang": "en",
+      "title": "Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL",
+      "url": "/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/",
+      "summary": "Tensor Parallelism, Pipeline Parallelism, DP/CP/EP, NCCL collectives, Ring All-Reduce, NVLink, PCIe, RDMA, multi-node topology and diagnostics. Includes a reproducible Python-standard-library simulator.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "35–42 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · Distributed Inference",
+      "lang": "es",
+      "title": "Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism y NCCL",
+      "url": "/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/",
+      "summary": "Tensor Parallelism, Pipeline Parallelism, DP/CP/EP, NCCL collectives, Ring All-Reduce, NVLink, PCIe, RDMA, topología multi-node y diagnóstico. Incluye simulador reproducible con Python estándar.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "35–42 min"
+    },
+    {
       "labels": "AI · LLM Engineering · Model Compression",
       "lang": "en",
       "title": "LLM Quantization: FP16, BF16, FP8, INT8 and INT4 from the inside",

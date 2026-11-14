@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="t d">
+<title id="t">Pipeline parallelism fill and drain</title><desc id="d">A four-stage pipeline processes four independent microbatches. The first microbatch incurs all stage latencies; later microbatches overlap.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#071426"/><stop offset="1" stop-color="#10243c"/></linearGradient></defs><rect width="1200" height="520" rx="24" fill="url(#bg)"/><text x="52" y="58" fill="#e2e8f0" font-family="Arial" font-size="28" font-weight="700">PIPELINE PARALLELISM · FILL, STEADY STATE, DRAIN</text><text x="60" y="98" fill="#94a3b8" font-family="Arial" font-size="16">Four stages, four independent microbatches, equal service time (conceptual schedule).</text>
+<g font-family="Arial">
+<g fill="#cbd5e1" font-size="15"><text x="60" y="165">Stage 0</text><text x="60" y="245">Stage 1</text><text x="60" y="325">Stage 2</text><text x="60" y="405">Stage 3</text></g>
+<g stroke="#334e68" stroke-width="1"><line x1="180" y1="170" x2="1110" y2="170"/><line x1="180" y1="250" x2="1110" y2="250"/><line x1="180" y1="330" x2="1110" y2="330"/><line x1="180" y1="410" x2="1110" y2="410"/></g>
+<g><rect x="190" y="132" width="155" height="52" rx="8" fill="#0e7490"/><text x="267" y="164" text-anchor="middle" fill="#ecfeff" font-size="18">MB 0</text>
+<rect x="345" y="212" width="155" height="52" rx="8" fill="#155e75"/><text x="422" y="244" text-anchor="middle" fill="#ecfeff" font-size="18">MB 0</text>
+<rect x="500" y="292" width="155" height="52" rx="8" fill="#0e7490"/><text x="577" y="324" text-anchor="middle" fill="#ecfeff" font-size="18">MB 0</text>
+<rect x="655" y="372" width="155" height="52" rx="8" fill="#155e75"/><text x="732" y="404" text-anchor="middle" fill="#ecfeff" font-size="18">MB 0</text>
+<rect x="345" y="132" width="155" height="52" rx="8" fill="#164e63"/><text x="422" y="164" text-anchor="middle" fill="#ecfeff" font-size="18">MB 1</text>
+<rect x="500" y="212" width="155" height="52" rx="8" fill="#0e7490"/><text x="577" y="244" text-anchor="middle" fill="#ecfeff" font-size="18">MB 1</text>
+<rect x="655" y="292" width="155" height="52" rx="8" fill="#164e63"/><text x="732" y="324" text-anchor="middle" fill="#ecfeff" font-size="18">MB 1</text>
+<rect x="810" y="372" width="155" height="52" rx="8" fill="#0e7490"/><text x="887" y="404" text-anchor="middle" fill="#ecfeff" font-size="18">MB 1</text>
+<rect x="500" y="132" width="155" height="52" rx="8" fill="#0e7490"/><text x="577" y="164" text-anchor="middle" fill="#ecfeff" font-size="18">MB 2</text>
+<rect x="655" y="212" width="155" height="52" rx="8" fill="#155e75"/><text x="732" y="244" text-anchor="middle" fill="#ecfeff" font-size="18">MB 2</text>
+<rect x="810" y="292" width="155" height="52" rx="8" fill="#0e7490"/><text x="887" y="324" text-anchor="middle" fill="#ecfeff" font-size="18">MB 2</text>
+<rect x="965" y="372" width="155" height="52" rx="8" fill="#155e75"/><text x="1042" y="404" text-anchor="middle" fill="#ecfeff" font-size="18">MB 2</text>
+<rect x="655" y="132" width="155" height="52" rx="8" fill="#164e63"/><text x="732" y="164" text-anchor="middle" fill="#ecfeff" font-size="18">MB 3</text>
+<rect x="810" y="212" width="155" height="52" rx="8" fill="#0e7490"/><text x="887" y="244" text-anchor="middle" fill="#ecfeff" font-size="18">MB 3</text>
+<rect x="965" y="292" width="155" height="52" rx="8" fill="#164e63"/><text x="1042" y="324" text-anchor="middle" fill="#ecfeff" font-size="18">MB 3</text>
+</g>
+<path d="M190 448V463H810V448" stroke="#67e8f9" stroke-width="2" fill="none"/><text x="500" y="486" text-anchor="middle" fill="#67e8f9" font-size="16" font-weight="700">FILL + OVERLAP + DRAIN</text>
+<text x="60" y="506" fill="#94a3b8" font-size="12">Illustrative 1F-style forward flow. Serving engines use their own microbatching, scheduling and backpressure policies.</text>
+</g></svg>

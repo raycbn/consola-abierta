@@ -1,0 +1,5 @@
+pp_degree,pipeline_boundaries,active_sequences,hidden_size,element_bytes,payload_bytes_per_boundary_per_decode_iteration,aggregate_payload_MiB_across_boundaries,assumption
+1,0,16,4096,2,0,0.0,full hidden activation crosses each boundary; no TP sharding or transport overhead
+2,1,16,4096,2,131072,0.125,full hidden activation crosses each boundary; no TP sharding or transport overhead
+4,3,16,4096,2,131072,0.375,full hidden activation crosses each boundary; no TP sharding or transport overhead
+8,7,16,4096,2,131072,0.875,full hidden activation crosses each boundary; no TP sharding or transport overhead

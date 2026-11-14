@@ -7,8 +7,17 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 08:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 22:00:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL</title>
+      <link>https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/</guid>
+      <pubDate>Sat, 14 Nov 2026 22:00:00 +0100</pubDate>
+      <description>Tensor/Pipeline Parallelism, NCCL collectives, Ring All-Reduce, GPU topology and multi-node serving. Reproducible CPU-only simulator using the Python standard library.</description>
+      <category>LLM Engineering</category>
+    </item>
+
 
 
         <item>

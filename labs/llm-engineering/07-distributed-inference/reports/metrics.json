@@ -1,0 +1,1572 @@
+{
+  "lab": "LLM Engineering 07 — Distributed inference concepts",
+  "date": "2026-11-14",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "dependencies": "Python standard library only",
+    "seed": 20261114,
+    "execution": "single-process CPU simulation"
+  },
+  "model_assumptions": {
+    "hidden_size": 4096,
+    "ffn_intermediate_size": 11008,
+    "transformer_layers": 32,
+    "active_sequences": 16,
+    "element_bytes": 2,
+    "parameter_count_formula": "layers * (3*h*h + h*h + 2*h*ffn + ffn*h)",
+    "parameter_count_estimate": 6476005376,
+    "excluded_parameters": [
+      "token embeddings",
+      "final norm",
+      "LM head",
+      "biases",
+      "model-specific tensors"
+    ]
+  },
+  "communication_assumptions": {
+    "tp_collectives_per_layer": 2,
+    "ring_send_formula": "2 * (p - 1) / p * N * element_bytes",
+    "ring_time_formula": "2 * (p - 1) * alpha + bytes_sent_per_rank / bandwidth",
+    "fabric_profiles": [
+      {
+        "name": "Illustrative fabric A",
+        "alpha_us": 4.0,
+        "bandwidth_GBps": 200.0
+      },
+      {
+        "name": "Illustrative fabric B",
+        "alpha_us": 10.0,
+        "bandwidth_GBps": 50.0
+      }
+    ],
+    "profiles_are": "hypothetical sensitivity inputs; not vendor link specifications or measurements",
+    "pipeline_activation": "one BF16-sized hidden activation per active sequence per boundary"
+  },
+  "pipeline_assumptions": {
+    "schedule": "FIFO flow-shop; one worker per stage; independent microbatches",
+    "stage_costs": "layers per stage plus deterministic ±8% synthetic stage-speed variation",
+    "work_units": "dimensionless, not milliseconds",
+    "microbatch_counts": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32
+    ]
+  },
+  "summary": {
+    "checks_passed": 16,
+    "checks_total": 16,
+    "tensor_parallel_rows": 4,
+    "pipeline_schedule_rows": 24,
+    "hybrid_topology_rows": 4,
+    "pipeline_event_rows": 84
+  },
+  "tensor_parallel": [
+    {
+      "tp_degree": 1,
+      "active_sequences_decode_tokens": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "collectives_per_layer_assumption": 2,
+      "layers": 32,
+      "allreduce_ops_per_decode_iteration": 0,
+      "ring_send_bytes_per_rank_per_allreduce": 0,
+      "ring_send_MiB_per_rank_per_decode_iteration": 0.0,
+      "ideal_weight_GiB_per_rank_fp16": 12.0625,
+      "traffic_model": "ring payload formula; excludes headers, padding, fusion and overlap",
+      "illustrative_fabric_a_ms_per_decode_iteration": 0.0,
+      "illustrative_fabric_b_ms_per_decode_iteration": 0.0
+    },
+    {
+      "tp_degree": 2,
+      "active_sequences_decode_tokens": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "collectives_per_layer_assumption": 2,
+      "layers": 32,
+      "allreduce_ops_per_decode_iteration": 64,
+      "ring_send_bytes_per_rank_per_allreduce": 131072,
+      "ring_send_MiB_per_rank_per_decode_iteration": 8.0,
+      "ideal_weight_GiB_per_rank_fp16": 6.03125,
+      "traffic_model": "ring payload formula; excludes headers, padding, fusion and overlap",
+      "illustrative_fabric_a_ms_per_decode_iteration": 0.553943,
+      "illustrative_fabric_b_ms_per_decode_iteration": 1.447772
+    },
+    {
+      "tp_degree": 4,
+      "active_sequences_decode_tokens": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "collectives_per_layer_assumption": 2,
+      "layers": 32,
+      "allreduce_ops_per_decode_iteration": 64,
+      "ring_send_bytes_per_rank_per_allreduce": 196608,
+      "ring_send_MiB_per_rank_per_decode_iteration": 12.0,
+      "ideal_weight_GiB_per_rank_fp16": 3.015625,
+      "traffic_model": "ring payload formula; excludes headers, padding, fusion and overlap",
+      "illustrative_fabric_a_ms_per_decode_iteration": 1.598915,
+      "illustrative_fabric_b_ms_per_decode_iteration": 4.091658
+    },
+    {
+      "tp_degree": 8,
+      "active_sequences_decode_tokens": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "collectives_per_layer_assumption": 2,
+      "layers": 32,
+      "allreduce_ops_per_decode_iteration": 64,
+      "ring_send_bytes_per_rank_per_allreduce": 229376,
+      "ring_send_MiB_per_rank_per_decode_iteration": 14.0,
+      "ideal_weight_GiB_per_rank_fp16": 1.507812,
+      "traffic_model": "ring payload formula; excludes headers, padding, fusion and overlap",
+      "illustrative_fabric_a_ms_per_decode_iteration": 3.6574,
+      "illustrative_fabric_b_ms_per_decode_iteration": 9.253601
+    }
+  ],
+  "pipeline_schedules": [
+    {
+      "pp_degree": 1,
+      "microbatches": 1,
+      "layers_per_stage": "32",
+      "stage_service_work_units": "34.538662",
+      "first_result_latency_work_units": 34.538662,
+      "makespan_work_units": 34.538662,
+      "completed_microbatches": 1,
+      "aggregate_stage_utilization": 1.0,
+      "ideal_balanced_fill_drain_utilization": 1.0,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 2,
+      "layers_per_stage": "32",
+      "stage_service_work_units": "34.538662",
+      "first_result_latency_work_units": 34.538662,
+      "makespan_work_units": 69.077324,
+      "completed_microbatches": 2,
+      "aggregate_stage_utilization": 1.0,
+      "ideal_balanced_fill_drain_utilization": 1.0,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 4,
+      "layers_per_stage": "32",
+      "stage_service_work_units": "34.538662",
+      "first_result_latency_work_units": 34.538662,
+      "makespan_work_units": 138.154648,
+      "completed_microbatches": 4,
+      "aggregate_stage_utilization": 1.0,
+      "ideal_balanced_fill_drain_utilization": 1.0,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 8,
+      "layers_per_stage": "32",
+      "stage_service_work_units": "34.538662",
+      "first_result_latency_work_units": 34.538662,
+      "makespan_work_units": 276.309295,
+      "completed_microbatches": 8,
+      "aggregate_stage_utilization": 1.0,
+      "ideal_balanced_fill_drain_utilization": 1.0,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 16,
+      "layers_per_stage": "32",
+      "stage_service_work_units": "34.538662",
+      "first_result_latency_work_units": 34.538662,
+      "makespan_work_units": 552.618591,
+      "completed_microbatches": 16,
+      "aggregate_stage_utilization": 1.0,
+      "ideal_balanced_fill_drain_utilization": 1.0,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 32,
+      "layers_per_stage": "32",
+      "stage_service_work_units": "34.538662",
+      "first_result_latency_work_units": 34.538662,
+      "makespan_work_units": 1105.237181,
+      "completed_microbatches": 32,
+      "aggregate_stage_utilization": 1.0,
+      "ideal_balanced_fill_drain_utilization": 1.0,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 1,
+      "layers_per_stage": "16;16",
+      "stage_service_work_units": "17.269331;15.672907",
+      "first_result_latency_work_units": 32.942238,
+      "makespan_work_units": 32.942238,
+      "completed_microbatches": 1,
+      "aggregate_stage_utilization": 0.5,
+      "ideal_balanced_fill_drain_utilization": 0.5,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 2,
+      "layers_per_stage": "16;16",
+      "stage_service_work_units": "17.269331;15.672907",
+      "first_result_latency_work_units": 32.942238,
+      "makespan_work_units": 50.211569,
+      "completed_microbatches": 2,
+      "aggregate_stage_utilization": 0.65606869,
+      "ideal_balanced_fill_drain_utilization": 0.66666667,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 4,
+      "layers_per_stage": "16;16",
+      "stage_service_work_units": "17.269331;15.672907",
+      "first_result_latency_work_units": 32.942238,
+      "makespan_work_units": 84.750231,
+      "completed_microbatches": 4,
+      "aggregate_stage_utilization": 0.77739583,
+      "ideal_balanced_fill_drain_utilization": 0.8,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 8,
+      "layers_per_stage": "16;16",
+      "stage_service_work_units": "17.269331;15.672907",
+      "first_result_latency_work_units": 32.942238,
+      "makespan_work_units": 153.827555,
+      "completed_microbatches": 8,
+      "aggregate_stage_utilization": 0.85660175,
+      "ideal_balanced_fill_drain_utilization": 0.88888889,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 16,
+      "layers_per_stage": "16;16",
+      "stage_service_work_units": "17.269331;15.672907",
+      "first_result_latency_work_units": 32.942238,
+      "makespan_work_units": 291.982203,
+      "completed_microbatches": 16,
+      "aggregate_stage_utilization": 0.90258209,
+      "ideal_balanced_fill_drain_utilization": 0.94117647,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 32,
+      "layers_per_stage": "16;16",
+      "stage_service_work_units": "17.269331;15.672907",
+      "first_result_latency_work_units": 32.942238,
+      "makespan_work_units": 568.291498,
+      "completed_microbatches": 32,
+      "aggregate_stage_utilization": 0.9274744,
+      "ideal_balanced_fill_drain_utilization": 0.96969697,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 1,
+      "layers_per_stage": "8;8;8;8",
+      "stage_service_work_units": "8.634665;7.836454;7.407479;8.316233",
+      "first_result_latency_work_units": 32.19483,
+      "makespan_work_units": 32.19483,
+      "completed_microbatches": 1,
+      "aggregate_stage_utilization": 0.25,
+      "ideal_balanced_fill_drain_utilization": 0.25,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 2,
+      "layers_per_stage": "8;8;8;8",
+      "stage_service_work_units": "8.634665;7.836454;7.407479;8.316233",
+      "first_result_latency_work_units": 32.19483,
+      "makespan_work_units": 40.829496,
+      "completed_microbatches": 2,
+      "aggregate_stage_utilization": 0.39425946,
+      "ideal_balanced_fill_drain_utilization": 0.4,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 4,
+      "layers_per_stage": "8;8;8;8",
+      "stage_service_work_units": "8.634665;7.836454;7.407479;8.316233",
+      "first_result_latency_work_units": 32.19483,
+      "makespan_work_units": 58.098827,
+      "completed_microbatches": 4,
+      "aggregate_stage_utilization": 0.55413908,
+      "ideal_balanced_fill_drain_utilization": 0.57142857,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 8,
+      "layers_per_stage": "8;8;8;8",
+      "stage_service_work_units": "8.634665;7.836454;7.407479;8.316233",
+      "first_result_latency_work_units": 32.19483,
+      "makespan_work_units": 92.637489,
+      "completed_microbatches": 8,
+      "aggregate_stage_utilization": 0.69507131,
+      "ideal_balanced_fill_drain_utilization": 0.72727273,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 16,
+      "layers_per_stage": "8;8;8;8",
+      "stage_service_work_units": "8.634665;7.836454;7.407479;8.316233",
+      "first_result_latency_work_units": 32.19483,
+      "makespan_work_units": 161.714813,
+      "completed_microbatches": 16,
+      "aggregate_stage_utilization": 0.79633597,
+      "ideal_balanced_fill_drain_utilization": 0.84210526,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 32,
+      "layers_per_stage": "8;8;8;8",
+      "stage_service_work_units": "8.634665;7.836454;7.407479;8.316233",
+      "first_result_latency_work_units": 32.19483,
+      "makespan_work_units": 299.86946,
+      "completed_microbatches": 32,
+      "aggregate_stage_utilization": 0.85890255,
+      "ideal_balanced_fill_drain_utilization": 0.91428571,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "layers_per_stage": "4;4;4;4;4;4;4;4",
+      "stage_service_work_units": "4.317333;3.918227;3.703739;4.158116;4.255516;3.776040;3.802196;4.274932",
+      "first_result_latency_work_units": 32.206099,
+      "makespan_work_units": 32.206099,
+      "completed_microbatches": 1,
+      "aggregate_stage_utilization": 0.125,
+      "ideal_balanced_fill_drain_utilization": 0.125,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "layers_per_stage": "4;4;4;4;4;4;4;4",
+      "stage_service_work_units": "4.317333;3.918227;3.703739;4.158116;4.255516;3.776040;3.802196;4.274932",
+      "first_result_latency_work_units": 32.206099,
+      "makespan_work_units": 36.523432,
+      "completed_microbatches": 2,
+      "aggregate_stage_utilization": 0.2204482,
+      "ideal_balanced_fill_drain_utilization": 0.22222222,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "layers_per_stage": "4;4;4;4;4;4;4;4",
+      "stage_service_work_units": "4.317333;3.918227;3.703739;4.158116;4.255516;3.776040;3.802196;4.274932",
+      "first_result_latency_work_units": 32.206099,
+      "makespan_work_units": 45.158097,
+      "completed_microbatches": 4,
+      "aggregate_stage_utilization": 0.35659274,
+      "ideal_balanced_fill_drain_utilization": 0.36363636,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "layers_per_stage": "4;4;4;4;4;4;4;4",
+      "stage_service_work_units": "4.317333;3.918227;3.703739;4.158116;4.255516;3.776040;3.802196;4.274932",
+      "first_result_latency_work_units": 32.206099,
+      "makespan_work_units": 62.427428,
+      "completed_microbatches": 8,
+      "aggregate_stage_utilization": 0.51589662,
+      "ideal_balanced_fill_drain_utilization": 0.53333333,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "layers_per_stage": "4;4;4;4;4;4;4;4",
+      "stage_service_work_units": "4.317333;3.918227;3.703739;4.158116;4.255516;3.776040;3.802196;4.274932",
+      "first_result_latency_work_units": 32.206099,
+      "makespan_work_units": 96.96609,
+      "completed_microbatches": 16,
+      "aggregate_stage_utilization": 0.6642755,
+      "ideal_balanced_fill_drain_utilization": 0.69565217,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "layers_per_stage": "4;4;4;4;4;4;4;4",
+      "stage_service_work_units": "4.317333;3.918227;3.703739;4.158116;4.255516;3.776040;3.802196;4.274932",
+      "first_result_latency_work_units": 32.206099,
+      "makespan_work_units": 166.043414,
+      "completed_microbatches": 32,
+      "aggregate_stage_utilization": 0.77584767,
+      "ideal_balanced_fill_drain_utilization": 0.82051282,
+      "note": "synthetic FIFO pipeline; work units are not milliseconds"
+    }
+  ],
+  "pipeline_stage_utilization": [
+    {
+      "pp_degree": 1,
+      "microbatches": 1,
+      "stage": 0,
+      "service_work_units": 34.53866191475832,
+      "busy_work_units": 34.53866191475832,
+      "makespan_work_units": 34.53866191475832,
+      "utilization_fraction": 1.0
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 2,
+      "stage": 0,
+      "service_work_units": 34.53866191475832,
+      "busy_work_units": 69.07732382951664,
+      "makespan_work_units": 69.07732382951664,
+      "utilization_fraction": 1.0
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 4,
+      "stage": 0,
+      "service_work_units": 34.53866191475832,
+      "busy_work_units": 138.1546476590333,
+      "makespan_work_units": 138.1546476590333,
+      "utilization_fraction": 1.0
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 8,
+      "stage": 0,
+      "service_work_units": 34.53866191475832,
+      "busy_work_units": 276.30929531806663,
+      "makespan_work_units": 276.30929531806663,
+      "utilization_fraction": 1.0
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 16,
+      "stage": 0,
+      "service_work_units": 34.53866191475832,
+      "busy_work_units": 552.6185906361333,
+      "makespan_work_units": 552.6185906361333,
+      "utilization_fraction": 1.0
+    },
+    {
+      "pp_degree": 1,
+      "microbatches": 32,
+      "stage": 0,
+      "service_work_units": 34.53866191475832,
+      "busy_work_units": 1105.2371812722663,
+      "makespan_work_units": 1105.2371812722663,
+      "utilization_fraction": 1.0
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 1,
+      "stage": 0,
+      "service_work_units": 17.26933095737916,
+      "busy_work_units": 17.26933095737916,
+      "makespan_work_units": 32.94223834678482,
+      "utilization_fraction": 0.524230648069021
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 1,
+      "stage": 1,
+      "service_work_units": 15.672907389405657,
+      "busy_work_units": 15.672907389405657,
+      "makespan_work_units": 32.94223834678482,
+      "utilization_fraction": 0.47576935193097897
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 2,
+      "stage": 0,
+      "service_work_units": 17.26933095737916,
+      "busy_work_units": 34.53866191475832,
+      "makespan_work_units": 50.21156930416398,
+      "utilization_fraction": 0.6878626259525028
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 2,
+      "stage": 1,
+      "service_work_units": 15.672907389405657,
+      "busy_work_units": 31.345814778811313,
+      "makespan_work_units": 50.21156930416398,
+      "utilization_fraction": 0.6242747480949942
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 4,
+      "stage": 0,
+      "service_work_units": 17.26933095737916,
+      "busy_work_units": 69.07732382951664,
+      "makespan_work_units": 84.7502312189223,
+      "utilization_fraction": 0.8150694438942564
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 4,
+      "stage": 1,
+      "service_work_units": 15.672907389405657,
+      "busy_work_units": 62.691629557622626,
+      "makespan_work_units": 84.7502312189223,
+      "utilization_fraction": 0.7397222244229746
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 8,
+      "stage": 0,
+      "service_work_units": 17.26933095737916,
+      "busy_work_units": 138.15464765903332,
+      "makespan_work_units": 153.82755504843897,
+      "utilization_fraction": 0.8981137847216619
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 8,
+      "stage": 1,
+      "service_work_units": 15.672907389405657,
+      "busy_work_units": 125.38325911524524,
+      "makespan_work_units": 153.82755504843897,
+      "utilization_fraction": 0.8150897222267046
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 16,
+      "stage": 0,
+      "service_work_units": 17.26933095737916,
+      "busy_work_units": 276.30929531806663,
+      "makespan_work_units": 291.9822027074723,
+      "utilization_fraction": 0.9463223879946276
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 16,
+      "stage": 1,
+      "service_work_units": 15.672907389405657,
+      "busy_work_units": 250.76651823049045,
+      "makespan_work_units": 291.9822027074723,
+      "utilization_fraction": 0.8588417920859562
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 32,
+      "stage": 0,
+      "service_work_units": 17.26933095737916,
+      "busy_work_units": 552.6185906361331,
+      "makespan_work_units": 568.2914980255388,
+      "utilization_fraction": 0.9724210067476651
+    },
+    {
+      "pp_degree": 2,
+      "microbatches": 32,
+      "stage": 1,
+      "service_work_units": 15.672907389405657,
+      "busy_work_units": 501.5330364609813,
+      "makespan_work_units": 568.2914980255388,
+      "utilization_fraction": 0.882527784074719
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 1,
+      "stage": 0,
+      "service_work_units": 8.63466547868958,
+      "busy_work_units": 8.63466547868958,
+      "makespan_work_units": 32.19483032143137,
+      "utilization_fraction": 0.2682003723107582
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 1,
+      "stage": 1,
+      "service_work_units": 7.836453694702828,
+      "busy_work_units": 7.836453694702828,
+      "makespan_work_units": 32.19483032143137,
+      "utilization_fraction": 0.2434072059540031
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 1,
+      "stage": 2,
+      "service_work_units": 7.407478603310251,
+      "busy_work_units": 7.407478603310251,
+      "makespan_work_units": 32.19483032143137,
+      "utilization_fraction": 0.2300828589358727
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 1,
+      "stage": 3,
+      "service_work_units": 8.31623254472871,
+      "busy_work_units": 8.31623254472871,
+      "makespan_work_units": 32.19483032143137,
+      "utilization_fraction": 0.258309562799366
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 2,
+      "stage": 0,
+      "service_work_units": 8.63466547868958,
+      "busy_work_units": 17.26933095737916,
+      "makespan_work_units": 40.82949580012095,
+      "utilization_fraction": 0.42296214094634993
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 2,
+      "stage": 1,
+      "service_work_units": 7.836453694702828,
+      "busy_work_units": 15.672907389405657,
+      "makespan_work_units": 40.82949580012095,
+      "utilization_fraction": 0.38386237895593184
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 2,
+      "stage": 2,
+      "service_work_units": 7.407478603310251,
+      "busy_work_units": 14.814957206620502,
+      "makespan_work_units": 40.82949580012095,
+      "utilization_fraction": 0.3628493792611716
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 2,
+      "stage": 3,
+      "service_work_units": 8.31623254472871,
+      "busy_work_units": 16.63246508945742,
+      "makespan_work_units": 40.82949580012095,
+      "utilization_fraction": 0.4073639598901965
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 4,
+      "stage": 0,
+      "service_work_units": 8.63466547868958,
+      "busy_work_units": 34.53866191475832,
+      "makespan_work_units": 58.098826757500106,
+      "utilization_fraction": 0.5944812286643921
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 4,
+      "stage": 1,
+      "service_work_units": 7.836453694702828,
+      "busy_work_units": 31.345814778811313,
+      "makespan_work_units": 58.098826757500106,
+      "utilization_fraction": 0.539525779232105
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 4,
+      "stage": 2,
+      "service_work_units": 7.407478603310251,
+      "busy_work_units": 29.629914413241004,
+      "makespan_work_units": 58.098826757500106,
+      "utilization_fraction": 0.5099916137190501
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 4,
+      "stage": 3,
+      "service_work_units": 8.31623254472871,
+      "busy_work_units": 33.26493017891484,
+      "makespan_work_units": 58.098826757500106,
+      "utilization_fraction": 0.572557692391277
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 8,
+      "stage": 0,
+      "service_work_units": 8.63466547868958,
+      "busy_work_units": 69.07732382951666,
+      "makespan_work_units": 92.63748867225844,
+      "utilization_fraction": 0.7456735369187831
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 8,
+      "stage": 1,
+      "service_work_units": 7.836453694702828,
+      "busy_work_units": 62.69162955762262,
+      "makespan_work_units": 92.63748867225844,
+      "utilization_fraction": 0.6767414624053435
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 8,
+      "stage": 2,
+      "service_work_units": 7.407478603310251,
+      "busy_work_units": 59.259828826482014,
+      "makespan_work_units": 92.63748867225844,
+      "utilization_fraction": 0.6396959770372983
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 8,
+      "stage": 3,
+      "service_work_units": 8.31623254472871,
+      "busy_work_units": 66.52986035782966,
+      "makespan_work_units": 92.63748867225844,
+      "utilization_fraction": 0.7181742652070936
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 16,
+      "stage": 0,
+      "service_work_units": 8.63466547868958,
+      "busy_work_units": 138.15464765903332,
+      "makespan_work_units": 161.7148125017751,
+      "utilization_fraction": 0.8543104093047558
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 16,
+      "stage": 1,
+      "service_work_units": 7.836453694702828,
+      "busy_work_units": 125.38325911524522,
+      "makespan_work_units": 161.7148125017751,
+      "utilization_fraction": 0.7753356490696789
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 16,
+      "stage": 2,
+      "service_work_units": 7.407478603310251,
+      "busy_work_units": 118.51965765296403,
+      "makespan_work_units": 161.7148125017751,
+      "utilization_fraction": 0.7328930221012566
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 16,
+      "stage": 3,
+      "service_work_units": 8.31623254472871,
+      "busy_work_units": 133.05972071565932,
+      "makespan_work_units": 161.7148125017751,
+      "utilization_fraction": 0.8228047799529729
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 32,
+      "stage": 0,
+      "service_work_units": 8.63466547868958,
+      "busy_work_units": 276.3092953180666,
+      "makespan_work_units": 299.8694601608084,
+      "utilization_fraction": 0.9214319296466289
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 32,
+      "stage": 1,
+      "service_work_units": 7.836453694702828,
+      "busy_work_units": 250.76651823049065,
+      "makespan_work_units": 299.8694601608084,
+      "utilization_fraction": 0.8362522748932628
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 32,
+      "stage": 2,
+      "service_work_units": 7.407478603310251,
+      "busy_work_units": 237.03931530592786,
+      "makespan_work_units": 299.8694601608084,
+      "utilization_fraction": 0.7904750126232023
+    },
+    {
+      "pp_degree": 4,
+      "microbatches": 32,
+      "stage": 3,
+      "service_work_units": 8.31623254472871,
+      "busy_work_units": 266.11944143131865,
+      "makespan_work_units": 299.8694601608084,
+      "utilization_fraction": 0.8874509637914081
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 0,
+      "service_work_units": 4.31733273934479,
+      "busy_work_units": 4.31733273934479,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.1340532653077005
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 1,
+      "service_work_units": 3.918226847351414,
+      "busy_work_units": 3.918226847351414,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.12166101961913353
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 2,
+      "service_work_units": 3.7037393016551254,
+      "busy_work_units": 3.7037393016551254,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.11500117716446423
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 3,
+      "service_work_units": 4.158116272364355,
+      "busy_work_units": 4.158116272364355,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.12910959091935068
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 4,
+      "service_work_units": 4.255515876039517,
+      "busy_work_units": 4.255515876039517,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.13213385050289922
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 5,
+      "service_work_units": 3.7760400999700665,
+      "busy_work_units": 3.7760400999700665,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.11724611835469138
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 6,
+      "service_work_units": 3.8021961240841495,
+      "busy_work_units": 3.8021961240841495,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.11805826341082896
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 1,
+      "stage": 7,
+      "service_work_units": 4.274931780754079,
+      "busy_work_units": 4.274931780754079,
+      "makespan_work_units": 32.2060990415635,
+      "utilization_fraction": 0.1327367147209315
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 0,
+      "service_work_units": 4.31733273934479,
+      "busy_work_units": 8.63466547868958,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.23641440734501667
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 1,
+      "service_work_units": 3.918226847351414,
+      "busy_work_units": 7.836453694702828,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.21455962138801915
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 2,
+      "service_work_units": 3.7037393016551254,
+      "busy_work_units": 7.407478603310251,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.20281441918561238
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 3,
+      "service_work_units": 4.158116272364355,
+      "busy_work_units": 8.31623254472871,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.22769581441894549
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 4,
+      "service_work_units": 4.255515876039517,
+      "busy_work_units": 8.511031752079035,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.23302935504894048
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 5,
+      "service_work_units": 3.7760400999700665,
+      "busy_work_units": 7.552080199940133,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.2067735651250547
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 6,
+      "service_work_units": 3.8021961240841495,
+      "busy_work_units": 7.604392248168299,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.20820585244520493
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 2,
+      "stage": 7,
+      "service_work_units": 4.274931780754079,
+      "busy_work_units": 8.549863561508158,
+      "makespan_work_units": 36.52343178090829,
+      "utilization_fraction": 0.23409255769818937
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 0,
+      "service_work_units": 4.31733273934479,
+      "busy_work_units": 17.26933095737916,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.3824193667439952
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 1,
+      "service_work_units": 3.918226847351414,
+      "busy_work_units": 15.672907389405657,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.34706748823600064
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 2,
+      "service_work_units": 3.7037393016551254,
+      "busy_work_units": 14.814957206620502,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.32806867661971173
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 3,
+      "service_work_units": 4.158116272364355,
+      "busy_work_units": 16.63246508945742,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.36831633967753963
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 4,
+      "service_work_units": 4.255515876039517,
+      "busy_work_units": 17.02206350415807,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.3769437717073036
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 5,
+      "service_work_units": 3.7760400999700665,
+      "busy_work_units": 15.104160399880266,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.3344729144155878
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 6,
+      "service_work_units": 3.8021961240841495,
+      "busy_work_units": 15.208784496336598,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.33678975464592087
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 4,
+      "stage": 7,
+      "service_work_units": 4.274931780754079,
+      "busy_work_units": 17.099727123016315,
+      "makespan_work_units": 45.15809725959787,
+      "utilization_fraction": 0.3786635877219551
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 0,
+      "service_work_units": 4.31733273934479,
+      "busy_work_units": 34.53866191475833,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.5532610088423536
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 1,
+      "service_work_units": 3.918226847351414,
+      "busy_work_units": 31.34581477881131,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.5021160677941698
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 2,
+      "service_work_units": 3.7037393016551254,
+      "busy_work_units": 29.629914413241007,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.47462974624322585
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 3,
+      "service_work_units": 4.158116272364355,
+      "busy_work_units": 33.26493017891483,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.5328576096919605
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 4,
+      "service_work_units": 4.255515876039517,
+      "busy_work_units": 34.04412700831614,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.5453392520029825
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 5,
+      "service_work_units": 3.7760400999700665,
+      "busy_work_units": 30.208320799760536,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.48389500677116526
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 6,
+      "service_work_units": 3.8021961240841495,
+      "busy_work_units": 30.41756899267319,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.48724686986867066
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 8,
+      "stage": 7,
+      "service_work_units": 4.274931780754079,
+      "busy_work_units": 34.19945424603264,
+      "makespan_work_units": 62.427428216977034,
+      "utilization_fraction": 0.5478273768889963
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 0,
+      "service_work_units": 4.31733273934479,
+      "busy_work_units": 69.07732382951666,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.7123863995719555
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 1,
+      "service_work_units": 3.918226847351414,
+      "busy_work_units": 62.69162955762261,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.6465314778852232
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 2,
+      "service_work_units": 3.7037393016551254,
+      "busy_work_units": 59.259828826482014,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.6111397164304894
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 3,
+      "service_work_units": 4.158116272364355,
+      "busy_work_units": 66.52986035782966,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.6861147053309472
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 4,
+      "service_work_units": 4.255515876039517,
+      "busy_work_units": 68.08825401663228,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.7021862377262972
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 5,
+      "service_work_units": 3.7760400999700665,
+      "busy_work_units": 60.41664159952108,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.6230697918977735
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 6,
+      "service_work_units": 3.8021961240841495,
+      "busy_work_units": 60.83513798534637,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.6273856964088941
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 16,
+      "stage": 7,
+      "service_work_units": 4.274931780754079,
+      "busy_work_units": 68.39890849206527,
+      "makespan_work_units": 96.96609013173534,
+      "utilization_fraction": 0.705389981169092
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 0,
+      "service_work_units": 4.31733273934479,
+      "busy_work_units": 138.1546476590333,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.8320393104617394
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 1,
+      "service_work_units": 3.918226847351414,
+      "busy_work_units": 125.38325911524532,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.7551233507190164
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 2,
+      "service_work_units": 3.7037393016551254,
+      "busy_work_units": 118.51965765296393,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.7137871646063706
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 3,
+      "service_work_units": 4.158116272364355,
+      "busy_work_units": 133.05972071565932,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.8013550043406733
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 4,
+      "service_work_units": 4.255515876039517,
+      "busy_work_units": 136.17650803326444,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.8201259223990821
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 5,
+      "service_work_units": 3.7760400999700665,
+      "busy_work_units": 120.83328319904206,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.7277210237753831
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 6,
+      "service_work_units": 3.8021961240841495,
+      "busy_work_units": 121.67027597069274,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.7327618305841735
+    },
+    {
+      "pp_degree": 8,
+      "microbatches": 32,
+      "stage": 7,
+      "service_work_units": 4.274931780754079,
+      "busy_work_units": 136.7978169841305,
+      "makespan_work_units": 166.043413961252,
+      "utilization_fraction": 0.8238677687996327
+    }
+  ],
+  "hybrid_tp_pp_topology": [
+    {
+      "total_gpus": 8,
+      "nodes": 2,
+      "gpus_per_node": 4,
+      "tp_degree": 8,
+      "pp_degree": 1,
+      "layers_by_pipeline_stage": "32",
+      "ideal_weight_GiB_per_gpu_fp16": 1.507812,
+      "max_stage_tp_collectives_per_rank_per_decode_iteration": 64,
+      "ring_send_MiB_per_rank_at_max_pipeline_stage": 14.0,
+      "pp_activation_bytes_per_rank_per_boundary_assumption": 0,
+      "pp_activation_MiB_per_rank_all_boundaries": 0.0,
+      "layout_note": "illustrative rank grouping; actual activation layout may be replicated or sharded differently"
+    },
+    {
+      "total_gpus": 8,
+      "nodes": 2,
+      "gpus_per_node": 4,
+      "tp_degree": 4,
+      "pp_degree": 2,
+      "layers_by_pipeline_stage": "16;16",
+      "ideal_weight_GiB_per_gpu_fp16": 1.507812,
+      "max_stage_tp_collectives_per_rank_per_decode_iteration": 32,
+      "ring_send_MiB_per_rank_at_max_pipeline_stage": 6.0,
+      "pp_activation_bytes_per_rank_per_boundary_assumption": 32768,
+      "pp_activation_MiB_per_rank_all_boundaries": 0.03125,
+      "layout_note": "illustrative rank grouping; actual activation layout may be replicated or sharded differently"
+    },
+    {
+      "total_gpus": 8,
+      "nodes": 2,
+      "gpus_per_node": 4,
+      "tp_degree": 2,
+      "pp_degree": 4,
+      "layers_by_pipeline_stage": "8;8;8;8",
+      "ideal_weight_GiB_per_gpu_fp16": 1.507812,
+      "max_stage_tp_collectives_per_rank_per_decode_iteration": 16,
+      "ring_send_MiB_per_rank_at_max_pipeline_stage": 2.0,
+      "pp_activation_bytes_per_rank_per_boundary_assumption": 65536,
+      "pp_activation_MiB_per_rank_all_boundaries": 0.1875,
+      "layout_note": "illustrative rank grouping; actual activation layout may be replicated or sharded differently"
+    },
+    {
+      "total_gpus": 8,
+      "nodes": 2,
+      "gpus_per_node": 4,
+      "tp_degree": 1,
+      "pp_degree": 8,
+      "layers_by_pipeline_stage": "4;4;4;4;4;4;4;4",
+      "ideal_weight_GiB_per_gpu_fp16": 1.507812,
+      "max_stage_tp_collectives_per_rank_per_decode_iteration": 0,
+      "ring_send_MiB_per_rank_at_max_pipeline_stage": 0.0,
+      "pp_activation_bytes_per_rank_per_boundary_assumption": 131072,
+      "pp_activation_MiB_per_rank_all_boundaries": 0.875,
+      "layout_note": "illustrative rank grouping; actual activation layout may be replicated or sharded differently"
+    }
+  ],
+  "tp4_pp2_rank_map": [
+    {
+      "global_rank": 0,
+      "pipeline_stage": 0,
+      "tensor_rank": 0,
+      "node": 0,
+      "local_gpu": 0,
+      "group": "pp0-tp"
+    },
+    {
+      "global_rank": 1,
+      "pipeline_stage": 0,
+      "tensor_rank": 1,
+      "node": 0,
+      "local_gpu": 1,
+      "group": "pp0-tp"
+    },
+    {
+      "global_rank": 2,
+      "pipeline_stage": 0,
+      "tensor_rank": 2,
+      "node": 0,
+      "local_gpu": 2,
+      "group": "pp0-tp"
+    },
+    {
+      "global_rank": 3,
+      "pipeline_stage": 0,
+      "tensor_rank": 3,
+      "node": 0,
+      "local_gpu": 3,
+      "group": "pp0-tp"
+    },
+    {
+      "global_rank": 4,
+      "pipeline_stage": 1,
+      "tensor_rank": 0,
+      "node": 1,
+      "local_gpu": 0,
+      "group": "pp1-tp"
+    },
+    {
+      "global_rank": 5,
+      "pipeline_stage": 1,
+      "tensor_rank": 1,
+      "node": 1,
+      "local_gpu": 1,
+      "group": "pp1-tp"
+    },
+    {
+      "global_rank": 6,
+      "pipeline_stage": 1,
+      "tensor_rank": 2,
+      "node": 1,
+      "local_gpu": 2,
+      "group": "pp1-tp"
+    },
+    {
+      "global_rank": 7,
+      "pipeline_stage": 1,
+      "tensor_rank": 3,
+      "node": 1,
+      "local_gpu": 3,
+      "group": "pp1-tp"
+    }
+  ],
+  "pipeline_activation_transfer": [
+    {
+      "pp_degree": 1,
+      "pipeline_boundaries": 0,
+      "active_sequences": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "payload_bytes_per_boundary_per_decode_iteration": 0,
+      "aggregate_payload_MiB_across_boundaries": 0.0,
+      "assumption": "full hidden activation crosses each boundary; no TP sharding or transport overhead"
+    },
+    {
+      "pp_degree": 2,
+      "pipeline_boundaries": 1,
+      "active_sequences": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "payload_bytes_per_boundary_per_decode_iteration": 131072,
+      "aggregate_payload_MiB_across_boundaries": 0.125,
+      "assumption": "full hidden activation crosses each boundary; no TP sharding or transport overhead"
+    },
+    {
+      "pp_degree": 4,
+      "pipeline_boundaries": 3,
+      "active_sequences": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "payload_bytes_per_boundary_per_decode_iteration": 131072,
+      "aggregate_payload_MiB_across_boundaries": 0.375,
+      "assumption": "full hidden activation crosses each boundary; no TP sharding or transport overhead"
+    },
+    {
+      "pp_degree": 8,
+      "pipeline_boundaries": 7,
+      "active_sequences": 16,
+      "hidden_size": 4096,
+      "element_bytes": 2,
+      "payload_bytes_per_boundary_per_decode_iteration": 131072,
+      "aggregate_payload_MiB_across_boundaries": 0.875,
+      "assumption": "full hidden activation crosses each boundary; no TP sharding or transport overhead"
+    }
+  ],
+  "collective_examples": {
+    "all_reduce": [
+      [
+        111,
+        222,
+        333,
+        444
+      ],
+      [
+        111,
+        222,
+        333,
+        444
+      ],
+      [
+        111,
+        222,
+        333,
+        444
+      ]
+    ],
+    "all_gather": [
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    ],
+    "reduce_scatter": [
+      [
+        111,
+        222
+      ],
+      [
+        333,
+        444
+      ],
+      [
+        555,
+        666
+      ]
+    ],
+    "all_to_all": [
+      [
+        0,
+        10,
+        20
+      ],
+      [
+        1,
+        11,
+        21
+      ],
+      [
+        2,
+        12,
+        22
+      ]
+    ]
+  },
+  "matrix_sharding_validation": {
+    "column_parallel_max_abs_error": 0.0,
+    "row_parallel_max_abs_error": 1.1102230246251565e-16,
+    "column_parallel_matches": true,
+    "row_parallel_matches": true
+  },
+  "checks": [
+    {
+      "check": "TP x PP rank product covers the fixed GPU count",
+      "status": "PASS",
+      "detail": "All four layouts use exactly eight ranks."
+    },
+    {
+      "check": "TP=1 has no inter-rank AllReduce payload",
+      "status": "PASS",
+      "detail": "Single-rank collectives require no network transfer."
+    },
+    {
+      "check": "Ring AllReduce send volume matches the 2(p-1)/p formula",
+      "status": "PASS",
+      "detail": "1,000 elements, two bytes, four ranks: 3,000 bytes sent per rank."
+    },
+    {
+      "check": "TP sharding preserves column-parallel linear output",
+      "status": "PASS",
+      "detail": "Concatenating output-column shards matches the unsharded matrix product."
+    },
+    {
+      "check": "TP sharding preserves row-parallel linear output",
+      "status": "PASS",
+      "detail": "Summing input-row partial products matches the unsharded matrix product."
+    },
+    {
+      "check": "AllReduce returns the same summed vector to every rank",
+      "status": "PASS",
+      "detail": "Three rank-local vectors are summed element-wise and replicated."
+    },
+    {
+      "check": "AllGather concatenates shards in rank order",
+      "status": "PASS",
+      "detail": "Each rank receives the ordered concatenation."
+    },
+    {
+      "check": "ReduceScatter reduces then distributes equal result chunks",
+      "status": "PASS",
+      "detail": "Reduction is followed by an even scatter."
+    },
+    {
+      "check": "AllToAll transposes source-to-destination exchanges",
+      "status": "PASS",
+      "detail": "Every destination receives one payload from each source."
+    },
+    {
+      "check": "Pipeline schedules complete every microbatch",
+      "status": "PASS",
+      "detail": "Every FIFO flow-shop schedule reaches the final stage."
+    },
+    {
+      "check": "More microbatches improve balanced fill-drain reference occupancy",
+      "status": "PASS",
+      "detail": "The ideal reference approaches full occupancy as job count grows."
+    },
+    {
+      "check": "Pipeline stage partition handles uneven layer counts",
+      "status": "PASS",
+      "detail": "Layer counts are distributed without dropping or duplicating layers."
+    },
+    {
+      "check": "Fast illustrative fabric has lower estimated collective time",
+      "status": "PASS",
+      "detail": "Same ring model evaluated with explicit hypothetical alpha/BW parameters."
+    },
+    {
+      "check": "TP reduces ideal weight payload per rank",
+      "status": "PASS",
+      "detail": "Toy-model weight payload is divided evenly over TP ranks."
+    },
+    {
+      "check": "Hybrid TP4 x PP2 maps TP groups inside each node",
+      "status": "PASS",
+      "detail": "Each four-rank TP group is kept within one node."
+    },
+    {
+      "check": "Single-microbatch first-result latency spans every pipeline stage",
+      "status": "PASS",
+      "detail": "One microbatch traverses every stage in sequence."
+    }
+  ],
+  "interpretation": [
+    "Tensor-parallel communication grows with rank count in the simplified ring model, while per-rank weight payload falls.",
+    "Pipeline parallelism reduces layers resident per stage but adds fill/drain and activation transfers.",
+    "More microbatches improve pipeline occupancy in this simple flow-shop model; real serving schedules are more complex.",
+    "TP x PP is a first-order placement model; actual tensors may be replicated, sharded or gathered at stage boundaries.",
+    "No real GPU, NCCL, NVLink, PCIe, RDMA, Ray or vLLM operation is executed.",
+    "Fabric parameters are hypothetical sensitivity inputs, not hardware performance claims."
+  ]
+}

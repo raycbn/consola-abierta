@@ -1,0 +1,5 @@
+total_gpus,nodes,gpus_per_node,tp_degree,pp_degree,layers_by_pipeline_stage,ideal_weight_GiB_per_gpu_fp16,max_stage_tp_collectives_per_rank_per_decode_iteration,ring_send_MiB_per_rank_at_max_pipeline_stage,pp_activation_bytes_per_rank_per_boundary_assumption,pp_activation_MiB_per_rank_all_boundaries,layout_note
+8,2,4,8,1,32,1.507812,64,14.0,0,0.0,illustrative rank grouping; actual activation layout may be replicated or sharded differently
+8,2,4,4,2,16;16,1.507812,32,6.0,32768,0.03125,illustrative rank grouping; actual activation layout may be replicated or sharded differently
+8,2,4,2,4,8;8;8;8,1.507812,16,2.0,65536,0.1875,illustrative rank grouping; actual activation layout may be replicated or sharded differently
+8,2,4,1,8,4;4;4;4;4;4;4;4,1.507812,0,0.0,131072,0.875,illustrative rank grouping; actual activation layout may be replicated or sharded differently

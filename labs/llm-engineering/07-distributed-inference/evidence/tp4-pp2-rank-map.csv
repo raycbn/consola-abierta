@@ -1,0 +1,9 @@
+global_rank,pipeline_stage,tensor_rank,node,local_gpu,group
+0,0,0,0,0,pp0-tp
+1,0,1,0,1,pp0-tp
+2,0,2,0,2,pp0-tp
+3,0,3,0,3,pp0-tp
+4,1,0,1,0,pp1-tp
+5,1,1,1,1,pp1-tp
+6,1,2,1,2,pp1-tp
+7,1,3,1,3,pp1-tp
