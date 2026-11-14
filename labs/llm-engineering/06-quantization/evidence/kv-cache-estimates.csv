@@ -1,0 +1,5 @@
+layers,batch_sequences,tokens_per_sequence,kv_heads,head_dim,representation,ideal_payload_GiB,metadata_assumption,formula
+32,16,8192,8,128,FP16/BF16 payload,16.0,none included,2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element
+32,16,8192,8,128,FP8 payload,8.0,scale metadata excluded,2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element
+32,16,8192,8,128,INT8 payload,8.0,scale and zero-point metadata excluded,2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element
+32,16,8192,8,128,4-bit payload,4.0,packing and scale metadata excluded,2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element

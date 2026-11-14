@@ -1,0 +1,8 @@
+model_parameters,representation,nominal_or_effective_bits_per_parameter,decimal_GB,binary_GiB,assumption
+7000000000,FP32,32,28.0,26.077032,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+7000000000,FP16,16,14.0,13.038516,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+7000000000,BF16,16,14.0,13.038516,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+7000000000,FP8,8,7.0,6.519258,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+7000000000,INT8,8,7.0,6.519258,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+7000000000,INT4 raw payload,4,3.5,3.259629,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+7000000000,INT4 + FP32 scale per 64 weights,4.5,3.9375,3.667083,"ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"

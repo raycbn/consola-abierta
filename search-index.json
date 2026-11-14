@@ -2,6 +2,34 @@
   "generated": "2026-11-14",
   "articles": [
     {
+      "labels": "AI · LLM Engineering · Model Compression",
+      "lang": "en",
+      "title": "LLM Quantization: FP16, BF16, FP8, INT8 and INT4 from the inside",
+      "url": "/en/analysis/llm-quantization-fp16-bf16-fp8-int8-int4/",
+      "summary": "FP16, BF16, FP8, INT8/INT4 and NF4; scales, zero-points, granularity, outliers, calibration, PTQ/QAT, GPTQ, AWQ, SmoothQuant and KV Cache. Reproducible Python-standard-library numerical lab.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "32–40 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · Model Compression",
+      "lang": "es",
+      "title": "Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro",
+      "url": "/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/",
+      "summary": "FP16, BF16, FP8, INT8/INT4 y NF4; scales, zero-points, granularidad, outliers, calibración, PTQ/QAT, GPTQ, AWQ, SmoothQuant y KV Cache. Laboratorio numérico reproducible con Python estándar.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "32–40 min"
+    },
+    {
       "labels": "AI · LLM Engineering · LLM Serving",
       "lang": "es",
       "title": "vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU",

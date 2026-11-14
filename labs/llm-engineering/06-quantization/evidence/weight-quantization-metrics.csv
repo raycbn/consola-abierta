@@ -1,0 +1,10 @@
+scheme,shape_out_in,nominal_bits_per_weight,granularity,group_size,scale_count,effective_bits_per_weight_estimate,scale_storage_assumption,qmin,qmax,mae,mse,rmse,max_abs_error,sqnr_db,relative_l2
+FP16 emulation,32x64,16,element,,0,16.0,not applicable,,,0.0001613847,8.27e-08,0.0002876186,0.003125,73.2041826164,0.0002186708
+BF16 emulation,32x64,16,element,,0,16.0,not applicable,,,0.0012595604,4.7354e-06,0.0021760961,0.014466906,55.626961593,0.0016544434
+INT8 symmetric per-tensor,32x64,8,tensor,,1,8.015625,FP32 per scale; no zero-point metadata,-127,127,0.0198692526,0.0005355575,0.0231421151,0.0413316297,35.0924622108,0.0175944984
+INT8 symmetric per-channel,32x64,8,channel,,32,8.5,FP32 per scale; no zero-point metadata,-127,127,0.0063597257,8.56259e-05,0.0092534286,0.041298152,43.0544696194,0.0070352011
+INT4 symmetric per-tensor,32x64,4,tensor,,1,4.015625,FP32 per scale; no zero-point metadata,-7,7,0.3308047553,0.1578192359,0.3972646925,0.7492545572,10.3989238325,0.3020325911
+INT4 symmetric per-channel,32x64,4,channel,,32,4.5,FP32 per scale; no zero-point metadata,-7,7,0.1143747655,0.0280643605,0.1675242088,0.7456472199,17.8989716845,0.1273653859
+INT4 symmetric per-group-16,32x64,4,group,16,128,6.0,FP32 per scale; no zero-point metadata,-7,7,0.0815909938,0.0146768685,0.1211481264,0.7291606892,20.714189154,0.0921065557
+INT4 symmetric per-group-32,32x64,4,group,32,64,5.0,FP32 per scale; no zero-point metadata,-7,7,0.0973947335,0.0199885612,0.1413809082,0.7291606892,19.3727078552,0.1074891447
+INT4 asymmetric per-tensor,32x64,4,tensor,,1,4.015625,FP32 per scale; no zero-point metadata,0,15,0.2919233196,0.1233587439,0.3512246346,0.6559637664,11.46882381,0.2670292337

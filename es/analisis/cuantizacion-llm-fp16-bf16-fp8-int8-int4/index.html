@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro | Consola Abierta</title>
+<meta name="description" content="Deep dive en cuantización de LLMs: formatos FP16, BF16, FP8, INT8, INT4 y NF4; scale, zero-point, granularidad, calibración, outliers, GPTQ, AWQ, SmoothQuant y KV Cache. Incluye laboratorio reproducible en Python estándar.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/llm-quantization-fp16-bf16-fp8-int8-int4/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-quantization-06">
+<meta property="og:type" content="article"><meta property="og:title" content="Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro"><meta property="og:description" content="Formatos numéricos, escalas, outliers, calibración, GPTQ, AWQ, SmoothQuant y precisión en producción."><meta property="og:url" content="https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro","description":"Investigación técnica sobre formatos de baja precisión, cuantización de pesos y activaciones, calibración, métodos post-training y cuantización de KV Cache. Incluye laboratorio reproducible con Python estándar.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación técnica independiente</span><a href="/en/analysis/llm-quantization-fp16-bf16-fp8-int8-int4/" lang="en">EN</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 06 / 08</span><a class="text-link" href="/es/series/llm-engineering/">Ver la serie ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/series/llm-engineering/">LLM Engineering</a> / Model Compression</div><div class="kicker">LLM Engineering · Model Compression · Documentation reviewed · Lab verified</div>
+<h1>Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro</h1>
+<p class="article-deck">Un modelo de siete mil millones de parámetros puede necesitar decenas de gigabytes solo para almacenar sus pesos en FP32. La cuantización reduce esa representación, pero no consiste en sustituir cada número por uno más pequeño y dar el problema por resuelto. Hay que decidir qué se cuantiza, cómo se escala, qué información se sacrifica, cómo se calibra, qué kernel ejecuta la operación y qué calidad conserva el modelo. Vamos a recorrerlo desde la representación numérica hasta el serving.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>14 de noviembre de 2026</span><span>32–40 min de lectura</span><span>Mid-senior · Senior · ML / Platform Engineering</span></div>
+<div class="status-line">DOCUMENTATION REVIEWED · Official vLLM / NVIDIA / Hugging Face / ONNX Runtime documentation checked 14 NOV 2026 · LAB VERIFIED · Python 3.12.10 · CPU-only · 12 checks · 0 €</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido"><div class="toc-title">En esta investigación</div><ol>
+<li><a href="#problem">Por qué cuantizamos</a></li><li><a href="#numeric">Rango, precisión y error</a></li><li><a href="#fp16bf16">FP16 frente a BF16</a></li><li><a href="#fp8">FP8: E4M3, E5M2 y scaling</a></li><li><a href="#integer">Cuantización entera: scale y zero-point</a></li><li><a href="#granularity">Per-tensor, per-channel y per-group</a></li><li><a href="#outliers">Outliers, clipping y saturation</a></li><li><a href="#schemes">W4A16, W8A8 y otras políticas</a></li><li><a href="#calibration">Calibration datasets</a></li><li><a href="#ptq">PTQ frente a QAT</a></li><li><a href="#rtn">RTN: el baseline</a></li><li><a href="#gptq">GPTQ</a></li><li><a href="#awq">AWQ</a></li><li><a href="#smoothquant">SmoothQuant</a></li><li><a href="#nf4">NF4, FP4, INT4 y GGUF</a></li><li><a href="#memory">Dimensionamiento de memoria</a></li><li><a href="#kv">Quantized KV Cache</a></li><li><a href="#backend">Kernels y compatibilidad</a></li><li><a href="#evaluation">Cómo validar calidad y rendimiento</a></li><li><a href="#workflow">Workflow de cuantización</a></li><li><a href="#vllm">Despliegue con vLLM</a></li><li><a href="#runbook">Runbook de operación</a></li><li><a href="#lab">Laboratorio reproducido</a></li><li><a href="#results">Resultados y evidencias</a></li><li><a href="#limits">Límites y conclusiones</a></li><li><a href="#sources">Fuentes primarias</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>La idea central</strong><p>Cuantizar es representar un tensor mediante un conjunto más pequeño de valores, acompañado por parámetros que permiten interpretar esa representación. El formato (FP8, INT8, INT4, NF4), la granularidad de las escalas (tensor, canal, grupo), el objetivo (weights, activations o KV Cache), el algoritmo (RTN, GPTQ, AWQ, SmoothQuant) y el kernel de ejecución son decisiones relacionadas, pero diferentes. Una etiqueta de 4 bits no responde por sí sola a ninguna de las preguntas de despliegue.</p></div>
+
+<h2 id="problem">1. Por qué cuantizamos: memoria, bandwidth y capacidad de serving</h2>
+<p>En el capítulo 05 vimos que vLLM administra el estado KV con bloques y un scheduler continuo. Antes de que el motor pueda aprovechar esos bloques, necesita cargar los pesos del modelo y ejecutar operaciones matriciales. En muchos despliegues, los pesos ocupan una parte sustancial de la VRAM disponible. Reducir sus bits por parámetro puede permitir que el modelo entre en una GPU más pequeña, liberar memoria para KV Cache o reducir tráfico de memoria.</p>
+<p>Hay tres motivaciones distintas:</p>
+<ul>
+<li><strong>Memory footprint:</strong> representar los parámetros con menos bits reduce el payload del checkpoint y, cuando el runtime lo conserva cuantizado, la memoria de pesos residente.</li>
+<li><strong>Memory bandwidth:</strong> mover menos bytes puede ayudar en operaciones limitadas por ancho de banda. El beneficio depende del kernel, del batch y de si hay que descomprimir o convertir valores durante el cómputo.</li>
+<li><strong>Compute throughput:</strong> ciertos aceleradores tienen instrucciones y Tensor Cores optimizados para BF16, FP8 o INT8. El formato solo aporta velocidad si la arquitectura, la forma de la matriz y el backend usan una ruta eficiente.</li>
+</ul>
+<p>Reducir el tamaño del checkpoint no garantiza reducir la VRAM total en la misma proporción. A la ecuación se suman KV Cache, activaciones temporales, CUDA graphs, workspaces de kernels, buffers de comunicación, memoria del runtime y módulos que se mantienen en mayor precisión. Tampoco garantiza acelerar el modelo: si la ejecución termina limitada por otra fase, el cambio de representación puede aportar memoria sin mejorar latencia.</p>
+
+<h2 id="numeric">2. Rango, precisión y error: dos conceptos que no debes mezclar</h2>
+<p>Un formato numérico tiene que resolver dos problemas. El <strong>dynamic range</strong> define qué valores puede representar antes de llegar a overflow o underflow. La <strong>precision</strong> determina qué separación existe entre valores representables dentro de ese rango. En floating point, los bits de exponent y significand/mantissa se reparten ese presupuesto. En cuantización entera, el rango útil depende de los códigos discretos y de los parámetros de escala.</p>
+<p>Una representación con más rango no es automáticamente más precisa. BF16, por ejemplo, conserva un exponente de ocho bits como FP32, pero reduce la mantisa. FP16 conserva más bits de significand, pero tiene un exponente menor. Por eso BF16 suele tolerar magnitudes mayores, mientras que FP16 diferencia con más precisión valores cercanos en ciertos intervalos.</p>
+<p>Al cuantizar introducimos varios errores posibles:</p>
+<ul>
+<li><strong>Rounding error:</strong> el valor real cae entre dos niveles y se aproxima al más cercano.</li>
+<li><strong>Clipping / saturation:</strong> el valor supera el rango elegido y se fuerza al mínimo o máximo representable.</li>
+<li><strong>Scale error:</strong> una escala poco adecuada desperdicia niveles o distorsiona una parte de la distribución.</li>
+<li><strong>Accumulation error:</strong> aunque los operandos estén cuantizados, la acumulación puede realizarse en otro dtype y también tiene su propio error numérico.</li>
+</ul>
+<figure class="evidence-figure"><img src="/assets/labs/quantization/quantization-precision-formats.svg" alt="Comparación visual de FP16, BF16, FP8 E4M3 y E5M2, INT8 e INT4"><figcaption>Los formatos de punto flotante distribuyen bits entre exponente y fracción. Los enteros necesitan escala y, según el esquema, zero-point.</figcaption></figure>
+
+<h2 id="fp16bf16">3. FP16 frente a BF16: los mismos 16 bits, distinto presupuesto</h2>
+<p>Ambos formatos ocupan 16 bits por elemento, pero codifican esos bits de forma diferente:</p>
+<table class="data-table"><thead><tr><th>Formato</th><th>Sign</th><th>Exponent</th><th>Fraction</th><th>Característica práctica</th></tr></thead><tbody>
+<tr><td>FP32</td><td>1</td><td>8</td><td>23</td><td>Referencia de mayor precisión entre estos tres.</td></tr>
+<tr><td>FP16 / binary16</td><td>1</td><td>5</td><td>10</td><td>Más precisión relativa que BF16, rango dinámico más estrecho.</td></tr>
+<tr><td>BF16</td><td>1</td><td>8</td><td>7</td><td>Rango de exponente similar a FP32; menos precisión de mantisa.</td></tr>
+</tbody></table>
+<p>FP16 puede representar hasta 65.504 como mayor valor finito en binary16. Una magnitud de 100.000 desborda ese formato. BF16 conserva el exponente amplio y puede representar ese valor como un número finito cercano, aunque redondeado. El laboratorio reproduce exactamente esa diferencia: 100.000 se convierte en infinito en FP16 y en 99.840 en BF16.</p>
+<p>Esto no significa que BF16 sea siempre mejor. Cuando los valores están dentro del rango de FP16, su mantisa adicional puede representar diferencias más pequeñas. BF16 es atractivo en entrenamiento e inferencia porque soporta magnitudes amplias con un formato de 16 bits; FP16 sigue siendo útil cuando sus límites de rango son aceptables y la precisión de mantisa importa. Hay que validar el modelo, el hardware y el framework: algunas operaciones mantienen acumulación en FP32 aunque almacenen entradas en FP16/BF16.</p>
+<p>No confundas dtype de almacenamiento, dtype de activación, dtype de acumulación y dtype de salida. Una capa puede almacenar pesos en un formato, convertirlos a otro en el kernel y acumular el resultado en un tercer formato.</p>
+
+<h2 id="fp8">4. FP8: E4M3, E5M2 y el papel de scaling</h2>
+<p>FP8 no es un único formato. Dos familias habituales son:</p>
+<ul><li><strong>E4M3:</strong> un bit de signo, cuatro de exponente y tres de fracción. Favorece más precisión relativa dentro de un rango más acotado.</li><li><strong>E5M2:</strong> un bit de signo, cinco de exponente y dos de fracción. Favorece rango dinámico a costa de resolución.</li></ul>
+<p>En recetas de entrenamiento FP8, es habitual utilizar formatos distintos según el sentido del cálculo. La documentación de NVIDIA Transformer Engine describe un formato híbrido que usa E4M3 durante forward y E5M2 durante backward en una receta de delayed scaling. El detalle importante es que un tensor no se transforma en FP8 de manera aislada: el runtime necesita estimar y aplicar escalas para que sus valores entren en el rango representable.</p>
+<h3>Current scaling, delayed scaling y block scaling</h3>
+<p><strong>Current scaling</strong> calcula la escala con las estadísticas del tensor actual. Es directo, pero puede necesitar sincronización o introducir sensibilidad a cambios bruscos de distribución. <strong>Delayed scaling</strong> conserva un historial de valores amax y usa información de iteraciones recientes para seleccionar escalas futuras. Ese historial ayuda a evitar que un único valor instantáneo cambie de manera errática el rango, aunque añade estado y una política que hay que configurar.</p>
+<p><strong>Block scaling</strong> divide un tensor en grupos y aplica escalas locales. En MXFP8 documentado por NVIDIA, la granularidad es de 32 valores consecutivos, lo que permite utilizar E4M3 en más posiciones porque cada bloque tiene su propia escala. Es una arquitectura de formato/receta específica: no debe asumirse que todo checkpoint llamado FP8 usa la misma granularidad.</p>
+<figure class="evidence-figure"><img src="/assets/labs/quantization/quantization-pipeline.svg" alt="Flujo desde FP32, calibración, parámetros scale y zero-point, mapeo cuantizado y kernel"><figcaption>La escala y su granularidad forman parte del esquema. El kernel debe comprender la representación y sus metadatos.</figcaption></figure>
+<p>En FP8 block-scaled, los valores pueden necesitar escalas por bloque y, según el formato, una escala adicional de tensor. NVIDIA documenta también NVFP4 con bloques de 16 elementos y escalas de bloque almacenadas en FP8 E4M3 más una escala de tensor FP32. Son detalles relevantes para comprender por qué el tamaño real de un checkpoint nunca se deduce solo multiplicando el número de parámetros por cuatro bits.</p>
+
+<h2 id="integer">5. Cuantización entera: scale, zero-point y la fórmula</h2>
+<p>En una cuantización lineal, un valor de punto flotante x se mapea a un código entero q. Una formulación general es:</p>
+<pre><code>q = clamp(round(x / scale) + zero_point, qmin, qmax)
+x_hat = scale * (q - zero_point)</code></pre>
+<p><strong>scale</strong> define el paso entre dos códigos enteros adyacentes, expresado en el dominio real. <strong>zero_point</strong> establece qué código representa exactamente el cero real. <strong>qmin/qmax</strong> definen el conjunto discreto disponible. Al reconstruir, x_hat no tiene por qué coincidir con x: la distancia es el error de cuantización.</p>
+<h3>Symmetric quantization</h3>
+<p>Para un entero firmado simétrico, el zero-point suele ser cero y se calcula una escala a partir del máximo valor absoluto:</p>
+<pre><code>qmax = 2^(bits - 1) - 1
+scale = max(abs(x)) / qmax
+zero_point = 0
+
+q = clamp(round(x / scale), -qmax, qmax)
+x_hat = q * scale</code></pre>
+<p>Para INT8, la implementación conceptual puede usar −127 a 127 y reservar −128 sin utilizar para mantener simetría. Para INT4 firmado, este laboratorio usa −7 a 7 por el mismo motivo. Otros formatos y serializaciones pueden utilizar rangos enteros diferentes; hay que leer el checkpoint y el backend, no asumir que toda implementación INT4 reserva los mismos códigos.</p>
+<h3>Asymmetric affine quantization</h3>
+<p>Para representar una distribución desplazada, se puede mapear el mínimo y máximo observados al rango entero:</p>
+<pre><code>scale = (xmax - xmin) / (qmax - qmin)
+zero_point = round(qmin - xmin / scale)
+q = clamp(round(x / scale) + zero_point, qmin, qmax)
+x_hat = scale * (q - zero_point)</code></pre>
+<p>La forma exacta de calcular, redondear y limitar zero-point depende del dtype y de la implementación. Es importante que cero real pueda representarse exactamente, por ejemplo cuando hay padding con ceros. ONNX Runtime documenta esta representación con scale y zero-point, y distingue la forma simétrica de la asimétrica.</p>
+<p>En un esquema weight-only, los pesos se almacenan como enteros de baja precisión y el runtime puede descomprimir o dequantizear para calcular. En un esquema W8A8, tanto pesos como activaciones pueden estar cuantizados y utilizar una ruta de multiplicación entera, si existe un kernel compatible.</p>
+
+<h2 id="granularity">6. Per-tensor, per-channel y per-group: dónde vive cada escala</h2>
+<p>La granularidad determina cuántos valores comparten una misma escala y, si aplica, un zero-point. Es uno de los trade-offs más importantes de la cuantización:</p>
+<figure class="evidence-figure"><img src="/assets/labs/quantization/quantization-granularity.svg" alt="Comparación de cuantización per-tensor, per-channel y per-group"><figcaption>La escala local puede preservar mejor distribuciones heterogéneas, pero aumenta los metadatos que hay que almacenar y consultar.</figcaption></figure>
+<ul>
+<li><strong>Per-tensor:</strong> un único par de parámetros para todo el tensor. Consume poco metadata y es sencillo, pero un outlier puede dominar la escala común.</li>
+<li><strong>Per-channel:</strong> una escala por canal, por ejemplo una por fila de una matriz de pesos [out_features, in_features]. Cada canal adapta su rango con independencia de los demás.</li>
+<li><strong>Per-group:</strong> se divide cada canal en grupos de G elementos y se aplica una escala local por grupo. Puede reducir el error de reconstrucción, pero añade más escalas y requisitos de empaquetado y alineación.</li>
+<li><strong>Per-block:</strong> concepto similar de escalado local, pero la definición del bloque y el layout están vinculados al formato y al kernel. No hay una única convención universal.</li>
+</ul>
+<p>El coste de metadata se puede hacer explícito. Supón INT4 con una escala FP32 por cada 64 pesos y sin zero-point: el payload aporta 4 bits por peso y la escala aporta 32/64 = 0,5 bits por peso de media. El total idealizado pasa a 4,5 bits por parámetro, antes de padding y otros metadatos. Con una escala cada 16 pesos, el coste sube a 4 + 32/16 = 6 bits por peso. Aumentar la granularidad tiene un coste real.</p>
+<p>La mejor granularidad no se selecciona mirando solo MSE. También importan el kernel disponible, el tamaño de bloque que puede procesar eficientemente, la forma de las matrices y cómo se serializan las escalas.</p>
+
+<h2 id="outliers">7. Outliers, clipping y saturation: el valor extremo que controla el rango</h2>
+<p>Los LLMs pueden producir distribuciones con canales o activaciones de magnitud muy distinta. Si una escala per-tensor se ajusta al valor absoluto más grande, la mayoría de valores pequeños puede ocupar solo una parte reducida de los niveles enteros. Al reducir el rango con clipping, aumenta la resolución de los valores habituales, pero algunos extremos se saturan y pierden magnitud.</p>
+<figure class="evidence-figure"><img src="/assets/labs/quantization/quantization-outliers.svg" alt="Un outlier ensancha el rango global de cuantización y reduce resolución para valores comunes"><figcaption>El problema no es únicamente el número de bits: importa qué distribución comparte la escala.</figcaption></figure>
+<p>La calibración puede usar absmax, percentiles, histogramas, clipping optimizado u otros criterios. Pero «usar el percentil 99» no es una ley universal. Si el dominio de producción contiene eventos raros relevantes, descartarlos durante calibración puede producir saturación justo en los casos que necesitamos conservar.</p>
+<p>Hay además dos modos de cuantizar activaciones:</p>
+<ul><li><strong>Dynamic quantization:</strong> las estadísticas y escalas se calculan durante la inferencia o en ventanas operativas. Se adapta al dato, pero añade coste de runtime y no todos los kernels lo soportan igual.</li><li><strong>Static quantization:</strong> la escala se estima offline con calibration data y después se reutiliza en inferencia. El coste se mueve al proceso de preparación, pero la distribución real debe parecerse a la calibración.</li></ul>
+<p>En el laboratorio, el absmax INT8 obtuvo RMSE 0,0293 en el conjunto sintético. El clipping p99 redujo el paso de cuantización, pero saturó 16 de 1.536 valores y obtuvo RMSE 0,4934, mucho peor por la magnitud de esos outliers. Es un ejemplo deliberadamente extremo para observar el trade-off, no una recomendación de usar absmax en producción ni una evaluación universal del percentil 99.</p>
+
+<h2 id="schemes">8. W4A16, W8A8, W4A8: leer la política completa</h2>
+<p>La notación W/A indica qué precisión se utiliza para <strong>Weights</strong> y <strong>Activations</strong>. Los dígitos representan el ancho nominal en bits de esas representaciones, pero no describen por sí solos escalas, acumulación, pesos excepcionales ni la representación final de salida.</p>
+<table class="data-table"><thead><tr><th>Scheme</th><th>Weights</th><th>Activations</th><th>Lectura</th><th>Objetivo típico</th></tr></thead><tbody>
+<tr><td>W4A16</td><td>INT4 / FP4</td><td>FP16 / BF16</td><td>Weight-only de baja precisión; activaciones en 16 bits.</td><td>Reducir footprint de pesos manteniendo una ruta de activaciones más conservadora.</td></tr>
+<tr><td>W8A8</td><td>INT8 o FP8</td><td>INT8 o FP8</td><td>Pesos y activaciones cuantizados.</td><td>Reducir tráfico y aprovechar operaciones de baja precisión.</td></tr>
+<tr><td>W4A8</td><td>INT4</td><td>INT8</td><td>Pesos de 4 bits y activaciones de 8 bits.</td><td>Compresión más agresiva con activaciones de menor precisión.</td></tr>
+<tr><td>W4A4 / NVFP4</td><td>FP4</td><td>FP4</td><td>Ambos operandos utilizan formatos de 4 bits, con escalado específico.</td><td>Rutas hardware diseñadas para formatos FP4.</td></tr>
+</tbody></table>
+<p>W4A16 no significa que la multiplicación completa ocurra necesariamente con operandos de cuatro bits. El kernel puede desempaquetar y dequantizear pesos a una precisión mayor antes de la multiplicación. En otros esquemas, los operandos cuantizados pueden entrar en una instrucción especializada y acumular el resultado en una precisión superior. La única manera de saberlo es inspeccionar el formato del checkpoint, la ruta real del kernel y el runtime.</p>
+<figure class="evidence-figure"><img src="/assets/labs/quantization/quantization-weight-activation-kv.svg" alt="Los pesos, las activaciones y la KV Cache son objetivos de cuantización distintos"><figcaption>Quantization de pesos, activaciones y KV Cache resuelve problemas de memoria y cómputo diferentes.</figcaption></figure>
+
+<h2 id="calibration">9. Calibration dataset: enseñar al cuantizador cómo se comporta el modelo</h2>
+<p>Los algoritmos data-aware observan activaciones de una muestra representativa para decidir qué canales tienen más sensibilidad, dónde están los outliers o qué escala conserva mejor el comportamiento. No es necesario entrenar el modelo completo de nuevo, pero sí preparar una entrada de calibración que represente el uso esperado.</p>
+<p>Un proceso de calibración debe controlar al menos:</p>
+<ul>
+<li><strong>Domain alignment:</strong> datos de conversación si se servirá un modelo de chat; código si se sirve como coding assistant; texto legal o técnico si ese dominio domina el tráfico. Una colección genérica puede no representar prompts reales.</li>
+<li><strong>Chat template y tokenizer:</strong> la plantilla cambia la secuencia de tokens, los separadores, los tokens de rol y la distribución de longitudes. Calibrar con una plantilla distinta puede invalidar parte de la observación.</li>
+<li><strong>Sequence length:</strong> incluir longitudes representativas, no solo ejemplos cortos si el servicio acepta contextos largos.</li>
+<li><strong>Distribution tails:</strong> capturar ejemplos poco frecuentes que tengan magnitudes extremas y sean relevantes para el SLO o la función del modelo.</li>
+<li><strong>Sampling and privacy:</strong> usar datos con procedencia, permisos y protección adecuados; no incorporar prompts confidenciales de usuarios sin base legítima.</li>
+</ul>
+<p>Las guías de LLM Compressor citan WikiText/C4 para texto general, UltraChat para instrucciones y datasets específicos de dominio para coding. Como punto de partida menciona 128–512 muestras para muchos algoritmos, pero la cantidad final depende del modelo, la longitud y el objetivo. Es una referencia operativa, no una garantía de calidad.</p>
+
+<h2 id="ptq">10. PTQ frente a QAT: ¿cuándo se modifica el entrenamiento?</h2>
+<p><strong>Post-Training Quantization (PTQ)</strong> cuantiza un modelo ya entrenado, normalmente manteniendo congelados los pesos originales durante el proceso. RTN puede hacerlo sin calibration data; GPTQ, AWQ y SmoothQuant emplean estadísticas o transformaciones derivadas de datos de calibración. El atractivo de PTQ es no repetir el entrenamiento completo.</p>
+<p><strong>Quantization-Aware Training (QAT)</strong> introduce el efecto de la cuantización en el proceso de entrenamiento o fine-tuning, por ejemplo con fake quantization en forward y gradientes aproximados durante backward. El modelo puede adaptarse a la representación reducida, pero el coste de entrenamiento, pipeline y validación es mayor.</p>
+<p>QAT no equivale a cargar un modelo en 4 bits y entrenar unas LoRA. QLoRA es una receta de fine-tuning parameter-efficient sobre pesos base cuantizados y congelados, con adapters entrenables y operaciones de dequantization/compute en mayor precisión. Es una familia de técnicas relacionada, pero no debe confundirse con una receta genérica de QAT del modelo completo.</p>
+
+<h2 id="rtn">11. RTN: el baseline que siempre conviene medir</h2>
+<p><strong>Round-to-Nearest (RTN)</strong> es la cuantización directa: seleccionar la escala, dividir el valor por ella, redondear al código más cercano y limitarlo al rango entero. No necesita calibration dataset si el rango se obtiene directamente de los pesos. Es rápido, fácil de auditar y un baseline útil para comparar si un algoritmo más complejo merece su coste.</p>
+<p>El problema aparece cuando se baja mucho el bitwidth. Una decisión de rounding independiente no tiene en cuenta cuánto contribuye cada peso a la salida de la capa ni cómo se compensan los errores de los pesos restantes. RTN puede ser suficiente para algunos modelos y formatos, pero no hay que asumir que cuatro bits con rounding simple preservarán cualquier LLM.</p>
+
+<h2 id="gptq">12. GPTQ: cuantizar con información de segundo orden</h2>
+<p>GPTQ (Frantar et al.) es un método post-training, one-shot y weight-only que cuantiza matrices de pesos utilizando información aproximada de segundo orden. La idea es que los pesos no son igualmente sensibles: el impacto de cambiar un peso depende de las activaciones que llegan a la capa y de la geometría del error de salida.</p>
+<p>De forma conceptual, se calibra una aproximación de la matriz Hessian / información de segundo orden a partir de activaciones, se recorre la matriz en un orden, se redondean pesos y se compensan los errores sobre pesos aún no procesados. La compensación intenta minimizar el error de salida de la capa, no solo el error elemento a elemento del peso. El paper original mostró cuantización a 3–4 bits en modelos grandes; los resultados publicados dependen de arquitectura, dataset, implementación y hardware.</p>
+<p>GPTQ no significa que todos los pesos de todo modelo se conviertan a un archivo universal. Los checkpoints incluyen configuración, group size, escalas, zero-points y empaquetado. El runtime debe saber interpretar esos metadatos y disponer de un kernel compatible.</p>
+
+<h2 id="awq">13. AWQ: proteger los canales que importan a las activaciones</h2>
+<p>Activation-aware Weight Quantization (AWQ) parte de una observación práctica: ciertos canales de activación están asociados a pesos más sensibles. El algoritmo utiliza estadísticas de activación de una muestra de calibración para estimar saliency y aplicar escalados equivalentes que reduzcan el error de cuantización de los pesos más importantes.</p>
+<p>El objetivo no es guardar una lista enorme de pesos en FP16 y el resto en INT4. AWQ busca transformar los canales de manera que la cuantización low-bit se comporte mejor manteniendo una ruta friendly para el hardware. En el paper se destaca que un porcentaje pequeño de pesos/canales puede concentrar gran parte de la sensibilidad y que las estadísticas de activación ayudan a identificarlo mejor que observar pesos de forma aislada.</p>
+<p>AWQ suele asociarse a weight-only INT4, pero el método y el checkpoint no deben reducirse a una etiqueta comercial. El soporte depende del modelo, el esquema de cuantización, el empaquetado y el backend disponible.</p>
+
+<h2 id="smoothquant">14. SmoothQuant: trasladar dificultad de activaciones a pesos</h2>
+<p>Las activaciones pueden contener outliers que hacen difícil aplicar INT8 uniforme. SmoothQuant aprovecha una transformación algebraicamente equivalente para redistribuir la magnitud entre activaciones y pesos. Para una capa lineal escrita como y = W x, una versión conceptual es:</p>
+<pre><code>W' = W D
+x' = D^-1 x
+
+W' x' = W D D^-1 x = W x</code></pre>
+<p>D es una matriz diagonal con factores positivos por canal. Si se elige bien, la distribución de x' se suaviza y parte de la magnitud se transfiere a W'. El cálculo en precisión real permanece equivalente; después, el cuantizador puede representar los dos operandos con una pérdida menor. El paper SmoothQuant propone este traslado offline para facilitar W8A8 en modelos de lenguaje.</p>
+<p>Esta igualdad es el núcleo algebraico del mecanismo, no una implementación completa de SmoothQuant. El laboratorio verifica la invariancia de la transformación en una matriz pequeña; no calibra un modelo real ni implementa el algoritmo del paper.</p>
+
+<h2 id="nf4">15. NF4, FP4, INT4 y GGUF: cuatro nombres que no significan lo mismo</h2>
+<ul>
+<li><strong>INT4:</strong> códigos enteros de cuatro bits, normalmente acompañados de escalas por tensor, canal o grupo y, según el esquema, zero-points.</li>
+<li><strong>FP4:</strong> formato flotante de cuatro bits. NVFP4, por ejemplo, usa un formato E2M1 y escalado por bloques; no es un INT4 con otro nombre.</li>
+<li><strong>NF4:</strong> NormalFloat4, una cuantización no uniforme basada en cuantiles, diseñada para distribuciones de pesos aproximadamente normales. Es una pieza del trabajo QLoRA, no el mismo tipo de mapeo lineal uniforme de INT4.</li>
+<li><strong>GGUF:</strong> formato de archivo/contenedor usado en el ecosistema llama.cpp, que puede almacenar pesos con varios esquemas de cuantización. GGUF no designa por sí solo un único algoritmo de cuantización.</li>
+</ul>
+<p>QLoRA añade <strong>double quantization</strong>: después de cuantizar los pesos, cuantiza también las constantes/escales de la primera cuantización para reducir el overhead de metadata. En el paper se explica que una escala FP32 por cada grupo de 64 pesos añade 0,5 bits por peso en promedio; reducir el coste de las escalas puede ser tan importante como reducir el payload.</p>
+<p>Cuando evalúes un checkpoint 4-bit, revisa al menos: algoritmo, dtype/código, group size, symmetric/asymmetric, zero-point, tipo y precisión de escalas, módulos no cuantizados, activations dtype, compute dtype, layout/packing y backend requerido. No intercambies modelos solo porque ambos indiquen «4-bit».</p>
+
+<h2 id="memory">16. Dimensionamiento de memoria: de bits por parámetro a VRAM real</h2>
+<p>La aproximación más sencilla para los pesos es:</p>
+<pre><code>weight_bytes ≈ parameter_count × bits_per_parameter / 8</code></pre>
+<p>Para un modelo de 7.000 millones de parámetros, sin contar escalas ni módulos especiales:</p>
+<table class="data-table"><thead><tr><th>Representación</th><th>Bits/parameter</th><th>Payload decimal</th><th>Payload binario</th></tr></thead><tbody>
+<tr><td>FP32</td><td>32</td><td>28 GB</td><td>26,08 GiB</td></tr>
+<tr><td>FP16 / BF16</td><td>16</td><td>14 GB</td><td>13,04 GiB</td></tr>
+<tr><td>FP8 / INT8</td><td>8</td><td>7 GB</td><td>6,52 GiB</td></tr>
+<tr><td>INT4 raw payload</td><td>4</td><td>3,5 GB</td><td>3,26 GiB</td></tr>
+<tr><td>INT4 + scale FP32 cada 64 pesos</td><td>4,5 estimados</td><td>3,94 GB</td><td>3,67 GiB</td></tr>
+</tbody></table>
+<p>GB decimal usa 1.000.000.000 bytes; GiB usa 1.073.741.824 bytes. La fila de 4,5 bits incluye una escala FP32 cada 64 pesos, sin zero-points ni padding. Es un ejemplo de metadata, no una promesa de que todos los checkpoints INT4 ocupen exactamente esa cantidad.</p>
+<p>El consumo total de GPU requiere sumar pesos, KV Cache, activaciones, buffers de ejecución, workspaces, memoria de comunicación, módulos que se mantienen en FP16/BF16/FP32 y reservas del allocator. También hay que tener en cuenta si los pesos se replican o se reparten entre GPUs. Un modelo que cabe por los pesos puede fallar al admitir secuencias largas o concurrencia alta.</p>
+
+<h2 id="kv">17. Quantized KV Cache: comprimir estado de atención, no el modelo</h2>
+<p>La KV Cache almacena Keys y Values para cada token que mantiene el contexto. Una aproximación del payload es:</p>
+<pre><code>KV_bytes =
+  2 × num_layers × batch_sequences × context_tokens
+    × num_kv_heads × head_dim × bytes_per_element</code></pre>
+<p>El factor 2 representa Key y Value. Supón 32 capas, 16 secuencias, 8.192 tokens por secuencia, 8 KV heads y head_dim 128. Con dos bytes por elemento, el payload ideal es 16 GiB. Con un byte por elemento, baja a 8 GiB; con medio byte, 4 GiB antes de empaquetado y escalas. Esto no incluye metadata ni buffers reales.</p>
+<p>Cuantizar pesos reduce memoria persistente del modelo. Cuantizar KV Cache reduce el coste de cada token activo y puede permitir contextos más largos o más secuencias concurrentes. Son palancas diferentes. Un modelo de pesos INT4 puede seguir teniendo KV Cache FP16/BF16; también es posible combinar pesos de baja precisión con KV FP8.</p>
+<p>La documentación actual de vLLM describe KV Cache FP8 con esquemas per-tensor y per-attention-head. El esquema por head requiere actualmente el backend FlashAttention y la ruta de calibración de LLM Compressor. También distingue el modo sin calibración, con escalas por defecto 1.0, de la calibración con dataset. Algunas capas sensibles, como ciertas variantes sliding-window, pueden excluirse con la opción documentada para saltar capas. No supongas que todos los modelos y backends admiten el mismo camino.</p>
+
+<h2 id="backend">18. Backend y kernel: el formato solo vale si alguien puede ejecutarlo</h2>
+<p>Una representación comprimida requiere un kernel que conozca su layout, sus escalas y su forma de acumulación. El backend determina si la operación se ejecuta como GEMM entero, FP8 tensor-core, dequantization + GEMM de mayor precisión, o una ruta alternativa. La misma cuantización puede tener resultados de rendimiento muy distintos con otro group size o una matriz de dimensiones diferentes.</p>
+<p>La documentación de vLLM revisada para esta entrega enumera opciones como AutoAWQ, BitsAndBytes, GPTQModel, Intel Neural Compressor, LLM Compressor, NVIDIA Model Optimizer, AMD Quark, TorchAO y KV Cache cuantizada, entre otras. También documenta varios esquemas de LLM Compressor —FP8 W8A8, INT4 W4A16, INT8 W4A8 e INT8 W8A8— y la elección del linear backend. La compatibilidad de hardware varía por implementación y cambia con las versiones.</p>
+<p>Antes de desplegar, verifica:</p>
+<ul>
+<li>Arquitectura exacta y versión del checkpoint; no solo la familia del modelo.</li>
+<li>GPU, compute capability, driver, CUDA/ROCm y versiones de PyTorch/vLLM.</li>
+<li>Quantization method, group size, scales, zero-points y packing que declara el checkpoint.</li>
+<li>Kernel soportado para las shapes reales: hidden size, intermediate size, número de heads, batch y secuencia.</li>
+<li>Si el runtime hace fallback a una ruta menos eficiente o rechaza el modelo al inicializar.</li>
+</ul>
+<p>Que el backend cargue el modelo es una condición necesaria, no una prueba de que la aceleración esté activa. Comprueba logs, kernel seleccionado, consumo de memoria y perfil de ejecución.</p>
+
+<h2 id="evaluation">19. Cómo validar: error del tensor no es calidad del modelo</h2>
+<p>MAE, MSE, RMSE, maximum absolute error, relative L2 y SQNR ayudan a estudiar cuánto se alejan los valores reconstruidos de los originales. Sin embargo, una diferencia pequeña en pesos puede alterar una activación importante, cambiar logits y modificar tokens generados. El error local no equivale a error funcional del LLM.</p>
+<p>Un plan de validación sólido mantiene separadas tres capas:</p>
+<h3>A. Numeric / layer validation</h3>
+<ul><li>Error de reconstrucción por capa, canal, bloque y módulo.</li><li>Drift en activaciones y logits frente al baseline de mayor precisión.</li><li>Cosine similarity, error relativo, saturation rate y distribución de outliers.</li><li>Comprobaciones de NaN/Inf, overflow y estabilidad en long-context.</li></ul>
+<h3>B. Model quality validation</h3>
+<ul><li>Perplexity sobre corpus representativo y tokenizer correcto.</li><li>Benchmarks de las tareas del producto: instrucciones, código, matemáticas, extracción, RAG o clasificación.</li><li>Generación determinista con prompts de regresión, además de pruebas con sampling cuando el producto lo use.</li><li>Evaluaciones de idiomas, formato estructurado, tool-calling, seguridad, refusal y casos límite.</li><li>Comparación por segmentos y casos extremos; un promedio global puede ocultar regresiones.</li></ul>
+<h3>C. Serving / performance validation</h3>
+<ul><li>TTFT, TPOT / inter-token latency, throughput de tokens, requests por segundo y percentiles p50/p95/p99.</li><li>Medición con el mismo workload, concurrencia, distribución de prompt/output, context length y warmup.</li><li>GPU memory real, utilización, bandwidth, cache hit, colas, errores y comportamiento bajo backpressure.</li><li>Coste por millón de tokens o por request, no solo tokens/s máximos de un microbenchmark.</li></ul>
+<p>Un benchmark de una multiplicación matricial no representa necesariamente un servicio con continuous batching, prefills largos y clientes concurrentes. La cuantización debe validarse con el perfil de producción, no con una cifra elegida porque parece buena.</p>
+
+<h2 id="workflow">20. Workflow de cuantización para un modelo que va a producción</h2>
+<ol>
+<li><strong>Fija el baseline:</strong> checkpoint original, dtype, modelo, tokenizer, prompts, tareas, hardware, configuración y métricas.</li>
+<li><strong>Identifica el límite:</strong> memoria de pesos, KV Cache, bandwidth, compute, contexto, coste o concurrencia. No cuantices por moda.</li>
+<li><strong>Elige el objetivo:</strong> W-only, W/A, KV Cache o combinación. Decide qué memoria quieres liberar.</li>
+<li><strong>Selecciona formato y esquema:</strong> FP8/INT8/INT4/NF4, per-tensor/channel/group/block, dtype de cálculo y política de escala.</li>
+<li><strong>Selecciona algoritmo y calibración:</strong> RTN como baseline; GPTQ/AWQ/SmoothQuant cuando el objetivo y la distribución lo justifiquen.</li>
+<li><strong>Comprueba el backend real:</strong> kernel disponible, versión, hardware, layout y fallbacks.</li>
+<li><strong>Evalúa por etapas:</strong> error numérico, calidad del modelo, luego performance del servicio.</li>
+<li><strong>Canary:</strong> despliega con tráfico limitado, compara distribución real, revisa logs/latencias y conserva rollback al checkpoint previo.</li>
+<li><strong>Registra artefactos:</strong> hash de checkpoint, receta, dataset/versionado de calibración, seed, librerías, hardware, métricas y decisión final.</li>
+</ol>
+
+<h2 id="vllm">21. Despliegue con vLLM: separar pesos y KV Cache</h2>
+<p>El soporte cambia con las versiones, así que los comandos deben ajustarse al checkpoint y a la tabla de compatibilidad de la instalación. El primer caso es servir un checkpoint que ya declara su formato de cuantización:</p>
+<pre><code># Example: the checkpoint includes its quantization metadata.
+vllm serve &lt;quantized-model-checkpoint&gt;</code></pre>
+<p>No fuerces un método por intuición. Algunas configuraciones se infieren desde la metadata del modelo; en otras, el parámetro de cuantización debe especificarse. El método exacto depende de la familia de checkpoint y de la versión instalada.</p>
+<p>La KV Cache es una decisión independiente. La documentación actual incluye la opción:</p>
+<pre><code>vllm serve &lt;model&gt; --kv-cache-dtype fp8</code></pre>
+<p>Para excluir capas concretas sensibles, la documentación muestra la opción:</p>
+<pre><code>vllm serve &lt;model&gt; \
+  --kv-cache-dtype fp8 \
+  --kv-cache-dtype-skip-layers sliding_window</code></pre>
+<p>Estos ejemplos muestran flags documentados, no una receta universal para cualquier GPU. Antes de ejecutar, revisa la sección de quantized KV Cache del release que tienes instalado, la compatibilidad del backend y la necesidad de calibración. No expongas un endpoint de serving a interfaces públicas sin controles de autenticación, red y acceso adecuados.</p>
+
+<h2 id="runbook">22. Runbook: investigar una regresión tras cuantizar</h2>
+<table class="data-table"><thead><tr><th>Síntoma</th><th>Hipótesis</th><th>Comprobación</th><th>Acción posible</th></tr></thead><tbody>
+<tr><td>OOM durante carga</td><td>Peso, metadata, workspace o módulos no cuantizados superan la VRAM.</td><td>Examinar logs de carga, memoria libre y dtype real por módulo.</td><td>Revisar checkpoint, paralelismo, max model length y presupuesto KV.</td></tr>
+<tr><td>OOM solo al aumentar contexto</td><td>KV Cache domina el incremento.</td><td>Calcular bytes por token y comparar KV usage.</td><td>Reducir secuencias activas/contexto o evaluar KV quantization validada.</td></tr>
+<tr><td>Calidad baja en código o números</td><td>Calibración no representativa o capas sensibles.</td><td>Evaluación por dominio, capas y logits.</td><td>Cambiar dataset, granularidad, método o mantener capas sensibles en mayor precisión.</td></tr>
+<tr><td>NaN / Inf o generación incoherente</td><td>Overflow, escalas erróneas, saturación o conversión incorrecta.</td><td>Inspeccionar amax, scale, zero-point, dtype y primera capa con valores no finitos.</td><td>Volver a checkpoint baseline, recalibrar y validar por módulo.</td></tr>
+<tr><td>Memoria mejora, latencia empeora</td><td>Kernel no optimizado, dequantization, shape ineficiente o cuello de botella distinto.</td><td>Confirmar kernel, fallback, profiler y métricas con workload real.</td><td>Probar backend/shape compatible; no asumir que menos bits equivalen a más tokens/s.</td></tr>
+<tr><td>Regresión solo en long context</td><td>KV scale, outliers o capas de atención más sensibles.</td><td>Pruebas largas por capa, head y distribución de activaciones.</td><td>Calibrar KV con datos representativos o excluir capas sensibles del esquema.</td></tr>
+</tbody></table>
+<p>Un rollback debe devolver modelo, tokenizer, configuración, receta y artefactos a una combinación conocida. Evita modificar simultáneamente quantization, batch size, max model length y scheduler: si cambia el resultado, será difícil atribuir la causa.</p>
+
+<h2 id="lab">23. Laboratorio reproducido: RTN, escalas y error numérico</h2>
+<p>El laboratorio incluido implementa un simulador matemático en Python estándar. Genera una matriz sintética de pesos de 32 × 64 con canales de amplitud diferente y unos pocos outliers; después compara varios esquemas de cuantización lineal. El conjunto de activaciones también es sintético y contiene algunos valores extremos deliberados.</p>
+<div class="callout"><strong>Alcance del laboratorio</strong><p>CPU-only, sin GPU, CUDA, PyTorch, Transformers ni descarga de modelos. Implementa RTN educativo simétrico INT8/INT4 y asimétrico INT4 con escalas per-tensor, per-channel y per-group. Emula rounding binary16/BF16 y operaciones lineales pequeñas. GPTQ, AWQ, SmoothQuant y los kernels FP8 se explican en el artículo, pero no se presentan como implementados.</p></div>
+<p>Incluye estos experimentos:</p>
+<ul><li>FP16 vs BF16: redondeo, rango dinámico y overflow.</li><li>INT4/INT8: reconstrucción de pesos, MSE, RMSE, maximum error, relative L2 y SQNR.</li><li>Escalas globales, por canal y por grupos de 16/32 pesos, incluyendo el coste estimado de las escalas FP32.</li><li>Proyección lineal sintética W4A16-style y W8A8-style para cuantificar drift de salida.</li><li>Absmax frente a clipping p99 para mostrar el efecto de outliers y saturación.</li><li>Transformación algebraica W' = W D y x' = D^-1 x para comprobar equivalencia en precisión de trabajo.</li><li>Aritmética ideal de memoria para pesos de 7B parámetros y para una KV Cache GQA representativa.</li></ul>
+<p>Descarga el proyecto completo con código, README, script PowerShell, evidencias CSV e informes JSON/Markdown:</p>
+<p><a href="/assets/labs/quantization/llm-quantization-06-lab.zip">Descargar laboratorio 06 — LLM Quantization (ZIP)</a></p>
+<p>Para ejecutarlo en Windows:</p>
+<pre><code>Expand-Archive .\llm-quantization-06-lab.zip -DestinationPath .\llm-quantization-06
+cd .\llm-quantization-06
+.\run.ps1</code></pre>
+<p>También se puede lanzar con Python 3.10 o superior, sin instalar paquetes adicionales:</p>
+<pre><code>python .\src\run_lab.py</code></pre>
+
+<h2 id="results">24. Resultados y evidencias del entorno reproducido</h2>
+<p>El script se ejecutó en Python 3.12.10 con semilla 20261114. Las 12 comprobaciones terminaron en PASS. Los resultados más importantes del tensor sintético fueron:</p>
+<table class="data-table"><thead><tr><th>Esquema</th><th>MSE de pesos</th><th>RMSE</th><th>SQNR</th><th>Bits efectivos estimados*</th></tr></thead><tbody>
+<tr><td>FP16 emulado</td><td>8,27e−8</td><td>0,000288</td><td>73,20 dB</td><td>16,00</td></tr>
+<tr><td>BF16 emulado</td><td>4,74e−6</td><td>0,002176</td><td>55,63 dB</td><td>16,00</td></tr>
+<tr><td>INT8 per-tensor</td><td>0,000536</td><td>0,023142</td><td>35,09 dB</td><td>8,016</td></tr>
+<tr><td>INT8 per-channel</td><td>0,000086</td><td>0,009253</td><td>43,05 dB</td><td>8,50</td></tr>
+<tr><td>INT4 per-tensor</td><td>0,157819</td><td>0,397265</td><td>10,40 dB</td><td>4,016</td></tr>
+<tr><td>INT4 per-channel</td><td>0,028064</td><td>0,167524</td><td>17,90 dB</td><td>4,50</td></tr>
+<tr><td>INT4 per-group-16</td><td>0,014677</td><td>0,121148</td><td>20,71 dB</td><td>6,00</td></tr>
+<tr><td>INT4 per-group-32</td><td>0,019989</td><td>0,141381</td><td>19,37 dB</td><td>5,00</td></tr>
+</tbody></table>
+<p><small>* Bits efectivos estimados = payload nominal más una escala FP32 por región. No incluye zero-points, packing, alignment ni otros metadatos.</small></p>
+<p>La cuantización per-channel INT4 redujo el MSE de 0,157819 a 0,028064 frente al esquema per-tensor en esta matriz heterogénea. Per-group-16 lo redujo a 0,014677, pero el coste estimado de escalas aumentó a seis bits por peso. Aquí se ve un trade-off concreto: más granularidad mejora esta reconstrucción y consume más metadata.</p>
+<p>En la proyección lineal, la ruta W4A16-style obtuvo RMSE 0,848397 y W8A8-style 0,146636 frente a la referencia FP32. No son medidas de calidad de un Transformer; describen el drift de una matriz y 24 vectores sintéticos.</p>
+<p>La calibración p99 saturó 16 de 1.536 valores y tuvo RMSE 0,493419, frente a 0,029264 con absmax en este conjunto. La conclusión no es «absmax gana», sino que elegir el umbral sin estudiar la cola de la distribución puede empeorar mucho la reconstrucción.</p>
+<p>Por último, para 7B parámetros, el payload ideal baja de 14 GB decimales en FP16 a 7 GB en FP8/INT8 y 3,5 GB en INT4 sin metadata. El ejemplo de KV Cache de 16 GiB en FP16/BF16 baja idealmente a 8 GiB en FP8. Son cálculos de representación, no mediciones de VRAM en un servidor.</p>
+<p>El ZIP contiene seis tablas CSV, un informe detallado y metrics.json con versiones, semilla, configuración y límites. El script se ejecutó de nuevo tras generar las evidencias; no depende de los resultados escritos previamente.</p>
+
+<h2 id="limits">25. Límites y conclusiones</h2>
+<p>La cuantización es un problema de representación, estadística, arquitectura y ejecución. FP16/BF16 equilibran rango y precisión de formas distintas. FP8 añade formatos E4M3/E5M2 y recetas de escalado. INT8/INT4 necesitan escalas, zero-points y decisiones de granularidad. GPTQ, AWQ y SmoothQuant intentan conservar mejor el comportamiento que un rounding independiente. NF4 y NVFP4 muestran que tampoco todos los 4-bit son iguales.</p>
+<p>La decisión correcta empieza por medir qué limita al servicio. Si falta memoria para pesos, una ruta W4A16 puede ser atractiva; si el compute está limitado y el hardware tiene kernels adecuados, W8A8/FP8 puede tener sentido; si el problema es el estado de contexto concurrente, la palanca puede ser KV Cache quantization y no cambiar los pesos. El éxito exige evaluar el checkpoint y el backend exactos con tareas y tráfico representativos.</p>
+<p>El laboratorio de este capítulo enseña mecánicas de cuantización y error; no cuantiza un modelo real ni predice su calidad. Esa distinción es deliberada: una buena ingeniería necesita evidencias honestas sobre qué se midió y qué no.</p>
+<div class="callout"><strong>Siguiente capítulo · 07</strong><p><strong>Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism y NCCL.</strong> Pasaremos de comprimir matrices a repartirlas entre aceleradores: particionado de pesos, activaciones y KV, collective communication, all-reduce, all-gather, topologías NVLink/PCIe y límites de escalado.</p></div>
+
+<h2 id="sources">26. Fuentes primarias y documentación contrastada</h2>
+<ul>
+<li><a href="https://docs.vllm.ai/en/latest/features/quantization/index.html" rel="noopener">vLLM — Quantization</a>: formatos admitidos, esquemas y compatibilidad de implementaciones.</li>
+<li><a href="https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/" rel="noopener">vLLM — Quantized KV Cache</a>: FP8 KV, granularidad per-tensor/per-head, escalas y calibración.</li>
+<li><a href="https://docs.vllm.ai/projects/llm-compressor/en/latest/steps/choosing-algo/" rel="noopener">LLM Compressor — Choosing the right compression algorithm</a>: RTN, GPTQ, AWQ, SmoothQuant y esquemas.</li>
+<li><a href="https://docs.vllm.ai/projects/llm-compressor/en/stable/steps/choosing-dataset/" rel="noopener">LLM Compressor — Choosing a dataset</a>: calibración, representatividad y tamaño de muestra.</li>
+<li><a href="https://docs.nvidia.com/deeplearning/transformer-engine/examples/fp8_primer.html" rel="noopener">NVIDIA Transformer Engine — Using FP8 and FP4</a>: E4M3/E5M2, current/delayed/block scaling, MXFP8 y NVFP4.</li>
+<li><a href="https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html" rel="noopener">ONNX Runtime — Quantize ONNX Models</a>: fórmulas de scale/zero-point y per-channel quantization.</li>
+<li><a href="https://huggingface.co/docs/transformers/main/quantization/bitsandbytes" rel="noopener">Hugging Face Transformers — bitsandbytes</a>: LLM.int8, FP4/NF4 y nested quantization.</li>
+<li><a href="https://arxiv.org/abs/2210.17323" rel="noopener">Frantar et al. — GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers</a>.</li>
+<li><a href="https://arxiv.org/abs/2306.00978" rel="noopener">Lin et al. — AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration</a>.</li>
+<li><a href="https://arxiv.org/abs/2211.10438" rel="noopener">Xiao et al. — SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models</a>.</li>
+<li><a href="https://arxiv.org/abs/2305.14314" rel="noopener">Dettmers et al. — QLoRA: Efficient Finetuning of Quantized LLMs</a>.</li>
+</ul>
+<p class="page-end">Documentación y matriz de soporte revisadas el 14 de noviembre de 2026. Las versiones de frameworks, kernels y formatos pueden cambiar; comprueba la documentación del release exacto antes de desplegar.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">En esta entrega</div><p><strong>Serie</strong><br>LLM Engineering · 06 / 08</p><p><strong>Conceptos</strong><br>FP16 · BF16 · FP8 · INT8 · INT4 · NF4 · GPTQ · AWQ · SmoothQuant</p><p><strong>Laboratorio</strong><br>Python 3.12 · CPU-only · 12 checks PASS</p><p><strong>Coste</strong><br>0 € · sin dependencias externas</p><p><strong>Siguiente</strong><br>Distributed Inference</p><p><a href="/assets/labs/quantization/llm-quantization-06-lab.zip">Descargar laboratorio ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

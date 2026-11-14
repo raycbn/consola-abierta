@@ -7,11 +7,19 @@
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 20:28:13 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 08:00:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
 
 
-    <item>
+        <item>
+      <title>Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro</title>
+      <link>https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/</guid>
+      <pubDate>Sat, 14 Nov 2026 08:00:00 +0100</pubDate>
+      <description>Formatos FP16/BF16, FP8, INT8/INT4 y NF4; escalas, outliers, calibración, GPTQ, AWQ, SmoothQuant y KV Cache. Laboratorio reproducible CPU-only, sin dependencias externas.</description>
+      <category>LLM Engineering</category>
+    </item>
+<item>
       <title>vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU</title>
       <link>https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/</guid>

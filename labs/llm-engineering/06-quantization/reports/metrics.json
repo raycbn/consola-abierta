@@ -1,0 +1,544 @@
+{
+  "lab": "LLM Engineering 06 — Quantization fundamentals",
+  "date": "2026-11-14",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "dependencies": "Python standard library only",
+    "seed": 20261114,
+    "execution": "CPU numerical emulation"
+  },
+  "scope": {
+    "weight_matrix_shape_out_in": [
+      32,
+      64
+    ],
+    "activation_vectors": 24,
+    "algorithm_implemented": "linear Round-to-Nearest (RTN) educational baseline",
+    "implemented_granularities": [
+      "per-tensor",
+      "per-output-channel",
+      "per-group"
+    ],
+    "implemented_integer_formats": [
+      "symmetric INT8",
+      "symmetric INT4",
+      "asymmetric affine INT4"
+    ],
+    "floating_point_emulation": [
+      "IEEE binary16 via struct",
+      "bfloat16 rounding from float32"
+    ],
+    "not_implemented": [
+      "GPTQ",
+      "AWQ",
+      "SmoothQuant quantization recipe",
+      "FP8 kernels",
+      "real LLM loading",
+      "GPU execution"
+    ]
+  },
+  "summary": {
+    "checks_passed": 12,
+    "checks_total": 12,
+    "weight_schemes": 9,
+    "linear_paths": 3,
+    "smooth_scaling_transform_max_abs_error": 8.881784197001252e-15
+  },
+  "weight_metrics": [
+    {
+      "scheme": "FP16 emulation",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 16,
+      "granularity": "element",
+      "group_size": "",
+      "scale_count": 0,
+      "effective_bits_per_weight_estimate": 16.0,
+      "scale_storage_assumption": "not applicable",
+      "qmin": "",
+      "qmax": "",
+      "mae": 0.0001613847,
+      "mse": 8.27e-08,
+      "rmse": 0.0002876186,
+      "max_abs_error": 0.003125,
+      "sqnr_db": 73.2041826164,
+      "relative_l2": 0.0002186708
+    },
+    {
+      "scheme": "BF16 emulation",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 16,
+      "granularity": "element",
+      "group_size": "",
+      "scale_count": 0,
+      "effective_bits_per_weight_estimate": 16.0,
+      "scale_storage_assumption": "not applicable",
+      "qmin": "",
+      "qmax": "",
+      "mae": 0.0012595604,
+      "mse": 4.7354e-06,
+      "rmse": 0.0021760961,
+      "max_abs_error": 0.014466906,
+      "sqnr_db": 55.626961593,
+      "relative_l2": 0.0016544434
+    },
+    {
+      "scheme": "INT8 symmetric per-tensor",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 8,
+      "granularity": "tensor",
+      "group_size": "",
+      "scale_count": 1,
+      "effective_bits_per_weight_estimate": 8.015625,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": -127,
+      "qmax": 127,
+      "mae": 0.0198692526,
+      "mse": 0.0005355575,
+      "rmse": 0.0231421151,
+      "max_abs_error": 0.0413316297,
+      "sqnr_db": 35.0924622108,
+      "relative_l2": 0.0175944984
+    },
+    {
+      "scheme": "INT8 symmetric per-channel",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 8,
+      "granularity": "channel",
+      "group_size": "",
+      "scale_count": 32,
+      "effective_bits_per_weight_estimate": 8.5,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": -127,
+      "qmax": 127,
+      "mae": 0.0063597257,
+      "mse": 8.56259e-05,
+      "rmse": 0.0092534286,
+      "max_abs_error": 0.041298152,
+      "sqnr_db": 43.0544696194,
+      "relative_l2": 0.0070352011
+    },
+    {
+      "scheme": "INT4 symmetric per-tensor",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 4,
+      "granularity": "tensor",
+      "group_size": "",
+      "scale_count": 1,
+      "effective_bits_per_weight_estimate": 4.015625,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": -7,
+      "qmax": 7,
+      "mae": 0.3308047553,
+      "mse": 0.1578192359,
+      "rmse": 0.3972646925,
+      "max_abs_error": 0.7492545572,
+      "sqnr_db": 10.3989238325,
+      "relative_l2": 0.3020325911
+    },
+    {
+      "scheme": "INT4 symmetric per-channel",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 4,
+      "granularity": "channel",
+      "group_size": "",
+      "scale_count": 32,
+      "effective_bits_per_weight_estimate": 4.5,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": -7,
+      "qmax": 7,
+      "mae": 0.1143747655,
+      "mse": 0.0280643605,
+      "rmse": 0.1675242088,
+      "max_abs_error": 0.7456472199,
+      "sqnr_db": 17.8989716845,
+      "relative_l2": 0.1273653859
+    },
+    {
+      "scheme": "INT4 symmetric per-group-16",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 4,
+      "granularity": "group",
+      "group_size": 16,
+      "scale_count": 128,
+      "effective_bits_per_weight_estimate": 6.0,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": -7,
+      "qmax": 7,
+      "mae": 0.0815909938,
+      "mse": 0.0146768685,
+      "rmse": 0.1211481264,
+      "max_abs_error": 0.7291606892,
+      "sqnr_db": 20.714189154,
+      "relative_l2": 0.0921065557
+    },
+    {
+      "scheme": "INT4 symmetric per-group-32",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 4,
+      "granularity": "group",
+      "group_size": 32,
+      "scale_count": 64,
+      "effective_bits_per_weight_estimate": 5.0,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": -7,
+      "qmax": 7,
+      "mae": 0.0973947335,
+      "mse": 0.0199885612,
+      "rmse": 0.1413809082,
+      "max_abs_error": 0.7291606892,
+      "sqnr_db": 19.3727078552,
+      "relative_l2": 0.1074891447
+    },
+    {
+      "scheme": "INT4 asymmetric per-tensor",
+      "shape_out_in": "32x64",
+      "nominal_bits_per_weight": 4,
+      "granularity": "tensor",
+      "group_size": "",
+      "scale_count": 1,
+      "effective_bits_per_weight_estimate": 4.015625,
+      "scale_storage_assumption": "FP32 per scale; no zero-point metadata",
+      "qmin": 0,
+      "qmax": 15,
+      "mae": 0.2919233196,
+      "mse": 0.1233587439,
+      "rmse": 0.3512246346,
+      "max_abs_error": 0.6559637664,
+      "sqnr_db": 11.46882381,
+      "relative_l2": 0.2670292337
+    }
+  ],
+  "linear_output_metrics": [
+    {
+      "path": "FP32 reference",
+      "input_vectors": 24,
+      "output_features": 32,
+      "mae": 0.0,
+      "mse": 0.0,
+      "rmse": 0.0,
+      "max_abs_error": 0.0,
+      "sqnr_db": Infinity,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "W4A16 educational: INT4 group-16 weights, FP32 activations",
+      "input_vectors": 24,
+      "output_features": 32,
+      "mae": 0.5338296503,
+      "mse": 0.719777447,
+      "rmse": 0.8483969867,
+      "max_abs_error": 5.211536763,
+      "sqnr_db": 20.2663730568,
+      "relative_l2": 0.0969798141
+    },
+    {
+      "path": "W8A8 educational: INT8 per-channel weights, INT8 per-vector activations",
+      "input_vectors": 24,
+      "output_features": 32,
+      "mae": 0.0710513907,
+      "mse": 0.0215020102,
+      "rmse": 0.1466356374,
+      "max_abs_error": 1.2008749746,
+      "sqnr_db": 35.5135647776,
+      "relative_l2": 0.0167618427
+    }
+  ],
+  "activation_calibration_metrics": [
+    {
+      "strategy": "absmax",
+      "quantizer": "symmetric INT8 educational",
+      "threshold": 13.0,
+      "scale": 0.102362204724,
+      "clipped_values": 0,
+      "total_values": 1536,
+      "clipped_fraction": 0.0,
+      "mae": 0.0251275443,
+      "mse": 0.0008563637,
+      "rmse": 0.029263693,
+      "max_abs_error": 0.0511411757,
+      "sqnr_db": 29.6432592388,
+      "relative_l2": 0.0329486055
+    },
+    {
+      "strategy": "percentile_99",
+      "quantizer": "symmetric INT8 educational",
+      "threshold": 1.8431122818,
+      "scale": 0.014512695132,
+      "clipped_values": 16,
+      "total_values": 1536,
+      "clipped_fraction": 0.01041667,
+      "mae": 0.0266281783,
+      "mse": 0.2434626494,
+      "rmse": 0.4934193443,
+      "max_abs_error": 11.1568877182,
+      "sqnr_db": 5.1055184388,
+      "relative_l2": 0.5555511847
+    }
+  ],
+  "float_format_samples": [
+    {
+      "input_fp32": 0.1,
+      "fp16_emulated": 0.0999755859375,
+      "fp16_finite": true,
+      "fp16_abs_error": 2.441406250000555e-05,
+      "bf16_emulated": 0.10009765625,
+      "bf16_finite": true,
+      "bf16_abs_error": 9.765624999999445e-05
+    },
+    {
+      "input_fp32": 0.3333333,
+      "fp16_emulated": 0.333251953125,
+      "fp16_finite": true,
+      "fp16_abs_error": 8.134687499999904e-05,
+      "bf16_emulated": 0.333984375,
+      "bf16_finite": true,
+      "bf16_abs_error": 0.000651075000000001
+    },
+    {
+      "input_fp32": 1.0,
+      "fp16_emulated": 1.0,
+      "fp16_finite": true,
+      "fp16_abs_error": 0.0,
+      "bf16_emulated": 1.0,
+      "bf16_finite": true,
+      "bf16_abs_error": 0.0
+    },
+    {
+      "input_fp32": -2.71828,
+      "fp16_emulated": -2.71875,
+      "fp16_finite": true,
+      "fp16_abs_error": 0.00046999999999997044,
+      "bf16_emulated": -2.71875,
+      "bf16_finite": true,
+      "bf16_abs_error": 0.00046999999999997044
+    },
+    {
+      "input_fp32": 65504.0,
+      "fp16_emulated": 65504.0,
+      "fp16_finite": true,
+      "fp16_abs_error": 0.0,
+      "bf16_emulated": 65536.0,
+      "bf16_finite": true,
+      "bf16_abs_error": 32.0
+    },
+    {
+      "input_fp32": 70000.0,
+      "fp16_emulated": Infinity,
+      "fp16_finite": false,
+      "fp16_abs_error": "",
+      "bf16_emulated": 70144.0,
+      "bf16_finite": true,
+      "bf16_abs_error": 144.0
+    },
+    {
+      "input_fp32": 1e-05,
+      "fp16_emulated": 1.0013580322265625e-05,
+      "fp16_finite": true,
+      "fp16_abs_error": 1.3580322265624182e-08,
+      "bf16_emulated": 1.0013580322265625e-05,
+      "bf16_finite": true,
+      "bf16_abs_error": 1.3580322265624182e-08
+    },
+    {
+      "input_fp32": 100000.0,
+      "fp16_emulated": Infinity,
+      "fp16_finite": false,
+      "fp16_abs_error": "",
+      "bf16_emulated": 99840.0,
+      "bf16_finite": true,
+      "bf16_abs_error": 160.0
+    },
+    {
+      "input_fp32": -100000.0,
+      "fp16_emulated": -Infinity,
+      "fp16_finite": false,
+      "fp16_abs_error": "",
+      "bf16_emulated": -99840.0,
+      "bf16_finite": true,
+      "bf16_abs_error": 160.0
+    },
+    {
+      "input_fp32": 1e-08,
+      "fp16_emulated": 0.0,
+      "fp16_finite": true,
+      "fp16_abs_error": 1e-08,
+      "bf16_emulated": 1.0011717677116394e-08,
+      "bf16_finite": true,
+      "bf16_abs_error": 1.1717677116393834e-11
+    }
+  ],
+  "model_memory_arithmetic": [
+    {
+      "model_parameters": 7000000000,
+      "representation": "FP32",
+      "nominal_or_effective_bits_per_parameter": 32,
+      "decimal_GB": 28.0,
+      "binary_GiB": 26.077032,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    },
+    {
+      "model_parameters": 7000000000,
+      "representation": "FP16",
+      "nominal_or_effective_bits_per_parameter": 16,
+      "decimal_GB": 14.0,
+      "binary_GiB": 13.038516,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    },
+    {
+      "model_parameters": 7000000000,
+      "representation": "BF16",
+      "nominal_or_effective_bits_per_parameter": 16,
+      "decimal_GB": 14.0,
+      "binary_GiB": 13.038516,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    },
+    {
+      "model_parameters": 7000000000,
+      "representation": "FP8",
+      "nominal_or_effective_bits_per_parameter": 8,
+      "decimal_GB": 7.0,
+      "binary_GiB": 6.519258,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    },
+    {
+      "model_parameters": 7000000000,
+      "representation": "INT8",
+      "nominal_or_effective_bits_per_parameter": 8,
+      "decimal_GB": 7.0,
+      "binary_GiB": 6.519258,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    },
+    {
+      "model_parameters": 7000000000,
+      "representation": "INT4 raw payload",
+      "nominal_or_effective_bits_per_parameter": 4,
+      "decimal_GB": 3.5,
+      "binary_GiB": 3.259629,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    },
+    {
+      "model_parameters": 7000000000,
+      "representation": "INT4 + FP32 scale per 64 weights",
+      "nominal_or_effective_bits_per_parameter": 4.5,
+      "decimal_GB": 3.9375,
+      "binary_GiB": 3.667083,
+      "assumption": "ideal payload; excludes padding, unquantized modules, runtime buffers, KV cache and allocator overhead"
+    }
+  ],
+  "kv_cache_arithmetic": [
+    {
+      "layers": 32,
+      "batch_sequences": 16,
+      "tokens_per_sequence": 8192,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "representation": "FP16/BF16 payload",
+      "ideal_payload_GiB": 16.0,
+      "metadata_assumption": "none included",
+      "formula": "2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element"
+    },
+    {
+      "layers": 32,
+      "batch_sequences": 16,
+      "tokens_per_sequence": 8192,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "representation": "FP8 payload",
+      "ideal_payload_GiB": 8.0,
+      "metadata_assumption": "scale metadata excluded",
+      "formula": "2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element"
+    },
+    {
+      "layers": 32,
+      "batch_sequences": 16,
+      "tokens_per_sequence": 8192,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "representation": "INT8 payload",
+      "ideal_payload_GiB": 8.0,
+      "metadata_assumption": "scale and zero-point metadata excluded",
+      "formula": "2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element"
+    },
+    {
+      "layers": 32,
+      "batch_sequences": 16,
+      "tokens_per_sequence": 8192,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "representation": "4-bit payload",
+      "ideal_payload_GiB": 4.0,
+      "metadata_assumption": "packing and scale metadata excluded",
+      "formula": "2 * layers * batch * tokens * kv_heads * head_dim * bytes_per_element"
+    }
+  ],
+  "checks": [
+    {
+      "check": "Per-channel INT4 beats per-tensor INT4 on heterogeneous rows",
+      "status": "PASS",
+      "detail": "per-channel=0.0280643605; per-tensor=0.1578192359"
+    },
+    {
+      "check": "Groupwise INT4 improves on per-tensor INT4 for this matrix",
+      "status": "PASS",
+      "detail": "group-16=0.0146768685; per-tensor=0.1578192359"
+    },
+    {
+      "check": "INT8 has lower weight reconstruction MSE than INT4",
+      "status": "PASS",
+      "detail": "Same synthetic matrix and per-channel granularity."
+    },
+    {
+      "check": "BF16 preserves a large finite value that overflows FP16",
+      "status": "PASS",
+      "detail": "FP16(100000)=inf; BF16(100000)=99840.0"
+    },
+    {
+      "check": "Affine quantization represents real zero through zero-point",
+      "status": "PASS",
+      "detail": "Asymmetric affine INT4 maps real zero exactly."
+    },
+    {
+      "check": "INT4 q values remain inside the configured range",
+      "status": "PASS",
+      "detail": "Symmetric INT4 uses the explicit educational range [-7, 7]."
+    },
+    {
+      "check": "Algebraic channel rescaling preserves linear output",
+      "status": "PASS",
+      "detail": "maximum absolute output drift=8.881784197001252e-15"
+    },
+    {
+      "check": "W4A16 and W8A8 paths produce finite output errors",
+      "status": "PASS",
+      "detail": "Synthetic numerical paths only; no hardware kernel."
+    },
+    {
+      "check": "Memory arithmetic halves nominal payload from FP16 to FP8",
+      "status": "PASS",
+      "detail": "7B parameters: FP16=14 GB decimal; FP8=7 GB decimal, before overhead."
+    },
+    {
+      "check": "KV payload arithmetic halves from 16-bit to 8-bit",
+      "status": "PASS",
+      "detail": "GQA example; scale metadata excluded."
+    },
+    {
+      "check": "Percentile activation calibration reports clipped values",
+      "status": "PASS",
+      "detail": "Clipped 16 of 1536."
+    },
+    {
+      "check": "All six evidence tables contain rows",
+      "status": "PASS",
+      "detail": "Six deterministic CSV tables generated."
+    }
+  ],
+  "interpretation": [
+    "Per-channel and groupwise scales can reduce error on this deliberately heterogeneous synthetic matrix; this is not a universal ranking.",
+    "Lower weight MSE does not prove lower perplexity or better task accuracy for a real LLM.",
+    "Scale overhead assumes one FP32 scale per region and excludes zero-points and packing.",
+    "Synthetic tensors are not pretrained model weights or real production activations.",
+    "No latency, throughput, GPU allocation, kernel selection or tokens-per-second measurements are made."
+  ]
+}

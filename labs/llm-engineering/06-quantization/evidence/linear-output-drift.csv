@@ -1,0 +1,4 @@
+path,input_vectors,output_features,mae,mse,rmse,max_abs_error,sqnr_db,relative_l2
+FP32 reference,24,32,0.0,0.0,0.0,0.0,inf,0.0
+"W4A16 educational: INT4 group-16 weights, FP32 activations",24,32,0.5338296503,0.719777447,0.8483969867,5.211536763,20.2663730568,0.0969798141
+"W8A8 educational: INT8 per-channel weights, INT8 per-vector activations",24,32,0.0710513907,0.0215020102,0.1466356374,1.2008749746,35.5135647776,0.0167618427
