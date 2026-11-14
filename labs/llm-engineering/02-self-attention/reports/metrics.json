@@ -1,0 +1,255 @@
+{
+  "lab": "Consola Abierta - Self-Attention Deep Dive 02",
+  "run_timestamp_local": "2026-11-14 08:38:16",
+  "host": "PCRAY",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10",
+  "pytorch": "2.14.0+cpu",
+  "device": "cpu",
+  "cuda_available": false,
+  "xpu_available": false,
+  "cpu_threads": 4,
+  "runtime_seconds": 0.0537,
+  "scaling_experiment": [
+    {
+      "d_head": 8,
+      "mode": "unscaled",
+      "mean_entropy_nats": 1.491335153579712,
+      "mean_max_attention_weight": 0.5321834087371826,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 8,
+      "mode": "scaled",
+      "mean_entropy_nats": 2.747344493865967,
+      "mean_max_attention_weight": 0.19338661432266235,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 16,
+      "mode": "unscaled",
+      "mean_entropy_nats": 1.0283763408660889,
+      "mean_max_attention_weight": 0.6518698930740356,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 16,
+      "mode": "scaled",
+      "mean_entropy_nats": 2.738788604736328,
+      "mean_max_attention_weight": 0.19476120173931122,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 32,
+      "mode": "unscaled",
+      "mean_entropy_nats": 0.691860556602478,
+      "mean_max_attention_weight": 0.756689190864563,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 32,
+      "mode": "scaled",
+      "mean_entropy_nats": 2.7504332065582275,
+      "mean_max_attention_weight": 0.19036048650741577,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 64,
+      "mode": "unscaled",
+      "mean_entropy_nats": 0.4659317135810852,
+      "mean_max_attention_weight": 0.8248456120491028,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 64,
+      "mode": "scaled",
+      "mean_entropy_nats": 2.746320962905884,
+      "mean_max_attention_weight": 0.1922122687101364,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 128,
+      "mode": "unscaled",
+      "mean_entropy_nats": 0.3300981819629669,
+      "mean_max_attention_weight": 0.8716747760772705,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 128,
+      "mode": "scaled",
+      "mean_entropy_nats": 2.732621908187866,
+      "mean_max_attention_weight": 0.19382865726947784,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 256,
+      "mode": "unscaled",
+      "mean_entropy_nats": 0.1966918259859085,
+      "mean_max_attention_weight": 0.9238371849060059,
+      "samples": 512,
+      "keys_per_query": 24
+    },
+    {
+      "d_head": 256,
+      "mode": "scaled",
+      "mean_entropy_nats": 2.7390012741088867,
+      "mean_max_attention_weight": 0.19432127475738525,
+      "samples": 512,
+      "keys_per_query": 24
+    }
+  ],
+  "gradient_experiment": {
+    "dtype": "float64",
+    "batch": 2,
+    "sequence_length": 7,
+    "d_model": 32,
+    "query_heads": 4,
+    "head_dimension": 8,
+    "loss": 1.381901819046624,
+    "gradient_l2_norms": {
+      "input_x": 0.14022487511256485,
+      "W_Q": 0.17777623787452146,
+      "W_K": 0.18282424220858304,
+      "W_V": 0.5377044261880152,
+      "W_O": 0.5280069815081879
+    },
+    "finite_difference": {
+      "parameter": "W_Q[0,0]",
+      "epsilon": 1e-06,
+      "autograd": 0.00196803810007731,
+      "central_difference": 0.0019680381768694133,
+      "absolute_error": 7.679210349206822e-11
+    },
+    "manual_vs_autograd_gradient_max_abs_error": 3.469446951953614e-18
+  },
+  "gqa_sdpa_experiment": {
+    "query_shape": [
+      2,
+      8,
+      12,
+      8
+    ],
+    "key_value_shape": [
+      2,
+      2,
+      12,
+      8
+    ],
+    "expanded_key_value_shape": [
+      2,
+      8,
+      12,
+      8
+    ],
+    "output_shape": [
+      2,
+      8,
+      12,
+      8
+    ],
+    "group_size": 4,
+    "manual_vs_pytorch_sdpa_max_abs_delta": 3.5762786865234375e-07,
+    "causal_future_mass_max": 0.0,
+    "attention_row_sum_max_abs_error": 2.384185791015625e-07
+  },
+  "rope_relative_position_max_abs_error": 0.0,
+  "attention_projection_estimates": [
+    {
+      "d_model": 512,
+      "query_heads": 8,
+      "kv_heads": 8,
+      "attention_projection_parameters_no_bias": 1048576,
+      "relative_to_mha_percent": 100.0
+    },
+    {
+      "d_model": 512,
+      "query_heads": 8,
+      "kv_heads": 4,
+      "attention_projection_parameters_no_bias": 786432,
+      "relative_to_mha_percent": 75.0
+    },
+    {
+      "d_model": 512,
+      "query_heads": 8,
+      "kv_heads": 2,
+      "attention_projection_parameters_no_bias": 655360,
+      "relative_to_mha_percent": 62.5
+    },
+    {
+      "d_model": 512,
+      "query_heads": 8,
+      "kv_heads": 1,
+      "attention_projection_parameters_no_bias": 589824,
+      "relative_to_mha_percent": 56.25
+    }
+  ],
+  "kv_cache_estimates": [
+    {
+      "query_heads": 32,
+      "kv_heads": 32,
+      "head_dimension": 128,
+      "sequence_tokens": 4096,
+      "dtype": "BF16",
+      "bytes_per_token_per_layer": 16384,
+      "mib_per_layer_per_sequence": 64.0,
+      "relative_to_mha_percent": 100.0
+    },
+    {
+      "query_heads": 32,
+      "kv_heads": 8,
+      "head_dimension": 128,
+      "sequence_tokens": 4096,
+      "dtype": "BF16",
+      "bytes_per_token_per_layer": 4096,
+      "mib_per_layer_per_sequence": 16.0,
+      "relative_to_mha_percent": 25.0
+    },
+    {
+      "query_heads": 32,
+      "kv_heads": 4,
+      "head_dimension": 128,
+      "sequence_tokens": 4096,
+      "dtype": "BF16",
+      "bytes_per_token_per_layer": 2048,
+      "mib_per_layer_per_sequence": 8.0,
+      "relative_to_mha_percent": 12.5
+    },
+    {
+      "query_heads": 32,
+      "kv_heads": 1,
+      "head_dimension": 128,
+      "sequence_tokens": 4096,
+      "dtype": "BF16",
+      "bytes_per_token_per_layer": 512,
+      "mib_per_layer_per_sequence": 2.0,
+      "relative_to_mha_percent": 3.12
+    }
+  ],
+  "checks": {
+    "manual_gradient_matches_autograd": true,
+    "finite_difference_matches_autograd": true,
+    "causal_mask_blocks_future_positions": true,
+    "attention_rows_sum_to_one": true,
+    "manual_attention_matches_pytorch_sdpa": true,
+    "gqa_kv_expansion_equivalence": true,
+    "rope_relative_position_identity": true
+  },
+  "limitations": [
+    "Synthetic random tensors isolate mathematical properties; they are not model-quality or language-understanding measurements.",
+    "The scaling experiment uses a fixed seed and standard-normal Q/K vectors; trained representations may have different statistics.",
+    "Parameter and KV-cache tables are analytical estimates for one layer, one sequence and BF16 cache storage, not measured GPU memory.",
+    "The CPU lab explicitly expands shared KV heads for GQA; it does not benchmark the native CUDA enable_gqa path.",
+    "The RoPE test checks the relative-position rotation identity, not language-model quality or long-context extrapolation.",
+    "Attention weights are internal routing coefficients, not a complete or automatically faithful explanation of model decisions."
+  ]
+}

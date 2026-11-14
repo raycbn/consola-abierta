@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Self-Attention en profundidad: matemáticas, gradientes y variantes modernas | Consola Abierta</title>
+<meta name="description" content="Derivación de Query, Key y Value, softmax y causal masking; backpropagation paso a paso; comparación MHA, MQA y GQA; RoPE y laboratorio PyTorch con evidencias reproducibles.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/self-attention-en-profundidad/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/self-attention-deep-dive/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/self-attention-en-profundidad/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-attention-02">
+<meta property="og:type" content="article"><meta property="og:title" content="Self-Attention en profundidad: matemáticas, gradientes y variantes modernas"><meta property="og:description" content="De Q/K/V a los gradientes. Derivaciones, MHA/GQA/MQA, RoPE y un laboratorio PyTorch verificado en CPU."><meta property="og:url" content="https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"><meta property="og:site_name" content="Consola Abierta">
+<meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Self-Attention en profundidad: matemáticas, gradientes y variantes modernas","description":"Derivación matemática de self-attention, gradientes Q/K/V, softmax scaling, GQA/MQA y RoPE con laboratorio PyTorch verificado.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top">
+<a class="brand" href="/" aria-label="Consola Abierta, inicio"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a>
+<div class="header-meta"><span>Publicación independiente</span><a href="/en/analysis/self-attention-deep-dive/" lang="en">EN</a></div></div>
+<nav class="primary-nav" aria-label="Navegación principal"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">Serie LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 02 / 08</span><a class="text-link" href="/es/series/llm-engineering/">Ver la serie ↗</a></div></nav></div></header>
+<main id="contenido" class="site-shell">
+<header class="article-header">
+<div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/series/llm-engineering/">LLM Engineering</a> / Attention Mechanisms</div>
+<div class="kicker">LLM Engineering · Attention Mechanisms · Lab verified</div>
+<h1>Self-Attention en profundidad: matemáticas, gradientes y variantes modernas</h1>
+<p class="article-deck">Query, Key y Value no son tres nombres decorativos. Son proyecciones aprendidas que construyen una operación diferenciable: calcular compatibilidades, normalizarlas y mezclar información. Vamos a derivarla, recorrer su backward pass y medir qué cambia cuando modificamos sus dimensiones o compartimos las cabezas Key/Value.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>Publicado 14 noviembre 2026</span><span>24–28 min de lectura</span><span>Mid-senior · Senior · Specialist</span></div>
+<div class="status-line">LAB VERIFIED · Python 3.12.10 · PyTorch 2.14.0+cpu · Windows 11 · Intel Core i5-1155G7 · CPU-only · 7 comprobaciones · 14 noviembre 2026</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En este análisis</div><ol>
+<li><a href="#scope">El mecanismo que vamos a aislar</a></li>
+<li><a href="#projection">De X a Q, K y V</a></li>
+<li><a href="#scores">Scores y factor de escala</a></li>
+<li><a href="#softmax">Softmax y normalización</a></li>
+<li><a href="#masking">Causal masking y padding</a></li>
+<li><a href="#aggregation">Weighted sum y output projection</a></li>
+<li><a href="#backprop">Backpropagation: de la loss a Q/K/V</a></li>
+<li><a href="#softmax-gradient">El gradiente de softmax</a></li>
+<li><a href="#projection-gradient">Gradientes de las proyecciones</a></li>
+<li><a href="#heads">Qué cambia al variar el número de heads</a></li>
+<li><a href="#gqa">MHA, MQA y GQA</a></li>
+<li><a href="#kv-cache">El impacto en KV cache</a></li>
+<li><a href="#rope">RoPE: posición relativa mediante rotaciones</a></li>
+<li><a href="#implementation">Implementación de referencia</a></li>
+<li><a href="#lab">Laboratorio reproducido</a></li>
+<li><a href="#results">Resultados medidos</a></li>
+<li><a href="#limits">Qué no demuestran estos resultados</a></li>
+<li><a href="#next">Qué viene después</a></li>
+<li><a href="#sources">Fuentes primarias</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>La pregunta central</strong><p>¿Cómo convierte una secuencia de vectores en una nueva representación contextual, y cómo sabe el optimizador qué debe cambiar? El laboratorio implementa el forward pass, deriva manualmente los gradientes de Q/K/V, los contrasta con autograd, comprueba una derivada mediante diferencias finitas y estudia las variantes de atención que afectan a la memoria de inferencia.</p></div>
+
+<h2 id="scope">1. El mecanismo que vamos a aislar</h2>
+<p>En el capítulo anterior construimos la anatomía de un decoder-only Transformer y recorrimos el flujo desde los token IDs hasta los logits. Aquí hacemos zoom en el componente que mezcla información entre posiciones: <strong>self-attention</strong>. No vamos a entrenar otro modelo de lenguaje; vamos a aislar la operación y probar sus propiedades con tensores controlados.</p>
+<p>En self-attention, Query, Key y Value se calculan a partir de la misma secuencia de estados ocultos. Una Query se compara con las Keys disponibles; el resultado determina cuánto contribuye cada Value a la salida. Es una descripción funcional, no una traducción semántica literal: una Query no es necesariamente una pregunta lingüística, ni una Key una etiqueta interpretable. Son vectores aprendidos en un espacio de representación.</p>
+<p>La operación original de <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al. (2017)</a> se formula como scaled dot-product attention. Los Transformers actuales añaden decisiones arquitectónicas y de implementación —causalidad, RoPE, GQA, kernels eficientes— que conviene separar para no mezclar tres preguntas distintas: qué calcula la atención, cómo incorpora posición y cómo se ejecuta con menos memoria o movimiento de datos.</p>
+
+<h2 id="projection">2. De X a Q, K y V: las proyecciones aprendidas</h2>
+<p>Partimos de una entrada que ya contiene representaciones vectoriales. Para un batch con longitud de secuencia T y dimensión de modelo d_model:</p>
+<pre><code>X: [B, T, d_model]</code></pre>
+<p>El bloque aplica tres proyecciones lineales independientes:</p>
+<pre><code>Q = X @ W_Q + b_Q
+K = X @ W_K + b_K
+V = X @ W_V + b_V</code></pre>
+<p>En Multi-Head Attention convencional, cada proyección produce H × d_head características por posición. Si elegimos d_model = 512, H = 8 y d_head = 64, el tensor proyectado puede reorganizarse así:</p>
+<pre><code>Q, K, V: [B, T, 512]
+reshape: [B, T, 8, 64]
+transpose: [B, 8, T, 64]</code></pre>
+<p>La última forma separa explícitamente la dimensión de heads. A partir de aquí cada head realiza su atención en paralelo. No significa que haya ocho modelos independientes: todas las heads reciben la misma entrada, sus matrices de proyección se entrenan conjuntamente y sus salidas vuelven a combinarse.</p>
+<figure class="evidence-figure"><img src="/assets/labs/self-attention/attention-gradient-flow.svg" alt="Flujo forward de X a Q, K, V, scores, softmax y output, junto al camino inverso de los gradientes"><figcaption>Forward y backward pass de una operación de atención. La salida depende de Values ponderados; los gradientes vuelven tanto por esa suma como por el camino Query-Key que produjo los pesos.</figcaption></figure>
+<h3>Qué hace cada proyección</h3>
+<ul>
+<li><strong>Query (Q):</strong> vector usado para puntuar la compatibilidad entre una posición y las Keys disponibles.</li>
+<li><strong>Key (K):</strong> vector contra el que se compara cada Query para calcular los scores.</li>
+<li><strong>Value (V):</strong> contenido vectorial que se combina usando los pesos obtenidos.</li>
+</ul>
+<p>La distinción importante es que Key decide, junto a Query, el peso de una posición; Value aporta el contenido agregado. Cambiar K puede cambiar a quién se atiende sin cambiar directamente el contenido almacenado en V. Cambiar V puede modificar la salida aunque los pesos de atención permanezcan idénticos.</p>
+
+<h2 id="scores">3. Scores: por qué dividimos por la raíz de d_head</h2>
+<p>Para cada Query calculamos el producto escalar contra todas las Keys. Con Q de forma [B, H, T, d_head] y K de la misma forma:</p>
+<pre><code>S = Q @ K.transpose(-2, -1)
+S.shape = [B, H, T, T]
+S_scaled = S / sqrt(d_head)</code></pre>
+<p>El producto escalar mide alineamiento en el espacio aprendido. Sin embargo, su escala depende de la dimensión. Si los componentes de Q y K fueran variables independientes, de media cero y varianza uno, el producto escalar sería la suma de d_head productos: su varianza crecería aproximadamente en proporción a d_head. Al aumentar la dimensión, los logits que entran en softmax tenderían a tener magnitudes mayores.</p>
+<p>El factor 1 / sqrt(d_head) normaliza esa escala bajo esa hipótesis de referencia. No garantiza que todos los scores entrenados tengan varianza uno ni elimina los problemas de condicionamiento, pero evita que la dimensión por sí sola empuje sistemáticamente los logits a valores extremos. El paper original explica precisamente la relación entre productos grandes y regiones de softmax con gradientes pequeños.</p>
+<h3>Experimento: la escala cambia la distribución</h3>
+<p>Generamos 512 Query vectors y 24 Keys por Query, todos con componentes estándar normales. Repetimos el cálculo para d_head = 8, 16, 32, 64, 128 y 256. Comparamos el mismo producto escalar con y sin división por sqrt(d_head). Medimos la entropía media de la distribución softmax, en nats, y el peso máximo medio.</p>
+<table class="data-table"><thead><tr><th>d_head</th><th>Entropía sin escala</th><th>Entropía escalada</th><th>Máximo sin escala</th><th>Máximo escalado</th></tr></thead><tbody>
+<tr><td>8</td><td>1,4913</td><td>2,7473</td><td>0,5322</td><td>0,1934</td></tr>
+<tr><td>16</td><td>1,0284</td><td>2,7388</td><td>0,6519</td><td>0,1948</td></tr>
+<tr><td>32</td><td>0,6919</td><td>2,7504</td><td>0,7567</td><td>0,1904</td></tr>
+<tr><td>64</td><td>0,4659</td><td>2,7463</td><td>0,8248</td><td>0,1922</td></tr>
+<tr><td>128</td><td>0,3301</td><td>2,7326</td><td>0,8717</td><td>0,1938</td></tr>
+<tr><td>256</td><td>0,1967</td><td>2,7390</td><td>0,9238</td><td>0,1943</td></tr>
+</tbody></table>
+<figure class="evidence-figure"><img src="/assets/labs/self-attention/attention-scaling-entropy.svg" alt="Gráfico de la entropía softmax por dimensión de head, con y sin el factor de escala"><figcaption>Medición reproducible sobre vectores sintéticos. Sin escala, la distribución se concentra rápidamente en una o pocas Keys al crecer d_head; al dividir por sqrt(d_head), la entropía permanece estable alrededor de 2,74 nats en este experimento.</figcaption></figure>
+<p>El resultado no es una demostración estadística universal ni una medición de un LLM entrenado. Sí reproduce el mecanismo que motiva el factor de escala: con entradas de la misma distribución, la versión no escalada se satura progresivamente. La escala mantiene las magnitudes de los logits en un rango más comparable entre dimensiones.</p>
+
+<h2 id="softmax">4. Softmax: de compatibilidades a pesos</h2>
+<p>Después del producto escalar aplicamos softmax sobre el eje de Keys. Para una posición i, la probabilidad de atención asignada a la posición j es:</p>
+<pre><code>P[i,j] = exp(S[i,j]) / sum_k exp(S[i,k])</code></pre>
+<p>Cada fila se normaliza por separado y suma uno. No se normaliza la matriz completa: cada Query tiene su propia distribución sobre las posiciones que puede consultar. Los valores son no negativos y comparables dentro de esa fila.</p>
+<p>En código, la dimensión correcta importa: con scores de forma [B, H, T_query, T_key], la llamada habitual es softmax(scores, dim=-1). Aplicar softmax en el eje de Query produciría otra operación, no una variación inocua.</p>
+<p>En entrenamiento, dropout puede aplicarse a los pesos de atención después del softmax. En inferencia normalmente se usa dropout_p = 0. PyTorch advierte que su API scaled_dot_product_attention aplica el dropout indicado incluso cuando se llama desde un módulo en modo eval: el caller debe pasar explícitamente cero en evaluación.</p>
+
+<h2 id="masking">5. Causal masking y padding: restricciones antes de normalizar</h2>
+<p>Un decoder autoregresivo no puede consultar tokens futuros. Si la posición i está calculando su representación, únicamente puede usar las posiciones j ≤ i. La máscara causal asigna −infinito a los scores prohibidos antes del softmax:</p>
+<pre><code>scores[i, j] = -inf  cuando j &gt; i
+weights = softmax(scores, dim=-1)</code></pre>
+<p>Como exp(−infinito) = 0, las posiciones futuras reciben peso exactamente cero. Una máscara causal no oculta el pasado: conserva el prefijo completo, incluida la propia posición.</p>
+<p>El <strong>padding mask</strong> resuelve otro problema: evita atender a posiciones de relleno introducidas para igualar longitudes dentro de un batch. En un decoder con padding pueden combinarse ambas restricciones, siempre que se construya correctamente la máscara broadcastable. No confundas los dos conceptos: causalidad expresa el orden de generación; padding expresa qué posiciones de entrada no contienen datos reales.</p>
+<div class="callout"><strong>Ojo con PyTorch</strong><p>En torch.nn.functional.scaled_dot_product_attention, una máscara booleana con True significa que la posición participa en la atención. En MultiheadAttention, la semántica de key_padding_mask usa True para indicar posiciones que deben enmascararse. Al migrar entre ambas APIs hay que invertir la máscara cuando corresponda. Consulta la documentación de la función que realmente estés usando.</p></div>
+
+<h2 id="aggregation">6. Weighted sum y output projection</h2>
+<p>La matriz de pesos P se aplica a V:</p>
+<pre><code>O = P @ V
+O.shape = [B, H, T, d_head]</code></pre>
+<p>Para cada Query, la salida es una combinación ponderada de los Values permitidos por la máscara. No se elige simplemente la posición con mayor peso; todas las posiciones con peso no nulo contribuyen a la suma. Esta mezcla es diferenciable respecto a P y respecto a V.</p>
+<p>En Multi-Head Attention, las salidas de las H heads se concatenan y pasan por otra proyección aprendida:</p>
+<pre><code>O_concat = concat(O_1, ..., O_H)
+Y = O_concat @ W_O</code></pre>
+<p>Si d_head = d_model / H, la concatenación vuelve a tener d_model características. W_O permite que la siguiente capa mezcle información de las distintas subrepresentaciones. La salida suele incorporarse al residual stream del Transformer block, pero esa conexión residual pertenece al bloque completo, no a la operación de atención aislada.</p>
+
+<h2 id="backprop">7. Backpropagation: recorrer el camino inverso</h2>
+<p>Hasta aquí hemos descrito el forward pass. Durante el entrenamiento, una loss aguas abajo produce un gradiente sobre la salida O. A partir de ese gradiente, reverse-mode automatic differentiation aplica la regla de la cadena hasta alcanzar P, S, Q, K y V, y después las matrices W_Q, W_K y W_V.</p>
+<p>Vamos a derivar la atención sin máscara por brevedad algebraica; cuando existe máscara causal, las posiciones prohibidas tienen gradiente cero en los scores. Definimos:</p>
+<pre><code>S = (Q @ K.T) / sqrt(d_head)
+P = softmax(S)
+O = P @ V</code></pre>
+<p>Sea G = dL/dO el gradiente que llega desde la operación siguiente. Para la multiplicación O = P V, las derivadas matriciales son:</p>
+<pre><code>dL/dV = P.T @ G
+dL/dP = G @ V.T</code></pre>
+<p>Esto separa dos caminos. El gradiente sobre V cambia el contenido que se mezcla. El gradiente sobre P cambia cuánto pesa cada posición, y debe retroceder a través de softmax y del producto QK.T. Por tanto, tanto Query como Key reciben gradiente por el camino de los scores.</p>
+
+
+<h2 id="softmax-gradient">8. El gradiente de softmax: por qué importa la distribución</h2>
+<p>Para una fila p = softmax(s), el Jacobiano de softmax es:</p>
+<pre><code>J = diag(p) - p @ p.T</code></pre>
+<p>Aplicarlo al vector de gradientes equivale a:</p>
+<pre><code>dL/ds_j = p_j * (dL/dp_j - sum_k(p_k * dL/dp_k))</code></pre>
+<p>La expresión muestra que las posiciones compiten dentro de la misma fila. El gradiente de un score depende del gradiente que recibe su peso y de la media ponderada por la distribución actual. Cuando softmax se concentra casi por completo en una posición, muchas probabilidades son cercanas a cero y las derivadas locales de esas posiciones pueden volverse pequeñas. Esta es una de las razones por las que la escala de los logits no es un detalle cosmético.</p>
+<p>En el mecanismo real, los scores son además el resultado de QK.T / sqrt(d_head). Aplicando la regla de la cadena:</p>
+<pre><code>dL/dQ = (dL/dS @ K) / sqrt(d_head)
+dL/dK = (dL/dS).T @ Q / sqrt(d_head)</code></pre>
+<p>La división por sqrt(d_head) aparece también en el backward pass porque forma parte del forward pass. No desaparece al derivar. Si modificas o eliminas esa escala, cambias tanto la distribución de atención como la magnitud del gradiente que regresa a Q y K.</p>
+
+<h2 id="projection-gradient">9. Gradientes de las matrices de proyección</h2>
+<p>Q, K y V no son parámetros aislados: se obtienen proyectando X. Para una multiplicación lineal Q = X W_Q, el gradiente de W_Q se obtiene combinando las entradas X con el gradiente que llega a Q. Con tensores batched hay que sumar las contribuciones de batch y de posiciones; conceptualmente:</p>
+<pre><code>dL/dW_Q = X.T @ (dL/dQ)
+dL/dW_K = X.T @ (dL/dK)
+dL/dW_V = X.T @ (dL/dV)</code></pre>
+<p>Si hay bias, su gradiente suma las contribuciones correspondientes. La misma X alimenta las tres proyecciones, por lo que el gradiente total de X acumula las rutas que atraviesan Q, K y V. Esta es una razón práctica para no describir Query, Key y Value como tres canales independientes: comparten el mismo origen y se optimizan en el contexto de la misma loss.</p>
+<p>En el laboratorio empleamos float64 para que los errores numéricos del chequeo de gradientes sean muy pequeños. Derivamos manualmente dQ, dK y dV para una loss cuadrática, los comparamos con torch.autograd.grad y contrastamos además un elemento de W_Q mediante diferencias finitas centrales:</p>
+<pre><code>gradient_fd ≈ (loss(W_Q + ε) - loss(W_Q - ε)) / (2 ε)</code></pre>
+<p>La diferencia finita no reemplaza autograd: es una comprobación independiente, sensible a la elección de ε y al redondeo. Sirve para detectar errores en la implementación de la derivada, no para entrenar el modelo.</p>
+
+<h2 id="heads">10. Qué cambia al variar el número de heads</h2>
+<p>En la configuración habitual se mantiene fija la anchura total de atención: H × d_head = d_model. Si d_model = 512:</p>
+<table class="data-table"><thead><tr><th>Heads</th><th>d_head</th><th>Anchura concatenada</th><th>Pesos Q/K/V/O sin bias</th></tr></thead><tbody>
+<tr><td>4</td><td>128</td><td>512</td><td>1.048.576</td></tr>
+<tr><td>8</td><td>64</td><td>512</td><td>1.048.576</td></tr>
+<tr><td>16</td><td>32</td><td>512</td><td>1.048.576</td></tr>
+</tbody></table>
+<p>Con proyecciones fusionadas de d_model a d_model, el recuento de parámetros Q/K/V/O permanece constante al cambiar H si la anchura total se mantiene fija. Lo que cambia es cómo se particiona esa anchura: más heads implican subespacios más estrechos; menos heads implican subespacios más amplios. No existe una regla simple según la cual añadir heads mejore siempre el modelo. También influyen el entrenamiento, los datos, la arquitectura y el presupuesto computacional.</p>
+<p>Este razonamiento deja de ser idéntico cuando reducimos el número de cabezas Key/Value: ahí ya no solo reorganizamos la misma anchura, sino que compartimos proyecciones K/V entre varios Query heads.</p>
+
+<h2 id="gqa">11. MHA, MQA y GQA: compartir Keys y Values</h2>
+<p>La atención Multi-Head tradicional asigna a cada Query head su propio Key head y Value head. <strong>Multi-Query Attention (MQA)</strong> conserva varios Query heads, pero comparte una única cabeza K y V. <strong>Grouped-Query Attention (GQA)</strong> introduce el punto intermedio: cada grupo de Query heads comparte una pareja K/V.</p>
+<figure class="evidence-figure"><img src="/assets/labs/self-attention/attention-variants-mha-gqa-mqa.svg" alt="Comparación visual de MHA con ocho pares K/V, GQA con dos pares compartidos y MQA con un único par K/V"><figcaption>Esquema con ocho Query heads. En MHA cada Query head dispone de su par K/V; en GQA varios Query heads comparten un par; en MQA todos comparten uno. Los Query heads no se fusionan.</figcaption></figure>
+<p>Si H_q es el número de Query heads y H_kv el número de Key/Value heads, cada grupo contiene H_q / H_kv Query heads. Habitualmente H_q debe ser divisible por H_kv para una distribución uniforme. Cuando H_kv = H_q obtenemos MHA; cuando H_kv = 1 obtenemos MQA; los valores intermedios representan GQA.</p>
+<p>La motivación en inferencia autoregresiva es el tamaño de la KV cache. Cada token ya procesado aporta K y V que pueden reutilizarse al generar tokens posteriores. Si almacenamos menos cabezas K/V, reducimos el estado que debemos conservar y leer en cada paso. El paper de <a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener">Ainslie et al. (2023)</a> estudia GQA como compromiso entre la calidad de MHA y la eficiencia de MQA. No significa que compartir K/V sea gratuito: cambia la parametrización y el modelo debe aprender con esa estructura o adaptarse a ella.</p>
+<h3>Comparación de parámetros de las proyecciones de atención</h3>
+<p>Con d_model = 512, H_q = 8 y d_head = 64, contando solo las matrices Q, K, V y O, sin bias ni el resto del Transformer:</p>
+<table class="data-table"><thead><tr><th>Diseño</th><th>Query heads</th><th>KV heads</th><th>Parámetros Q/K/V/O</th><th>Frente a MHA</th></tr></thead><tbody>
+<tr><td>MHA</td><td>8</td><td>8</td><td>1.048.576</td><td>100 %</td></tr>
+<tr><td>GQA</td><td>8</td><td>4</td><td>786.432</td><td>75 %</td></tr>
+<tr><td>GQA</td><td>8</td><td>2</td><td>655.360</td><td>62,5 %</td></tr>
+<tr><td>MQA</td><td>8</td><td>1</td><td>589.824</td><td>56,25 %</td></tr>
+</tbody></table>
+<p>Este recuento corresponde únicamente a las cuatro proyecciones. No es el tamaño total del modelo ni una predicción de velocidad. El beneficio principal en serving suele venir de reducir la KV cache y el tráfico de memoria asociado, no de eliminar la mayor parte de los parámetros del Transformer.</p>
+
+<h2 id="kv-cache">12. El impacto en KV cache: un cálculo que sí escala</h2>
+<p>La memoria necesaria para almacenar Keys y Values por capa, por secuencia y por token puede estimarse como:</p>
+<pre><code>KV bytes = 2 × H_kv × d_head × bytes_per_element
+Cache bytes = KV bytes × sequence_length × batch_size × layers</code></pre>
+<p>El primer factor 2 representa Key y Value. Para visualizar el efecto, usamos 32 Query heads, d_head = 128, BF16 (2 bytes) y una secuencia de 4.096 tokens. La tabla muestra una sola capa y una sola secuencia; para obtener el total de un modelo se multiplica por batch y número de capas:</p>
+<table class="data-table"><thead><tr><th>Diseño</th><th>KV heads</th><th>Bytes por token y capa</th><th>KV cache por capa</th></tr></thead><tbody>
+<tr><td>MHA</td><td>32</td><td>16 KiB</td><td>64 MiB</td></tr>
+<tr><td>GQA</td><td>8</td><td>4 KiB</td><td>16 MiB</td></tr>
+<tr><td>GQA</td><td>4</td><td>2 KiB</td><td>8 MiB</td></tr>
+<tr><td>MQA</td><td>1</td><td>512 B</td><td>2 MiB</td></tr>
+</tbody></table>
+<p>En este ejemplo GQA con cuatro KV heads reduce el tamaño teórico de caché al 12,5 % del MHA; MQA lo lleva al 3,125 %. Es una reducción proporcional al número de cabezas KV, manteniendo constantes d_head, longitud, batch y dtype. No es una medición del allocator, del layout paginado, de fragmentación ni de la memoria temporal del kernel.</p>
+<p>Esta es la conexión con serving: durante decode, cada nuevo token necesita consultar las Keys y Values acumuladas. En generaciones largas o con mucha concurrencia, el tamaño y la lectura de la KV cache se convierten en una decisión de arquitectura de primer orden. Lo estudiaremos a nivel de Prefill/Decode en el capítulo de inference y a nivel de gestión de bloques con vLLM.</p>
+
+<h2 id="rope">13. RoPE: posición relativa mediante rotaciones</h2>
+<p>Q, K y V por sí solos no indican el orden de los tokens. Un mecanismo de posición debe incorporar esa información. En el primer capítulo vimos embeddings posicionales aprendidos como opción didáctica; en muchos LLM modernos se emplea <strong>Rotary Position Embedding (RoPE)</strong>.</p>
+<p>RoPE divide las dimensiones de cada vector Q y K en pares y rota cada pareja un ángulo que depende de la posición. Las frecuencias varían entre pares. En notación compacta:</p>
+<pre><code>q_m = R_m q
+k_n = R_n k
+(R_m q) · (R_n k) = q · (R_(n-m) k)</code></pre>
+<p>La propiedad útil es que el producto entre el Query de la posición m y el Key de la posición n incorpora una dependencia de la diferencia relativa n − m. RoPE aplica rotaciones a Q y K, no a V. El paper <a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoFormer (Su et al., 2021)</a> desarrolla esta construcción y sus propiedades.</p>
+<p>La prueba del laboratorio verifica numéricamente esa identidad de rotación sobre vectores aleatorios en float64. No mide extrapolación a contextos más largos, ni compara perplexity, ni demuestra que cualquier configuración RoPE funcione bien fuera de su entrenamiento. En sistemas reales hay decisiones adicionales: base de frecuencias, escalado de posiciones y extensiones de contexto.</p>
+
+<h2 id="implementation">14. Implementación de referencia en PyTorch</h2>
+<p>La siguiente versión muestra el núcleo del forward pass para tensores con forma [B, H, T, d_head]. Está escrita para hacer visible la operación, no para competir en rendimiento con kernels fusionados:</p>
+<pre><code>import math
+import torch
+
+def self_attention(q, k, v, causal=True):
+    scores = (q @ k.transpose(-2, -1)) / math.sqrt(q.size(-1))
+
+    if causal:
+        t_q, t_k = scores.shape[-2:]
+        mask = torch.triu(
+            torch.ones(t_q, t_k, dtype=torch.bool, device=q.device),
+            diagonal=1
+        )
+        scores = scores.masked_fill(mask, float("-inf"))
+
+    weights = torch.softmax(scores, dim=-1)
+    output = weights @ v
+    return output, weights</code></pre>
+<p>La API optimizada de PyTorch se expone mediante <code>torch.nn.functional.scaled_dot_product_attention</code>. En CUDA puede seleccionar implementaciones especializadas, como FlashAttention-2, Memory-Efficient Attention o el kernel matemático de PyTorch, según el backend y las restricciones de los tensores. En CPU se utiliza la implementación compatible de PyTorch; por eso esta práctica no presenta tiempos de GPU ni afirma estar midiendo FlashAttention.</p>
+<p>GQA merece una advertencia adicional: la documentación de PyTorch 2.14 marca <code>enable_gqa</code> como experimental y documenta soporte en determinados kernels CUDA. En este laboratorio CPU hacemos explícita la expansión de cada cabeza K/V compartida a los Query heads de su grupo y contrastamos la salida con SDPA estándar. No etiquetamos esa operación como benchmark del kernel nativo GQA.</p>
+<p>FlashAttention resuelve otra dimensión del problema: es un algoritmo exacto y IO-aware que usa tiling para reducir lecturas y escrituras entre HBM y memoria on-chip. No cambia la definición matemática de atención que estamos derivando; cambia cómo se calcula y qué datos intermedios se materializan. El detalle de kernels, memory bandwidth y benchmarking merece su propio análisis.</p>
+
+<h2 id="lab">15. Laboratorio reproducido</h2>
+<p>El paquete es autónomo y no descarga pesos, datasets ni modelos. Utiliza tensores sintéticos para aislar el mecanismo y una instalación CPU de PyTorch. Se ejecuta con Python 3.12.10 y PyTorch 2.14.0+cpu en Windows 11, sobre un Intel Core i5-1155G7; CUDA y XPU no están disponibles en el host.</p>
+<p>Descarga el laboratorio: <a href="/assets/labs/self-attention/self-attention-02-lab.zip">Self-Attention Deep Dive — Lab 02 (ZIP)</a>.</p>
+<pre><code>python -m pip install -r requirements.txt
+.\run.ps1</code></pre>
+<p>El script genera CSV, JSON, un informe Markdown y los SVG del experimento. La semilla fija es 20261115. Para la comprobación de gradientes usamos float64; para la comparación con SDPA empleamos float32. La batería se completa en CPU en una fracción de segundo en el host declarado.</p>
+
+<h2 id="results">16. Resultados y evidencias</h2>
+<p>La ejecución final del 14 de noviembre de 2026 terminó con <strong>LAB STATUS: PASS</strong>. Las cifras pertenecen a este host, versión y semilla:</p>
+<table class="data-table"><thead><tr><th>Comprobación</th><th>Resultado</th><th>Criterio</th></tr></thead><tbody>
+<tr><td>Gradientes manuales Q/K/V vs. autograd</td><td>3,469 × 10<sup>−18</sup></td><td>Error absoluto máximo</td></tr>
+<tr><td>W_Q[0,0] por diferencias finitas vs. autograd</td><td>7,679 × 10<sup>−11</sup></td><td>Error absoluto</td></tr>
+<tr><td>Atención manual vs. PyTorch SDPA</td><td>3,576 × 10<sup>−7</sup></td><td>Diferencia absoluta máxima</td></tr>
+<tr><td>Masa de atención en posiciones futuras</td><td>0</td><td>Máscara causal</td></tr>
+<tr><td>Error máximo de suma por fila</td><td>2,384 × 10<sup>−7</sup></td><td>Normalización</td></tr>
+<tr><td>Identidad relativa de RoPE</td><td>0</td><td>Error absoluto máximo en float64</td></tr>
+</tbody></table>
+<p>Los gradientes manuales se compararon tensor a tensor con los resultados de autograd. Además, para W_Q[0,0], la derivada central aproximada con epsilon = 10<sup>−6</sup> quedó a 7,679 × 10<sup>−11</sup> del gradiente de autograd. Esto comprueba de forma independiente el backward pass implementado para la loss del experimento.</p>
+<p>Los archivos de evidencia incluidos permiten revisar todos los datos:</p>
+<ul>
+<li><code>reports/metrics.json</code>: métricas completas, versiones, hardware y checks.</li>
+<li><code>reports/lab-report.md</code>: resumen de ejecución y limitaciones.</li>
+<li><code>evidence/scaling-experiment.csv</code>: entropía y máximo de atención para cada dimensión.</li>
+<li><code>evidence/attention-variants.csv</code>: recuento analítico de proyecciones MHA/GQA/MQA.</li>
+<li><code>evidence/kv-cache-estimates.csv</code>: estimación de KV cache en BF16.</li>
+<li><code>evidence/visuals/</code>: diagramas y curva de escala generados por el script.</li>
+</ul>
+
+<h2 id="limits">17. Qué no demuestran estos resultados</h2>
+<p>Las pruebas se han diseñado para aislar propiedades algebraicas, no para inferir calidad de un LLM. Los vectores Q/K aleatorios no reproducen necesariamente las distribuciones de un modelo entrenado. El experimento de softmax usa una semilla fija; los valores son un ejemplo reproducible, no una ley estadística para todas las redes.</p>
+<p>Los cálculos de parámetros y KV cache son estimaciones analíticas con dimensiones declaradas. No se midió asignación real de memoria GPU, fragmentación, throughput, TTFT ni TPOT. El test GQA de CPU expande las KV compartidas; no ejecuta ni mide el kernel CUDA nativo. El test RoPE valida una identidad matemática, no la calidad de generación ni la extrapolación de contexto.</p>
+<p>Por último, un mapa de atención no equivale automáticamente a una explicación fiel de una predicción. Jain y Wallace (2019) mostraron límites importantes para tratar los pesos como explicaciones; Wiegreffe y Pinter (2019) discutieron cómo depende la conclusión de qué se entienda por explicación y de cómo se evalúe. La posición prudente es usar los pesos como señales internas que pueden orientar un diagnóstico, nunca como prueba aislada de causalidad o interpretabilidad.</p>
+<div class="callout"><strong>La distinción que conviene recordar</strong><p>Atención explica cómo se mezcla información en una capa concreta. No describe por sí sola todo el procesamiento de un Transformer, los efectos de residual streams, MLPs, normalizaciones, capas posteriores ni el proceso de decisión completo.</p></div>
+
+<h2 id="next">18. Qué viene después</h2>
+<p>El capítulo 03 dará el siguiente paso: cómo se entrena el modelo para que esas proyecciones y sus demás parámetros aprendan a predecir el siguiente token. Derivaremos Cross Entropy, backpropagation a través de toda la red, AdamW, learning-rate schedules y la diferencia entre reducir una loss y demostrar capacidad de generalización.</p>
+<p>Antes de pasar al entrenamiento, el mapa conceptual debe quedar claro: Q y K producen compatibilidades; la escala condiciona los logits; softmax produce pesos; V aporta el contenido; la salida agrega y proyecta; autograd distribuye gradientes por cada ruta. MHA, GQA y MQA modifican cómo se comparten las proyecciones K/V, mientras RoPE incorpora posición mediante rotaciones.</p>
+
+<h2 id="sources">19. Fuentes primarias y documentación</h2>
+<ul>
+<li>Vaswani et al. (2017), <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention Is All You Need</a>. Formulación de scaled dot-product y multi-head attention.</li>
+<li>Ainslie et al. (2023), <a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener">GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints</a>. Diseño y evaluación de Grouped-Query Attention.</li>
+<li>Su et al. (2021), <a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoFormer: Enhanced Transformer with Rotary Position Embedding</a>. Construcción y propiedades de RoPE.</li>
+<li>PyTorch, <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html" target="_blank" rel="noopener">scaled_dot_product_attention</a>. Semántica de máscaras, backends y restricciones de GQA.</li>
+<li>PyTorch, <a href="https://docs.pytorch.org/docs/stable/notes/autograd.html" target="_blank" rel="noopener">Autograd mechanics</a>. Reverse-mode automatic differentiation.</li>
+<li>Dao et al. (2022), <a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a>. Optimización IO-aware del cálculo exacto.</li>
+<li>Jain y Wallace (2019), <a href="https://aclanthology.org/N19-1357/" target="_blank" rel="noopener">Attention is not Explanation</a>; Wiegreffe y Pinter (2019), <a href="https://aclanthology.org/D19-1002/" target="_blank" rel="noopener">Attention is not not Explanation</a>. Debate sobre el uso de pesos de atención como explicación.</li>
+</ul>
+<p class="page-end">Fuentes contrastadas el 14 de noviembre de 2026. Laboratorio reproducido en el entorno indicado; las cifras no se extrapolan a GPU ni a modelos de producción.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">Estado de la serie</div><p><strong>Publicados</strong><br>2 / 8</p><p><strong>Laboratorios</strong><br>TinyGPT · Attention gradients · GQA</p><p><strong>Siguiente bloque</strong><br>Training · Cross Entropy · AdamW</p><p><strong>Idioma</strong><br>Español · English</p><p><a class="text-link" href="/es/series/llm-engineering/">Volver a LLM Engineering ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

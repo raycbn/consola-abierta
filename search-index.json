@@ -30,6 +30,34 @@
       "read": "30–35 min"
     },
     {
+      "labels": "AI · LLM Engineering · Attention Mechanisms",
+      "lang": "es",
+      "title": "Self-Attention en profundidad: matemáticas, gradientes y variantes modernas",
+      "url": "/es/analisis/self-attention-en-profundidad/",
+      "summary": "Derivación de Q/K/V, gradientes, causal masking, MHA/GQA/MQA y RoPE. Laboratorio PyTorch reproducido en CPU con evidencias numéricas.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "24–28 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · Attention Mechanisms",
+      "lang": "en",
+      "title": "Self-Attention Deep Dive: mathematics, gradients and modern variants",
+      "url": "/en/analysis/self-attention-deep-dive/",
+      "summary": "Q/K/V derivation, gradients, causal masking, MHA/GQA/MQA and RoPE. CPU-reproduced PyTorch lab with numerical evidence.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "24–28 min"
+    },
+    {
       "labels": "Systems & Infrastructure · IT Operations · SQL Server",
       "lang": "es",
       "title": "SQL Server tempdb: crecimiento del log por una transacción abierta",

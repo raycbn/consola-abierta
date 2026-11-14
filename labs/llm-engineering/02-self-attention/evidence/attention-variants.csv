@@ -1,0 +1,5 @@
+d_model,query_heads,kv_heads,attention_projection_parameters_no_bias,relative_to_mha_percent
+512,8,8,1048576,100.0
+512,8,4,786432,75.0
+512,8,2,655360,62.5
+512,8,1,589824,56.25

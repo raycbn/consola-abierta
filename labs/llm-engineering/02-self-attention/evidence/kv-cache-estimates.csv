@@ -1,0 +1,5 @@
+query_heads,kv_heads,head_dimension,sequence_tokens,dtype,bytes_per_token_per_layer,mib_per_layer_per_sequence,relative_to_mha_percent
+32,32,128,4096,BF16,16384,64.0,100.0
+32,8,128,4096,BF16,4096,16.0,25.0
+32,4,128,4096,BF16,2048,8.0,12.5
+32,1,128,4096,BF16,512,2.0,3.12
