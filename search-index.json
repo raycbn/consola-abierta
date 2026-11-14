@@ -2,6 +2,34 @@
   "generated": "2026-11-14",
   "articles": [
     {
+      "labels": "AI · LLM Engineering · Performance Engineering",
+      "lang": "es",
+      "title": "Benchmarking de LLMs: TTFT, TPOT, throughput y metodología reproducible",
+      "url": "/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/",
+      "summary": "TTFT, ITL, TPOT y E2E; throughput, open-loop/closed-loop, percentiles, goodput, SLO, vLLM, AIPerf, Prometheus y coste. Laboratorio gratuito para analizar trazas.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "32–38 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · Performance Engineering",
+      "lang": "en",
+      "title": "LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology",
+      "url": "/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/",
+      "summary": "TTFT, ITL, TPOT and E2E; throughput, open/closed-loop load, percentiles, goodput, SLOs, vLLM, AIPerf, Prometheus and cost. Free trace-analysis lab.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "32–38 min"
+    },
+    {
       "labels": "AI · LLM Engineering · Distributed Inference",
       "lang": "en",
       "title": "Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL",

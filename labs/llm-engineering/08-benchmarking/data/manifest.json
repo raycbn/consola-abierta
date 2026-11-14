@@ -1,0 +1,12 @@
+{
+  "dataset": "synthetic_llm_serving_trace",
+  "seed": 20261114,
+  "requests": 96,
+  "token_events": 1744,
+  "scenarios": [
+    "steady",
+    "bursty"
+  ],
+  "provenance": "Generated locally by this lab. No model, API, GPU or serving runtime was used.",
+  "warning": "Do not quote these values as model or hardware performance."
+}

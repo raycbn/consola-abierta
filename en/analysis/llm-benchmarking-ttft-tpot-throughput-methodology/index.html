@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology | Consola Abierta</title>
+<meta name="description" content="How to benchmark LLM systems: TTFT, ITL, TPOT, E2E, output tokens/s, open-loop and closed-loop load, percentiles, SLOs, vLLM, Prometheus and cost. Includes a free trace-analysis lab."><meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/"><link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-llm-08">
+<meta property="og:type" content="article"><meta property="og:title" content="LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology"><meta property="og:description" content="A practical methodology for measuring LLM inference: client and server metrics, realistic workloads, queues, percentiles, SLOs and cost."><meta property="og:url" content="https://consolaabierta.com/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta RSS" href="/en/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology","description":"Technical investigation of LLM inference benchmarks, timing metrics, load generation, percentiles, SLOs, observability, cost and reproducible trace analysis.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head><body>
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><div class="header-meta"><span>Independent technical publication</span><a href="/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/" lang="es">ES</a></div></div><nav class="primary-nav"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 08 / 08</span><a class="text-link" href="/en/series/llm-engineering/">View the series ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/en/">Home</a> / <a href="/en/series/llm-engineering/">LLM Engineering</a> / Benchmarking</div><div class="kicker">LLM Engineering · Performance Engineering · Documentation reviewed · Lab verified</div>
+<h1>LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology</h1>
+<p class="article-deck">A server claims 180 tokens per second. Is that fast? The number does not answer the question. Are those input or output tokens? Per request or aggregated across the fleet? With which prompt, generation length, concurrency, cache policy, queue latency and error rate? Did we measure the user response or just a kernel? This chapter builds a methodology for benchmarking an LLM system as a system: from the first unit of work to the final token, under defined workloads, with statistical caveats and repeatable evidence.</p>
+<div class="article-meta"><span>By Ray Vega</span><span>14 November 2026</span><span>32–38 min read</span><span>Mid-senior · Senior · ML / Platform / Performance Engineering</span></div>
+<div class="status-line">DOCUMENTATION REVIEWED · vLLM · NVIDIA AIPerf · MLPerf · Prometheus · 14 NOV 2026 · LAB VERIFIED · Python 3.12.10 · CPU-only · 20 checks · €0</div></header>
+<div class="article-layout"><nav class="toc" aria-label="Contents"><div class="toc-title">In this investigation</div><ol>
+<li><a href="#question">What question does a benchmark answer?</a></li><li><a href="#planes">Measurement planes</a></li><li><a href="#timeline">TTFT, ITL, TPOT and E2E</a></li><li><a href="#throughput">Throughput and tokens/s</a></li><li><a href="#decomposition">Latency decomposition</a></li><li><a href="#workload">Workload design</a></li><li><a href="#arrival">Open-loop and closed-loop load</a></li><li><a href="#saturation">Saturation and goodput</a></li><li><a href="#percentiles">Percentiles and statistics</a></li><li><a href="#protocol">Reproducible protocol</a></li><li><a href="#vllm">Benchmarking with vLLM</a></li><li><a href="#aiperf">AIPerf and MLPerf</a></li><li><a href="#metrics">Observability</a></li><li><a href="#prometheus">Prometheus and histograms</a></li><li><a href="#diagnosis">Diagnosing metric patterns</a></li><li><a href="#longcontext">Long context and caching</a></li><li><a href="#cost">Cost per token</a></li><li><a href="#lab">Trace analysis lab</a></li><li><a href="#runbook">Runbook</a></li><li><a href="#limits">Conclusions and sources</a></li></ol></nav>
+<article class="article-body">
+<div class="callout"><strong>The chapter thesis</strong><p>There is no single number called “LLM performance”. Results depend on the model, hardware, runtime, prompt, output, arrival process, concurrency, caching policy, streaming behaviour, timing boundaries and success criteria. A valid benchmark publishes that configuration and retains per-request samples. Without a workload and clear measurement boundaries, an isolated tokens/s figure is incomplete telemetry, not an engineering comparison.</p></div>
+
+<h2 id="question">1. What question does an LLM benchmark answer?</h2>
+<p>A benchmark does not start by running a tool. It starts by defining the decision. Selecting a model for an interactive assistant differs from sizing a bulk-generation API, RAG service, structured-extraction endpoint or agent backend that chains multiple calls.</p>
+<p>At least four questions need separate answers:</p>
+<ul><li><strong>Experience:</strong> how long does a user wait for the first content, and what generation pace follows?</li><li><strong>Capacity:</strong> how many requests, input tokens and output tokens can the system complete for a defined traffic mix?</li><li><strong>Reliability:</strong> what fraction completes successfully and meets the latency SLO?</li><li><strong>Economics:</strong> what does it cost to deliver useful work while meeting that SLO?</li></ul>
+<p>A testable question would be: “What is the highest arrival rate that keeps TTFT p95 below 800 ms, TPOT p95 below 60 ms, errors below 0.5%, and task quality acceptable on our evaluation set?” “Which model is faster?” does not specify a use case or measurement boundary.</p>
+<p>Keep <strong>performance</strong> separate from <strong>quality</strong>. A server may emit tokens quickly while producing incorrect, incomplete or unsafe answers. Quality requires another evaluation set (accuracy, task success, groundedness, tool success) and should accompany performance measurements. Quantization, context limits and sampling changes can alter quality, so record them.</p>
+
+<h2 id="planes">2. Three measurement planes: client, server and hardware</h2>
+<table class="data-table"><thead><tr><th>Plane</th><th>What it observes</th><th>What it answers</th><th>What it cannot prove alone</th></tr></thead><tbody>
+<tr><td>Client / black-box</td><td>Schedule, HTTP send, received stream, completion and errors.</td><td>End-to-end experience of the API consumer.</td><td>Which internal component caused the latency.</td></tr>
+<tr><td>Server / runtime</td><td>Queue time, prefill, decode, scheduler, batches and KV Cache.</td><td>What the engine does and where it waits.</td><td>The exact latency perceived beyond the server.</td></tr>
+<tr><td>Hardware / system</td><td>GPU utilisation, HBM, SM, PCIe/NVLink, NIC, CPU, memory and power.</td><td>Which resource may be saturated or underused.</td><td>Answer usefulness or user experience.</td></tr></tbody></table>
+<p>The primary service benchmark should be measured at the client. Runtime and hardware telemetry explain the result. Server-side TTFT can be good while client TTFT is worse because of load-generator queueing, serialization, gateway, transport, TLS, network or stream buffering.</p>
+<p>Keep client measurements per request and, where possible, correlate them with internal traces through a request ID. Do not add overlapping components or values from unsynchronised clocks. Two metrics called “TTFT” may start and finish at different points.</p>
+
+<h2 id="timeline">3. TTFT, ITL, TPOT and E2E: put each clock in the right place</h2>
+<figure class="evidence-figure"><img src="/assets/labs/benchmarking/llm-benchmark-metrics-timeline.svg" alt="LLM response timeline separating TTFT, stream-event gaps, decode window and completion"><figcaption>One response has several timing measurements. The event definition and timing boundary must accompany the metric name.</figcaption></figure>
+<h3>Time To First Token (TTFT)</h3>
+<p>For a client-side streaming benchmark, TTFT is the time from the actual request send until the first event containing generated content is received:</p>
+<pre><code>TTFT_client = first_content_received_at - request_sent_at</code></pre>
+<p>It includes transmission, gateway, server queue, tokenization/preparation, Prefill, first Decode step and return of the first chunk. It is not a kernel execution time or isolated Prefill duration.</p>
+<p>Define “first token” precisely. APIs may send HTTP headers, status events, metadata, an assistant role or empty chunks first. Those are not necessarily visible content. Record the first non-empty content event and document the stream parser. With non-streaming responses, a client cannot reliably observe TTFT; it only knows full response time.</p>
+<h3>Inter-Token Latency (ITL)</h3>
+<p>ITL is the interval between consecutive content events in a stream:</p>
+<pre><code>ITL_i = content_event[i].received_at - content_event[i-1].received_at</code></pre>
+<p>When exactly one token is emitted per chunk, the interval approximates the gap between delivered tokens. A chunk may contain multiple tokens; speculative decoding, buffering or server-side coalescing changes the relation between an event and a token.</p>
+<h3>Time Per Output Token (TPOT)</h3>
+<p>In the vLLM serving-benchmark convention, TPOT is calculated per request:</p>
+<pre><code>TPOT_request = (E2E - TTFT) / (output_tokens - 1)</code></pre>
+<p>It is defined only when more than one token is generated. It is an amortised average of the interval after the first token, not the latency of each individual token. Calculate TPOT per request first, then summarise its distribution; do not subtract global averages and divide by an average output length.</p>
+<p>Conceptual example: TTFT = 100 ms, E2E = 180 ms and output = 5 tokens. The period after the first token is 80 ms, so TPOT = 80/(5−1) = 20 ms. If the client sees two 40 ms gaps because the second event carries three tokens, event ITL is 40 ms and amortised TPOT is 20 ms. Both are correct; they answer different questions.</p>
+<h3>End-to-End latency (E2E)</h3>
+<p>In this chapter E2E is the time from actual send until the client considers the response complete:</p>
+<pre><code>E2E_client = response_completed_at - request_sent_at</code></pre>
+<p>Document whether completion means the last content chunk, terminal protocol event, stream close or full body completion. Do not mix logical completion with TCP closure without saying so.</p>
+<p>Time To First Byte (TTFB), Time To First Output (TTFO), server TTFT and model execution time appear in different tools. Do not assume they are synonyms. Publish the formula and boundary. The <a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" rel="noopener">vLLM Benchmark CLI</a> distinguishes TTFT, ITL and TPOT and explains why ITL and TPOT diverge when a chunk carries multiple tokens.</p>
+
+<h2 id="throughput">4. Throughput: tokens/s is not one metric</h2>
+<p>Throughput measures completed work per unit time. LLM serving requires identifying which tokens and which interval are counted:</p>
+<pre><code>request_throughput = successful_requests / measurement_window_seconds
+output_token_throughput = generated_output_tokens / measurement_window_seconds
+input_token_throughput = accepted_input_tokens / measurement_window_seconds
+total_token_throughput = (input_tokens + output_tokens) / measurement_window_seconds</code></pre>
+<p><strong>Requests/s</strong> measures completed requests. <strong>Output tokens/s</strong> measures generated tokens across the entire system. <strong>Input tokens/s</strong> reflects Prefill work. <strong>Total tokens/s</strong> combines both, but can hide the Prefill/Decode split. State whether tokens from failed, cancelled or rejected requests are included. This lab counts tokens from successful requests for throughput and retains failures for error-rate calculation.</p>
+<p>A user's generation pace is not the server's aggregate throughput. The inverse of ITL or TPOT approximates a per-sequence emission rate under specific conditions. Output tokens/s aggregates tokens across active sequences. A server can generate 2,000 output tokens/s while each user receives 25 tokens/s. There is no contradiction.</p>
+<p>The <strong>measurement window</strong> must be explicit. A fixed-duration test may run from the measured phase start through the drain period (when admitted requests finish). This lab uses the earliest scheduled arrival until the final completion: it includes drain and excludes warmup. Other tools may use different windows.</p>
+<p>The same output tokens/s can come from many short responses or a few long ones. Publish request/s, input tokens/s, output tokens/s and length distributions.</p>
+
+<h2 id="decomposition">5. Latency decomposition: client queue, server queue, Prefill and Decode</h2>
+<pre><code>planned arrival
+  └─ client queue / rate limiter
+      └─ actual HTTP send
+          └─ network / gateway / ingress
+              └─ server scheduler queue
+                  └─ Prefill
+                      └─ first Decode / first content
+                          └─ incremental Decode + stream delivery
+                              └─ terminal event / completion</code></pre>
+<p>The client may delay a send because it reached its concurrency limit. That is client queue, not server latency. The internal runtime queue begins after sending and before the sequence enters execution. Prefill processes the prompt; Decode produces subsequent tokens.</p>
+<p>vLLM distinguishes benchmark-client queue time from server scheduler queue time. With per-request metrics enabled, server-side values help estimate which portion of TTFT belongs to the scheduler/runtime. Client TTFT still includes transport and additional overhead. Per-request instrumentation can add overhead; use it diagnostically and disclose it.</p>
+<p>A decomposition is additive only when intervals are non-overlapping and clocks are comparable. If client TTFT already includes server queue and prefill, adding them again creates fictional latency. Client/server correlation requires synchronised clocks or correlated spans.</p>
+
+<h2 id="workload">6. Workload design: distributions matter more than averages</h2>
+<p>A test with random 128-token prompts and 32-token outputs may compare a controlled micro-configuration, but does not automatically represent an assistant with history, RAG documents, system instructions, tool calls and long answers.</p>
+<p>Document five dimensions:</p>
+<ul><li><strong>Input:</strong> prompt-token distribution (p50/p90/p99), system prompt, history, retrieval context, long documents and repeated-prefix share.</li><li><strong>Output:</strong> output-token distribution, stop sequences, max_tokens, short/long answers and truncation.</li><li><strong>Request mix:</strong> chat, classification, JSON extraction, summarisation, RAG, tool calls, reasoning, multimodal and streaming, with declared proportions.</li><li><strong>Model contract:</strong> exact checkpoint revision/commit, tokenizer, chat template, sampling and API version.</li><li><strong>Cache contract:</strong> prefix caching, KV reuse, cold/warm state, prompt reuse and reset policy.</li></ul>
+<p>Context length is a structural variable. Long prompts increase Prefill work and KV Cache occupancy; many long active sequences can reduce effective concurrency due to memory pressure. Output length increases request occupancy. Build separate profiles: short chat, long-context RAG, long generation, mixed production traffic and stress tests.</p>
+<p>Do not use one average as a substitute for a distribution. Two workloads can both average 1,000 input tokens while one clusters around 1,000 and the other mixes 100 with 10,000. Queueing, KV and tail latency will differ.</p>
+<p>Random prompts isolate length, but may not preserve semantics, tokenization or shared prefixes. When using a dataset, record its origin, licence, hash, tokenizer, anonymisation, sensitive-data filtering and transformations.</p>
+
+<h2 id="arrival">7. Open-loop, closed-loop and coordinated omission</h2>
+<figure class="evidence-figure"><img src="/assets/labs/benchmarking/llm-benchmark-load-patterns.svg" alt="Visual comparison of open-loop and closed-loop load, constant, random and bursty arrivals"><figcaption>The arrival pattern is part of the experiment. The same average rate can hide very different burst shapes.</figcaption></figure>
+<h3>Closed-loop: concurrency-controlled</h3>
+<p>A closed-loop client sends a request, waits for completion and then sends the next one. If latency doubles, that client automatically lowers its arrival rate. The generator offers less load precisely when the system degrades. This is useful for modelling active users who wait for a response, but can hide what happens when external arrivals continue independently.</p>
+<h3>Open-loop: arrival-rate-controlled</h3>
+<p>In open-loop tests, arrivals are scheduled at a target rate independently of previous request completions. If the system cannot sustain it, queues, generator delays, rejections or timeouts grow. This is useful for APIs receiving independent external traffic.</p>
+<p>Open-loop does not mean unlimited traffic or ignoring backpressure. Use a rate scheduler, resource limits and explicit overload policies. Record scheduled arrivals and actual sends: if the client cannot sustain the rate, the benchmark did not maintain offered load.</p>
+<h3>Coordinated omission</h3>
+<p>Coordinated omission occurs when a generator stops creating samples during a slow period. Measuring only requests it manages to send can omit the time when work would have accumulated. p99 then looks better because requests are missing. An arrival process independent of completion reduces this bias when the generator can sustain the schedule and reports its own queueing.</p>
+<p>Common profiles:</p>
+<ul><li><strong>Constant rate:</strong> deterministic spacing; easy to compare configurations.</li><li><strong>Poisson-like:</strong> independent stochastic arrivals, useful for some aggregate traffic models.</li><li><strong>Gamma / burstiness:</strong> controls arrival clustering and variability.</li><li><strong>Bursts:</strong> deliberate spikes to test admission control, queueing, autoscaling and recovery.</li><li><strong>Concurrency cap:</strong> maximum in-flight requests, which may create client-side wait.</li></ul>
+<p>A fixed rate of five requests per second is not the same as five concurrent clients: as requests take longer, closed-loop clients complete fewer requests per second. Record arrival rate, concurrency, temporal distribution and backpressure. vLLM and NVIDIA AIPerf expose controls for request rate, concurrency and arrival patterns; verify flags against the installed version.</p>
+
+<h2 id="saturation">8. Concurrency, saturation and goodput: find the operating region</h2>
+<figure class="evidence-figure"><img src="/assets/labs/benchmarking/llm-benchmark-saturation-frontier.svg" alt="Conceptual LLM-serving saturation frontier where throughput plateaus and p99 rises sharply"><figcaption>Conceptual illustration, not hardware results. The useful point is the highest load that still meets the SLO.</figcaption></figure>
+<p>At low load, increasing concurrency often improves throughput: more sequences fill batches and keep the GPU busy. Eventually resources saturate. Beyond that point, throughput may barely rise while queues and p95/p99 latency grow sharply. This change in slope is the <strong>saturation knee</strong>.</p>
+<p>The output metric should not be “the highest observed tokens/s”, but the highest offered load the system sustains while meeting the SLO and error budget. This article uses an operational goodput definition:</p>
+<pre><code>goodput_requests_per_second =
+  successful requests that satisfy all latency SLOs
+  / measurement_window_seconds</code></pre>
+<p>A request is good only when it satisfies every declared condition, for example TTFT ≤ 800 ms, TPOT ≤ 60 ms and E2E ≤ 8 s. The error limit is calculated over received or scheduled requests according to a stated policy. These thresholds are examples, not universal recommendations.</p>
+<p>Goodput can be defined per token or completed task, but the denominator and success criteria must be explicit. Goodput is not output tokens/s. A long response that violates TTFT may increase throughput while reducing operational usefulness.</p>
+<p>Little's Law, L = λW, relates average requests in the system (L), average arrival rate (λ) and average time in system (W) under stable conditions. It helps reason about queues but does not replace percentile measurement, and should not be applied casually while the system changes regime or an unbounded queue grows.</p>
+
+<h2 id="percentiles">9. Percentiles and statistics: p99 needs samples</h2>
+<p>The mean summarises the centre, not the tail. A pleasant p50 can coexist with a p99 that causes timeouts. Publish p50, p90, p95 and p99 for TTFT, ITL/TPOT and E2E, alongside errors, requests/s and output tokens/s. Maximum latency can help debugging but is sensitive to one outlier.</p>
+<p>A sample p99 is not automatically an accurate estimate of the true percentile. With 100 requests, the slowest 1% is roughly one sample; with 1,000 it is roughly ten. Retain raw observations, sample size, interpolation method and repetitions. For rigorous decisions, add confidence intervals or bootstrap and document the method.</p>
+<p>There is no universal magic request count for p99. Precision depends on variability, distance from the SLO and desired confidence. MLPerf demonstrates how formal tail estimates can require large sample sizes under its own statistical rules; those rules are not a universal minimum for every service.</p>
+<p>Do not average p99 values across machines, workers or runs to produce a fleet p99: quantiles are not additive. With compatible histograms, aggregate buckets and calculate a quantile on the combined histogram, or collect per-request observations under the same definition. Prometheus documents histograms and <code>histogram_quantile()</code>.</p>
+<p>Repeat independent runs. Report variation between runs, not just a favourable execution. If the observed effect is smaller than system noise, it is not a robust basis for an architectural change.</p>
+
+<h2 id="protocol">10. Reproducible protocol: the benchmark needs a manifest</h2>
+<figure class="evidence-figure"><img src="/assets/labs/benchmarking/llm-benchmark-methodology.svg" alt="Reproducible benchmark workflow: SLO, workload, warmup, load, observation and repetition"><figcaption>A reproducible run is a versioned experiment: question, workload, preparation, load and evidence.</figcaption></figure>
+<table class="data-table"><thead><tr><th>Group</th><th>Fields to record</th></tr></thead><tbody>
+<tr><td>Model</td><td>Name, revision/hash, tokenizer revision, chat template, quantization, dtype, context and limits.</td></tr><tr><td>Hardware</td><td>GPU SKU/count, memory, topology, CPU, RAM, NIC, driver, firmware and power mode.</td></tr><tr><td>Software</td><td>OS/kernel, runtime, commit, Python, PyTorch, CUDA, NCCL, driver and libraries.</td></tr><tr><td>Serving</td><td>TP/PP/DP, max model length, max sequences, scheduler, batching, prefix cache, KV dtype and chunked prefill.</td></tr><tr><td>Request</td><td>Dataset/hash/licence, input/output length, stop, sampling, streaming, tool calls and traffic mix.</td></tr><tr><td>Load generator</td><td>Version, request rate, arrival pattern, concurrency, timeout, retries, warmup and request count.</td></tr><tr><td>Measurement</td><td>Timing boundary, clock, percentile, aggregation, window, drain, errors and client/server metrics.</td></tr><tr><td>Operations</td><td>Thermal state, co-tenancy, background load, network, cache state, date, time and run number.</td></tr></tbody></table>
+<p>Sequence:</p><ol><li><strong>Freeze:</strong> pin model, runtime, hardware and dataset revisions; calculate hashes.</li><li><strong>Warm up:</strong> initialise kernels, graph capture, caches and connections. Keep warmup out of headline samples.</li><li><strong>Settle:</strong> allow the system to reach the intended state; record autoscaling and cache changes.</li><li><strong>Measure:</strong> generate the declared load and capture stream, errors and server metrics.</li><li><strong>Drain:</strong> finish admitted requests; count timeouts, rejections and incomplete work.</li><li><strong>Repeat:</strong> run independent repetitions and change one variable at a time.</li><li><strong>Publish:</strong> retain raw CSV/JSON, manifest, logs, scripts and limitations.</li></ol>
+<p>Warm and cold cache are valid scenarios, but must not be mixed. For prefix caching, design one test with shared prefixes and another without. vLLM warns that repeated benchmarks with similar inputs can increase prefix-cache hit ratio and artificially improve results; its docs describe cache resets and sweep runs that clear caches between repetitions. Cache policy is part of the workload.</p>
+<p>A minimal JSON manifest:</p><pre><code>{
+  "model": "model-name",
+  "model_revision": "commit-or-sha256",
+  "runtime": "vllm-x.y.z",
+  "hardware": ["gpu-sku x 4"],
+  "precision": "bf16",
+  "parallelism": {"tensor": 4, "pipeline": 1},
+  "cache": {"prefix": false, "state": "cold-per-run"},
+  "workload": {"dataset_sha256": "...", "arrival": "poisson", "request_rate": 5},
+  "measurement": {"warmup_requests": 50, "measured_requests": 1000, "streaming": true}
+}</code></pre>
+<p>The values are illustrative, not a recommended configuration. A real benchmark must complete the manifest with verifiable data.</p>
+
+<h2 id="vllm">11. Practical benchmarking with vLLM</h2>
+<p>vLLM provides separate commands for API serving and offline throughput. They are not equivalent: <code>bench serve</code> observes an endpoint from a benchmark client; <code>bench throughput</code> focuses on generation inside the process and does not by itself reproduce the network, gateway and API path seen by a user.</p>
+<h3>Start a server</h3><pre><code>vllm serve MODEL_ID --enable-per-request-metrics</code></pre>
+<p>Use a model you can access under terms that permit the test. Pin its revision and configuration. Per-request instrumentation helps diagnosis, but also run a headline measurement with minimal overhead.</p>
+<h3>Send load through the endpoint</h3><pre><code>vllm bench serve \
+  --backend openai \
+  --endpoint /v1/completions \
+  --model MODEL_ID \
+  --dataset-name random \
+  --random-input-len 1024 \
+  --random-output-len 256 \
+  --num-prompts 200 \
+  --request-rate 5 \
+  --max-concurrency 32 \
+  --save-result \
+  --save-detailed \
+  --result-dir ./results</code></pre>
+<p>The random dataset fixes lengths and is useful for controlled engine tests. It is not a real conversation workload: it does not model semantic distribution, shared prefixes or necessarily the application's tokenizer/template. Backend, endpoint and flags can change; run <code>vllm bench serve --help</code> for the installed version and retain that output.</p>
+<p>To explore capacity, sweep request rates or concurrency limits without simultaneously changing the model and configuration. vLLM benchmark sweeps help explore the trade-off between load, throughput and SLO latency. See <a href="https://docs.vllm.ai/en/latest/benchmarking/sweeps/" rel="noopener">vLLM Benchmark Sweeps</a>.</p>
+<p>Save raw per-request results, token lengths, request IDs, TTFT/ITL/TPOT/E2E, request rate, max concurrency, client queue and completed request count. In a separate diagnostic run, enable server queue, prefill/decode and KV metrics.</p>
+<p>An offline benchmark answers “how much throughput does the model generate under this backend?” It does not answer “what does a user experience through our API gateway under load?” For that, measure the actual client path.</p>
+
+<h2 id="aiperf">12. AIPerf and MLPerf: tools versus a standard</h2>
+<h3>NVIDIA AIPerf</h3><p>AIPerf is NVIDIA's GenAI benchmarking tool. Its metric reference describes TTFT, ITL, output-token throughput and total-token throughput. It supports request-rate or concurrency-controlled load and patterns such as constant, Poisson/Gamma and bursts. It is useful for compatible endpoints; record the version because flags, output formats and profiles evolve.</p>
+<h3>MLPerf Inference</h3><p>MLPerf Inference from MLCommons is a standardised benchmark with models, datasets, scenarios, execution rules and reporting policies. Scenarios include SingleStream, MultiStream, Offline and Server; Server models online arrivals under benchmark-defined latency constraints. Official comparisons follow specific rules, not arbitrary local runs.</p>
+<p>MLPerf answers “how does a submission perform under a standard specification?” An internal benchmark answers “how does my service perform with my traffic and SLOs?” Both are valuable, but not interchangeable. Dataset, scenario, harness, rules and validation are part of the result.</p>
+
+<h2 id="metrics">13. Observability: client, server and GPU metrics</h2>
+<p>The headline table should be client-side. A diagnostic dashboard complements, rather than replaces, that view. vLLM documents, among others, these runtime metrics:</p>
+<table class="data-table"><thead><tr><th>vLLM metric</th><th>Interpretation</th></tr></thead><tbody>
+<tr><td><code>vllm:time_to_first_token_seconds</code></td><td>Server-side distribution of time to first token.</td></tr><tr><td><code>vllm:inter_token_latency_seconds</code></td><td>Inter-token/stream intervals under runtime instrumentation.</td></tr><tr><td><code>vllm:request_time_per_output_token_seconds</code></td><td>Amortised output-token time per request.</td></tr><tr><td><code>vllm:e2e_request_latency_seconds</code></td><td>Total request latency measured by the runtime.</td></tr><tr><td><code>vllm:request_queue_time_seconds</code></td><td>Time waiting in the scheduler.</td></tr><tr><td><code>vllm:request_prefill_time_seconds</code> / <code>vllm:request_decode_time_seconds</code></td><td>Prefill and Decode duration within that version's boundaries.</td></tr><tr><td>Running / waiting requests and KV cache usage</td><td>Scheduler occupancy and sequence-memory pressure.</td></tr></tbody></table>
+<p>Names, labels and availability depend on version and mode. Review <a href="https://docs.vllm.ai/en/latest/design/metrics/" rel="noopener">vLLM Metrics</a> and validate the installed <code>/metrics</code> endpoint.</p>
+<p>Correlate latency with GPU utilisation, SM activity, HBM bandwidth/usage, allocated memory, KV cache occupancy, clocks, thermal throttling, CPU, RAM, PCIe/NVLink and NIC. A GPU at 100% is not automatically the cause; correlate it with queues and phases. A GPU at 30% may indicate memory, CPU, synchronisation or small-batch limits.</p>
+<p>Also record admission rejections, HTTP status, cancellations, timeouts, retries, context rejections, preemptions and cache hits/misses. If retries are enabled, count both the logical user request and each server attempt to avoid inflating throughput or hiding failures.</p>
+<p>OpenTelemetry GenAI conventions include names for TTFT and output-token time. The reviewed documentation marks this set as development status; treat it as evolving and pin the adopted revision. Do not present it as a universally stable contract.</p>
+
+<h2 id="prometheus">14. Prometheus histograms: aggregate percentiles correctly</h2>
+<p>For classic Prometheus histograms, a typical query to approximate end-to-end p99 across instances is:</p><pre><code>histogram_quantile(
+  0.99,
+  sum by (le) (
+    rate(vllm:e2e_request_latency_seconds_bucket[5m])
+  )
+)</code></pre>
+<p>Adapt the metric name, labels and window to the version. The correct operation aggregates compatible buckets before calculating the quantile. Calculating p99 per worker and averaging those p99 values does not produce fleet p99. Histograms retain resolution only at their bucket boundaries; choose buckets for the operating range and tail of interest.</p>
+<p>Do not turn request IDs, prompt text, users or tokens into metric labels: they create high cardinality and can expose data. Use aggregated metrics for trends and sampled traces/logs for individual requests. Define retention and sensitive-data redaction.</p>
+
+<h2 id="diagnosis">15. Diagnose metric patterns</h2>
+<table class="data-table"><thead><tr><th>Pattern</th><th>Hypothesis</th><th>Checks</th></tr></thead><tbody>
+<tr><td>High TTFT; reasonable TPOT</td><td>Queueing, heavy Prefill, long prompt, gateway or network.</td><td>Input-token distribution, client/server queue, prefill and spans.</td></tr>
+<tr><td>Good TTFT; high TPOT</td><td>Decode limited by HBM, KV Cache, batching or contention.</td><td>Decode time, active sequences, KV occupancy, bandwidth and GPU counters.</td></tr>
+<tr><td>High TTFT and TPOT; growing queue</td><td>System is beyond the saturation knee.</td><td>Offered vs achieved RPS, queue depth, rejections, CPU/GPU and network.</td></tr>
+<tr><td>Output tokens/s rises while p99 worsens</td><td>Throughput is being traded for SLO compliance.</td><td>Goodput and highest arrival rate that meets objectives.</td></tr>
+<tr><td>Requests/s falls while output tokens/s holds</td><td>Longer outputs or fewer requests with more tokens each.</td><td>Output-length distribution and request mix.</td></tr>
+<tr><td>Requests/s rises, token throughput does not</td><td>More short requests or per-request overhead.</td><td>Tokens/request, latency, batching and HTTP overhead.</td></tr>
+<tr><td>p95/p99 vary between runs</td><td>Small sample, warmup, co-tenancy, temperature or cache.</td><td>Manifest, raw samples, cache reset, repetitions and confidence intervals.</td></tr>
+<tr><td>Good server TTFT, poor client TTFT</td><td>Client queue, ingress, network, serialization or buffering.</td><td>Clocks, client timestamps, spans and generator queue.</td></tr></tbody></table>
+<p>The question is not only “which metric got worse?” but “at which boundary does the delay start?” A poor TTFT p99 may come from a minority of very long prompts; average input tokens will not reveal it. TPOT can change with batch composition, lengths, quantization or concurrency.</p>
+
+<h2 id="longcontext">16. Long context, prefix cache and continuous batching</h2>
+<p>Increasing input length raises Prefill work and KV Cache occupancy. The ability to admit new sequences may fall even if a phase's token throughput rises. A prefix-cache hit can also benefit a long prompt much more than a short one.</p>
+<p>Continuous batching admits new sequences as others finish; it is not the same experiment as a closed static batch. Record running/waiting requests, preemption, KV block pressure, prefix-cache hits and active sequence counts.</p>
+<ul><li><strong>Cold cache:</strong> no reused prefixes, cache reset according to a declared method.</li><li><strong>Warm prefix:</strong> repeated instructions/prefixes with caching enabled.</li><li><strong>Long prompt:</strong> high input tokens and fixed output to isolate Prefill.</li><li><strong>Long decode:</strong> fixed prompt and long output to study generation and occupancy.</li><li><strong>Mixed:</strong> production-like distribution with variable lengths.</li></ul>
+<p>Specify max_model_len, max_num_seqs, KV dtype, block size, chunked prefill, speculative decoding and scheduler/cache settings that affect the result.</p>
+
+<h2 id="cost">17. Cost per request and per million tokens</h2>
+<p>Performance and cost must be compared under the same workload contract. A simple direct compute-cost estimate is:</p><pre><code>compute_cost =
+  gpu_hour_rate × gpu_count × measured_runtime_seconds / 3600
+cost_per_1M_output_tokens =
+  compute_cost × 1,000,000 / successful_output_tokens</code></pre>
+<p>This is not total service cost. It excludes idle capacity, amortisation, electricity, CPU, RAM, storage, networking, load balancers, observability, licensing, support and operations. Autoscaling, granular billing or shared GPUs require additional attribution.</p>
+<p>Separate cost per million output tokens from cost per million total tokens. Add cost per request and, preferably, cost per correct task within the SLO. A cheap system that returns invalid answers or misses latency targets may be worse than one with higher unit cost.</p>
+<p>The lab accepts <code>--gpu-hour-cost</code> and <code>--gpu-count</code> as operator-supplied values; it does not query prices or account for hidden costs. Synthetic fixture output is not an LLM cost per token.</p>
+
+<h2 id="lab">18. Reproduced lab: analyse your own traces with the Python standard library</h2>
+<p>This chapter takes a different approach from earlier labs: it does not simulate kernels or run a tiny LLM. It implements an analyser for client-observed traces. Learn with synthetic data, then feed the same program CSV exports from a real benchmark.</p>
+<div class="callout"><strong>Scope and cost</strong><p>Python standard library, CPU-only, no PyTorch, Transformers, vLLM, CUDA, GPU, external API, model download or paid service. Cost: €0. Default records are synthetic to validate formulas; they are not model, engine, GPU or network benchmarks.</p></div>
+<h3>Run the lab</h3><pre><code>Expand-Archive .\llm-benchmarking-08-lab.zip -DestinationPath .\llm-benchmarking-08
+cd .\llm-benchmarking-08
+.\run.ps1</code></pre>
+<p>Or run <code>python .\src\run_lab.py</code> directly.</p>
+<p>The fixture uses a fixed seed and two arrival scenarios (steady and bursty), each with 48 synthetic requests. It includes deliberate failures, variable lengths and stream events that sometimes carry multiple tokens in one chunk.</p>
+<h3>Import your own CSV files</h3><pre><code>python .\src\run_lab.py --requests C:\bench\requests.csv --events C:\bench\token-events.csv --output .\reports-real --slo-ttft-ms 500 --slo-tpot-ms 80 --slo-e2e-ms 5000</code></pre>
+<p>The request CSV requires request_id, scenario, scheduled_ms, sent_ms, first_token_ms, completed_ms, prompt_tokens, output_tokens and status. Timestamps must share one monotonic clock and use milliseconds. first_token_ms may be blank for failures before first content. Optional server_queue_ms, server_prefill_ms and server_decode_ms remain separate from client-plane observations.</p>
+<p>The stream-event CSV requires request_id, chunk_index, received_ms and tokens_in_chunk. Indexes must be contiguous; the first event must match first_token_ms; summed chunk tokens must equal output_tokens. ITL measures event gaps and does not invent timestamps inside multi-token chunks.</p>
+<h3>Outputs</h3><ul><li><code>request-metrics.csv</code>: per-request latency and derived metrics.</li><li><code>itl-samples.csv</code>: gaps between consecutive stream events.</li><li><code>metrics.json</code>: overall and per-scenario metrics.</li><li><code>lab-report.md</code>: readable summary and interpretation limits.</li><li><code>data/manifest.json</code>: fixture provenance and seed.</li></ul>
+<p>The analyser computes TTFT, TPOT, ITL, E2E, client queue, optional server queue/prefill/decode fields, request throughput, input/output/total token throughput, maximum in-flight concurrency, error rate and goodput. Percentiles use R-7 linear interpolation. It does not produce confidence intervals for p99.</p>
+<h3>Verification fixture results</h3>
+<p>On Python 3.12.10, the run completed <strong>20/20 PASS checks</strong>. The fixture contains 96 requests: 92 successful and 4 timeouts; its synthetic window is 32.953 seconds, calculated output throughput is 70.645 tokens/s and maximum observed concurrency is 11.</p>
+<p><strong>These figures validate the analyser, not LLM performance.</strong> They come from a locally generated trace; no model, inference server, GPU or API is involved. The practical value is that the import format and formulas can be used on real observations without changing the core program.</p>
+<p>The optional cost output uses a GPU-hour rate supplied by the operator and calculates direct cost during the window; it does not include amortisation, infrastructure or idle capacity.</p>
+<p><a href="/assets/labs/benchmarking/llm-benchmarking-08-lab.zip">Download lab 08 — LLM Benchmarking (ZIP)</a></p>
+
+<h2 id="runbook">19. Runbook: before, during and after</h2>
+<h3>Before</h3><ol><li>Define the decision, quality gate, SLO and primary metric.</li><li>Pin the model, tokenizer, chat template, runtime and hardware.</li><li>Build a representative dataset and document privacy/licensing.</li><li>Verify that the load generator can sustain the target rate without becoming the bottleneck.</li><li>Define warmup, cache mode, request rate, concurrency, timeout and repetitions.</li></ol>
+<h3>During</h3><ol><li>Record actual schedule and send times, request ID and result.</li><li>Measure client-side TTFT, ITL, TPOT and E2E.</li><li>Collect versioned server and GPU metrics.</li><li>Include errors, rejections, cancellations and timeouts.</li><li>Record cache state, queues, batches and token-length distributions.</li></ol>
+<h3>After</h3><ol><li>Wait for drain and close the measurement window.</li><li>Validate event, token and timestamp integrity.</li><li>Calculate per-request percentiles; do not average worker percentiles.</li><li>Repeat and compare variation.</li><li>Report the saturation frontier and maximum SLO-compliant goodput.</li><li>Publish raw data, manifest, scripts, results and limitations.</li></ol>
+
+<h2 id="limits">20. Conclusions and closing LLM Engineering</h2>
+<p>An LLM benchmark is meaningful only when workload, timing boundary and success criteria are defined. TTFT measures time to first content; ITL measures gaps between stream events; TPOT amortises generation time; E2E measures the complete request cycle. Requests/s, input tokens/s, output tokens/s and total tokens/s describe different capacities. Percentiles expose tails; goodput connects capacity to SLOs.</p>
+<p>Open-loop and closed-loop represent different arrival models. Length distributions, prefix cache, continuous batching and long context change the workload. Server and GPU metrics explain symptoms, but primary user experience belongs at the client boundary. Cost is comparable only when divided by valid work and exclusions are declared.</p>
+<p>A reproducible result retains versions, manifest, traces and code. A p99 without sample size, output TPS without a measurement window or a benchmark that omits failures should not size a service. Define the workload first, measure second, explain the evidence last.</p>
+<div class="callout"><strong>The LLM Engineering series is now complete: 8 of 8 chapters published.</strong><p>We covered Transformer Internals, Self-Attention, Training & Optimisation, Prefill/Decode and KV Cache, vLLM Serving, Quantization, Distributed Inference and finally Benchmarking. The progression goes from tensors and training to distributed serving and operational evaluation. Every instalment includes a lab and explicit interpretation limits.</p></div>
+<h2 id="sources">21. Primary sources and reviewed documentation</h2>
+<ul><li><a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" rel="noopener">vLLM — Benchmark CLI</a>: TTFT, ITL, TPOT, request rate, concurrency, per-request results and prefix-cache caveats.</li><li><a href="https://docs.vllm.ai/en/latest/benchmarking/sweeps/" rel="noopener">vLLM — Benchmark Sweeps</a>: warmup, repetitions, cache reset and latency/capacity exploration.</li><li><a href="https://docs.vllm.ai/en/latest/design/metrics/" rel="noopener">vLLM — Metrics</a>: scheduler, Prefill/Decode, latency, KV Cache and running/waiting requests.</li><li><a href="https://docs.nvidia.com/aiperf/reference/ai-perf-metrics-reference" rel="noopener">NVIDIA AIPerf — Metrics Reference</a>: TTFT, ITL and token throughput metrics.</li><li><a href="https://docs.nvidia.com/nim/benchmarking/llm/overview" rel="noopener">NVIDIA NIM — LLM Benchmarking Guide</a>: workload profiles and AIPerf-based serving benchmarks.</li><li><a href="https://github.com/mlcommons/inference_policies/blob/master/inference_rules.adoc" rel="noopener">MLCommons — Inference Rules</a>: scenarios and rules for standardised inference benchmarking.</li><li><a href="https://prometheus.io/docs/practices/histograms/" rel="noopener">Prometheus — Histograms and summaries</a>: buckets, aggregation and quantiles.</li><li><a href="https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_quantile" rel="noopener">Prometheus — histogram_quantile()</a>: histogram quantile calculation.</li><li><a href="https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-metrics.md" rel="noopener">OpenTelemetry — GenAI Metrics</a>: emerging conventions; review their development status.</li><li><a href="https://sre.google/workbook/monitoring/" rel="noopener">Google SRE Workbook — Monitoring</a>: monitoring principles, latency and operational signals.</li></ul>
+<p class="page-end">Documentation reviewed on 14 November 2026. Flags, metrics and runtime behaviour vary by version. Validate against the release used in production.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">This instalment</div><p><strong>Series</strong><br>LLM Engineering · 08 / 08</p><p><strong>Metrics</strong><br>TTFT · ITL · TPOT · E2E · RPS · tokens/s · goodput</p><p><strong>Lab</strong><br>Python 3.12 · CPU-only · 20 checks PASS</p><p><strong>Cost</strong><br>€0 · no external dependencies</p><p><strong>Series</strong><br>8 / 8 chapters published</p><p><a href="/assets/labs/benchmarking/llm-benchmarking-08-lab.zip">Download the lab ↗</a></p></aside></div></main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Independent technical publication.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer><script src="/assets/site.js" defer></script>
+</body></html>
