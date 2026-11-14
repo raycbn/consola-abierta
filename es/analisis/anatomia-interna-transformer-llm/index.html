@@ -110,7 +110,8 @@ input_ids.dtype = torch.int64</code></pre>
 
 <h2 id="multihead">5. Multi-Head Attention: varias subrepresentaciones en paralelo</h2>
 <p>Una única cabeza obliga a realizar toda la agregación en un solo subespacio. Multi-Head Attention proyecta Q, K y V en varias subdimensiones aprendidas, calcula atención de forma paralela y concatena los resultados. La salida se vuelve a proyectar a <code>d_model</code>:</p>
-<p>\[\operatorname{MultiHead}(Q,K,V)=\operatorname{Concat}(head_1,\ldots,head_h)W_O\]</p>
+<pre class="equation"><code>MultiHead(Q, K, V) = Concat(head_1, ..., head_h) · W_O
+head_i = Attention(Q · W_Q^(i), K · W_K^(i), V · W_V^(i))</code></pre>
 <p>En el caso habitual, <code>d_h = d_model / h</code>. Nuestro modelo usa <code>d_model=64</code> y cuatro cabezas, de modo que cada cabeza trabaja con 16 dimensiones. La división debe ser exacta en esta implementación.</p>
 <p>Una cabeza puede asignar peso a posiciones distintas de otra, pero no conviene etiquetar una cabeza como “la de los verbos” o “la de la memoria” sin análisis específico. Los pesos de atención describen una operación concreta; por sí solos no proporcionan una explicación completa del comportamiento del modelo.</p>
 

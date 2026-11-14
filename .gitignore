@@ -17,3 +17,6 @@
 /structure-functional-check.cjs
 /mobile-metrics.json
 /article-mobile-metrics.json
+# Python local bytecode
+__pycache__/
+*.py[cod]
