@@ -2,6 +2,34 @@
   "generated": "2026-11-14",
   "articles": [
     {
+      "labels": "AI · LLM Engineering · LLM Serving",
+      "lang": "es",
+      "title": "vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU",
+      "url": "/es/analisis/vllm-pagedattention-continuous-batching/",
+      "summary": "PagedAttention, bloques KV, block tables, prefix caching, continuous batching, chunked prefill, scheduling, preemption y observabilidad. Laboratorio reproducible con Python estándar.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "28–34 min"
+    },
+    {
+      "labels": "AI · LLM Engineering · LLM Serving",
+      "lang": "en",
+      "title": "Inside vLLM: PagedAttention, Continuous Batching and GPU Memory",
+      "url": "/en/analysis/vllm-pagedattention-continuous-batching/",
+      "summary": "PagedAttention, KV blocks, block tables, prefix caching, continuous batching, chunked prefill, scheduling, preemption and observability. Reproducible Python-standard-library lab.",
+      "topics": [
+        "llm-engineering",
+        "ai-for-it",
+        "systems-infrastructure"
+      ],
+      "date": "2026-11-14",
+      "read": "28–34 min"
+    },
+    {
       "labels": "AI ? LLM Engineering ? Inference Engineering",
       "lang": "es",
       "title": "LLM Inference: Prefill, Decode y KV Cache",

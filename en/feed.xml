@@ -7,10 +7,19 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 20:05:33 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 14 Nov 2026 20:28:13 GMT</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
 
+
     <item>
+      <title>Inside vLLM: PagedAttention, Continuous Batching and GPU Memory</title>
+      <link>https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/</guid>
+      <pubDate>Sat, 14 Nov 2026 20:28:13 GMT</pubDate>
+      <description>PagedAttention, KV blocks, prefix caching and continuous batching. Reproducible Python-standard-library lab, CPU-only and free.</description>
+      <category>LLM Engineering</category>
+    </item>
+<item>
       <title>LLM Inference: Prefill, Decode and KV Cache</title>
       <link>https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/</link>
       <guid isPermaLink="true">https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/</guid>

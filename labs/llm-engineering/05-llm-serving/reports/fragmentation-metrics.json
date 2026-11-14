@@ -1,0 +1,17 @@
+{
+  "sequence_lengths": [
+    23,
+    77,
+    12,
+    49
+  ],
+  "block_size_tokens": 16,
+  "static_max_tokens_per_sequence": 128,
+  "live_tokens": 161,
+  "static_reserved_slots": 512,
+  "static_wasted_slots": 351,
+  "paged_allocated_slots": 192,
+  "paged_tail_waste_slots": 31,
+  "wasted_slot_reduction_percent": 91.16809116809117,
+  "note": "Illustrative capacity arithmetic, not measured GPU memory or a production benchmark."
+}

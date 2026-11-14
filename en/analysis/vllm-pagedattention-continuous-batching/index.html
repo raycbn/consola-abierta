@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Inside vLLM: PagedAttention, Continuous Batching and GPU Memory | Consola Abierta</title>
+<meta name="description" content="A deep dive into LLM serving: PagedAttention, KV blocks, block tables, prefix caching, continuous batching, chunked prefill, scheduling, preemption and observability. Includes a reproducible Python simulator.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-serving-05">
+<meta property="og:type" content="article"><meta property="og:title" content="Inside vLLM: PagedAttention, Continuous Batching and GPU Memory"><meta property="og:description" content="How a serving engine manages KV blocks, shared prefixes and concurrent requests."><meta property="og:url" content="https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Inside vLLM: PagedAttention, Continuous Batching and GPU Memory","description":"Technical investigation of the vLLM serving engine, paged KV cache management, prefix caching and continuous scheduling. Includes a reproducible Python-standard-library simulator.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering &amp; technology</span></span></a><div class="header-meta"><span>Independent technical publication</span><a href="/es/analisis/vllm-pagedattention-continuous-batching/" lang="es">ES</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 05 / 08</span><a class="text-link" href="/en/series/llm-engineering/">View the series ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/en/">Home</a> / <a href="/en/series/llm-engineering/">LLM Engineering</a> / LLM Serving</div><div class="kicker">LLM Engineering · Serving Systems · Documentation reviewed · Lab verified</div>
+<h1>Inside vLLM: PagedAttention, Continuous Batching and GPU Memory</h1>
+<p class="article-deck">A model can generate tokens correctly and still make a poor service. When dozens of requests arrive with different contexts and output lengths, the challenge is no longer just running the forward pass: the engine must allocate KV Cache, manage memory, admit requests, schedule every iteration and protect the latency of requests already generating. This is the engineering behind a serving engine such as vLLM.</p>
+<div class="article-meta"><span>By Ray Vega</span><span>14 November 2026</span><span>28–34 min read</span><span>Mid-senior · Senior · Platform / SRE</span></div>
+<div class="status-line">DOCUMENTATION REVIEWED · vLLM V1 documentation checked 14 NOV 2026 · LAB VERIFIED · Python 3.12.10 · CPU-only · 14 checks · €0</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contents"><div class="toc-title">In this investigation</div><ol>
+<li><a href="#problem">The serving problem</a></li><li><a href="#batching">Static vs continuous batching</a></li><li><a href="#paged">PagedAttention and KV blocks</a></li><li><a href="#tables">Block tables and logical addresses</a></li><li><a href="#fragmentation">Fragmentation and memory</a></li><li><a href="#prefix">Automatic Prefix Caching</a></li><li><a href="#scheduler">V1 scheduler and token budget</a></li><li><a href="#chunked">Chunked Prefill</a></li><li><a href="#preemption">Preemption and backpressure</a></li><li><a href="#architecture">vLLM architecture</a></li><li><a href="#capacity">GPU sizing</a></li><li><a href="#metrics">Metrics and observability</a></li><li><a href="#run">Starting a real engine</a></li><li><a href="#lab">Reproduced laboratory</a></li><li><a href="#results">Results</a></li><li><a href="#security">Security and multi-tenancy</a></li><li><a href="#runbook">Diagnostic runbook</a></li><li><a href="#limits">Boundaries and conclusions</a></li><li><a href="#sources">Primary sources</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>The central idea</strong><p>PagedAttention solves how to store and read a sequence's KV state without requiring one contiguous region per request. Continuous batching solves how to add and remove requests from the engine's work at every iteration. Prefix caching adds a third optimisation: reuse blocks belonging to an identical prefix. These are different mechanisms that complement one another; none replaces the others.</p></div>
+
+<h2 id="problem">1. The serving problem is more than generating tokens</h2>
+<p>In chapter 04 we followed Prefill, Decode and KV Cache. An isolated request is easy to describe: process a prompt, generate a token, update the cache and repeat. In a real service, however, requests arrive at different times, carry prompts of different sizes and have different generation limits.</p>
+<p>Imagine four concurrent requests. One has a 4,000-token prompt and wants 100 output tokens; another has 200 prompt tokens and wants 30 output tokens; a third shares the same system context as the first; and a fourth finishes while the others are still active. If we reserve a large contiguous region of memory for every request, we can pin space that is not yet used. If we wait for the whole batch to finish before admitting more work, GPU capacity may sit idle. And if a request exhausts the KV budget, the scheduler must decide what to do without causing a global failure.</p>
+<p>A serving engine coordinates at least five responsibilities:</p>
+<ul><li><strong>Execution:</strong> run model forward passes over active requests.</li><li><strong>KV memory management:</strong> allocate, grow, share, release and reclaim blocks.</li><li><strong>Scheduling:</strong> decide which tokens and requests enter each iteration.</li><li><strong>Admission and backpressure:</strong> bound queued work when capacity cannot sustain demand.</li><li><strong>Observability:</strong> expose latency, utilisation, queues, cache hits, preemption and errors.</li></ul>
+<p>vLLM combines these mechanisms in a high-throughput inference engine. PagedAttention was one of the original ideas behind its design: applying memory paging concepts to Transformer KV state.</p>
+
+<h2 id="batching">2. Static batching vs continuous batching</h2>
+<h3>Static batching: everyone leaves when the slowest finishes</h3>
+<p>In a static scheme, a set of sequences is grouped and executed as a batch. Because generation is autoregressive, each sequence can produce a different number of tokens. When one finishes, its place in the batch may become underutilised while the others continue. If the next group waits until the current group is complete, the slowest member controls when capacity can be reused.</p>
+<p>Padding and variable sequence lengths may add work or gaps. This can make sense for offline workloads or when input and output shapes are known, but it is not the most useful abstraction for an interactive generation endpoint.</p>
+<h3>Continuous batching: the batch changes at every iteration</h3>
+<p>Continuous batching rebuilds the active work set at every engine iteration. Requests that are still generating remain active; completed requests release resources; waiting requests can enter the next step when sequence, token and memory budgets permit. The engine does not need to wait for an entire batch to finish.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/continuous-batching-loop.svg" alt="Conceptual continuous batching loop: decode, use remaining token budget for prefill, and admit new requests"><figcaption>Conceptual scheduler loop: each iteration decides the active work again. This is not a real vLLM timing trace.</figcaption></figure>
+<p>The engine can keep useful work flowing even when requests have different durations. It does not mean all tokens are processed simultaneously or that individual latency always falls. A larger batch may improve aggregate throughput while worsening the wait or inter-token latency of a particular request.</p>
+<p>The optimisation question is not simply “how many requests fit in a batch?” It is “what mix of Prefill and Decode can run, with what memory budget, while preserving TTFT and inter-token latency SLOs?”</p>
+
+<h2 id="paged">3. PagedAttention: KV blocks instead of large contiguous regions</h2>
+<p>The KV Cache grows as each sequence's context grows. If a request needs T tokens and each block stores B positions, its minimum number of blocks is:</p>
+<pre><code>required_blocks = ceil(T / B)
+allocated_slots = required_blocks × B
+tail_waste = allocated_slots - T</code></pre>
+<p>Instead of asking for one contiguous region of T positions, the engine maintains a pool of fixed-size physical blocks. Each sequence has a table pointing to the blocks containing its state. Blocks belonging to one logical sequence do not have to be adjacent in physical memory.</p>
+<p>The name PagedAttention describes both the paged organisation of KV state and the attention operation that reads those blocks. During Decode, the new query must read the relevant Keys and Values from the context. The attention implementation uses block metadata to locate the cache segments belonging to each sequence. This is not merely splitting a tensor into Python chunks: the kernel and physical layout participate in efficient memory access.</p>
+<p>Current vLLM documentation describes fixed-size blocks, and the attention kernel receives K/V cache structures organised by block count, heads and positions within a block. Exact block size and layout depend on the architecture and backend; a teaching example with four or sixteen tokens is not a universal default.</p>
+
+<h2 id="tables">4. Block tables: separate logical position from physical address</h2>
+<p>Assume a block size of four tokens. A ten-token sequence may be mapped as follows:</p>
+<pre><code>Logical token ranges       Physical block table
+0..3                       [block 7]
+4..7                       [block 2]
+8..9                       [block 11]
+
+Sequence → [7, 2, 11]</code></pre>
+<p>Block 7 may be in a different memory region from block 2. The sequence sees logical continuity, while the allocator manages independent physical pieces. To attend to a new Decode query, the kernel traverses the blocks specified by the table, calculates the contribution of the positions and composes the attention result.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/paged-block-mapping.svg" alt="Two logical sequence tables point to two shared physical prefix blocks and separate private tail blocks"><figcaption>Two requests can reference the same complete blocks when their prefix is identical. Divergent suffix blocks remain separate.</figcaption></figure>
+<p>A key advantage is that we do not need to reserve one contiguous region for every request's maximum length in advance. Blocks are allocated on demand as the prompt is processed and new tokens are generated. Memory is managed as a common pool, with a logical map per request.</p>
+<p>This reduces external fragmentation associated with finding large contiguous holes for independently growing and shrinking sequences. It does not eliminate all waste: the final block of each sequence may be partially empty, and the pool itself needs metadata, buffers and spare capacity for bursts.</p>
+
+<h2 id="fragmentation">5. Fragmentation: what improves and what does not</h2>
+<p>For a sequence of T tokens and block size B, the last block wastes between zero and B−1 positions. Final-block occupancy depends on the actual length; across many requests this slack can matter, but it is usually much more bounded than reserving one fixed maximum length for every request.</p>
+<p>Example: four contexts of 23, 77, 12 and 49 tokens. Reserving 128 positions for each reserves 512 slots. There are 161 live tokens, so 351 slots are unused. With blocks of 16, allocated capacity is 192 slots: partial-tail waste totals 31 positions.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/static-vs-paged-fragmentation.svg" alt="Arithmetic comparison of unused slots from reserving 128 tokens per request versus on-demand allocation in 16-token blocks"><figcaption>Arithmetic scenario: reduction in unused slots, not a benchmark, measured VRAM saving or throughput gain.</figcaption></figure>
+<p>Unused slots fall by 91.17% in this scenario. It does not mean vLLM uses 91.17% less VRAM in production. The example excludes model weights, activations, workspaces, alignment, buffers, allocator fragmentation and the actual number of blocks reserved by the engine. It illustrates the effect of on-demand allocation using uniform sizes.</p>
+<p>Block size is also a trade-off. Small blocks bound final-block slack but increase block-table entries and management operations. Large blocks reduce metadata per token but may increase tail waste and change prefix-matching granularity. Real configuration must be read together with the implementation and model.</p>
+
+<h2 id="prefix">6. Automatic Prefix Caching: reusing work across requests</h2>
+<p>PagedAttention allows sequences to be represented by blocks. Automatic Prefix Caching uses that organisation to reuse KV state when a new request shares a complete prefix with an existing one. The new request can skip computation for the prefix that already has a cache hit and continue from the first non-matching block.</p>
+<p>For example, two calls may share a system prompt and a context document. The first eight positions may be represented by two identical complete blocks. The first request creates those blocks; the second can reference the same IDs instead of storing another copy. Its block table shares the prefix and then points to private blocks for its own suffix.</p>
+<p>This requires more than comparing visible text. A cache key is associated with token content and relevant model/configuration context. In vLLM V1, the KV cache manager maintains block objects, IDs, hashes, reference counters and a queue of reusable blocks. Blocks without active references may remain cached until space is needed.</p>
+<p>A shared block must not be overwritten while another sequence uses it. Reference counting makes this property explicit: creating a new reference increments the counter; releasing a request decrements it; only when no references remain can the block be recycled, subject to its cache-index state.</p>
+<p>This chapter's simulator simplifies hashing to consecutive complete blocks and one teaching model. The actual implementation has more details, including prefix hashing, duplicate blocks, free queues and hybrid-model behaviour. Do not turn the simulator into implementation documentation.</p>
+<div class="callout"><strong>Prefix caching is not unlimited global memory</strong><p>An entry may be evicted when the pool needs to reclaim space. Hits depend on the prefix arriving again, block retention, concurrency and block size. A hit reduces Prefill work; it does not eliminate Decode for the new suffix or guarantee an identical gain for every request.</p></div>
+
+<h2 id="scheduler">7. V1 Scheduler: a token budget per iteration</h2>
+<p>An important precision from the current documented vLLM V1 architecture: the scheduler should not be understood as two rigid queues, one for Prefill and one for Decode, executed as independent phases. Its loop uses a token budget per iteration and requests in running or waiting states. Each sequence tracks how many tokens have already been computed; the scheduler assigns work to close that gap. The same loop can integrate chunked prefill, prefix caching and speculative decoding.</p>
+<p>The key parameter is max_num_batched_tokens: the maximum number of tokens the scheduler can process in one iteration. There are also limits related to the number of sequences, active requests and queued requests. They are not interchangeable:</p>
+<ul><li><strong>max_num_batched_tokens:</strong> token budget for one iteration.</li><li><strong>max_num_seqs:</strong> maximum sequences processed in an iteration and a dimension for associated buffers.</li><li><strong>max_num_active_seqs:</strong> cap on requests admitted to RUNNING in configurations that support it.</li><li><strong>max_num_queued_reqs:</strong> control for total in-flight requests, waiting or running.</li><li><strong>max_num_queued_tokens:</strong> control for the prompt-token backlog in Prefill.</li></ul>
+<p>The documented default scheduling policy is FCFS. A Priority policy is also available. When KV Cache cannot allocate new blocks, the scheduler can preempt running requests until capacity is recovered. In documented vLLM V1 behaviour, the default preemption mode is recompute; do not assume an automatic swap to CPU as older explanations sometimes imply.</p>
+<p>When a preempted request is admitted again, the required progress is recomputed; some work may be recovered through prefix caching or compatible KV connectors. Preemption is a signal of memory pressure and a potential source of repeated work. It is not free.</p>
+
+<h2 id="chunked">8. Chunked Prefill: balancing prompts and generation</h2>
+<p>Prefill usually exposes more parallel matrix work; Decode is sequential per request and often more dependent on reading weights and KV state. If a request brings a very long prompt, allowing it to consume an entire iteration can delay output tokens for requests already generating.</p>
+<p>Chunked Prefill divides a long prompt into segments that can enter different iterations. Current vLLM V1 documentation says that, when possible, this feature is enabled by default and the scheduler prioritises Decode work before spending the remaining iteration budget on Prefill. If a pending prompt does not fit into the token budget, it is chunked automatically.</p>
+<p>The budget changes the trade-off:</p>
+<ul><li>A smaller budget can protect ITL because fewer Prefill tokens compete with Decode in each step.</li><li>A larger budget allows more prompt tokens to be processed and may improve TTFT for requests waiting for their first token.</li><li>Aggregate throughput requires a balance tested against the actual model, GPU, context distribution and concurrency.</li></ul>
+<p>Do not copy a number from a guide and make it a universal standard. The 2,048 or 8,192 token examples in the documentation are tuning guidance, not universal settings or guaranteed results. Choose through benchmarking with the workload the service will actually receive.</p>
+
+<h2 id="preemption">9. Admission control, preemption and backpressure</h2>
+<p>A server that accepts unbounded requests can turn a temporary overload into an ever-growing queue. Users see increasing TTFT, timeouts cause retries, and retries add more load. The system may remain busy without increasing useful completed work.</p>
+<p>Admission control defines how much work is accepted. vLLM includes controls for queued requests and pending prompt tokens; when limits are reached, the API layer can reject new requests with HTTP 503 so the client can retry on another replica or later. A priority policy may also be used by service class.</p>
+<p>A production design should combine:</p>
+<ul><li>End-to-end timeout and deadline propagation through gateway and client.</li><li>Concurrency and maximum prompt/output lengths per service class.</li><li>Bounded queue, explicit rejection, and retry with exponential backoff and jitter.</li><li>Cancellation of requests the client no longer needs.</li><li>Per-identity/tenant rate limits and burst protection.</li><li>Alerts for preemption, KV block saturation and queue growth.</li></ul>
+<p>HTTP 503 is not necessarily a model failure: it may be the deliberate signal that an instance has reached its admission budget. The client must distinguish transient overload, model error, timeout and authentication failure.</p>
+
+<h2 id="architecture">10. Operational architecture of vLLM</h2>
+<p>Current V1 documentation describes responsibilities separated across API Server, Engine Core, GPU Workers and, when scaling Data Parallel, a coordinator. The API Server handles HTTP and input processing; Engine Core contains the scheduler and KV Cache management; workers execute model forward passes. The process count depends on DP, TP and PP.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/vllm-serving-architecture.svg" alt="Simplified architecture with API Server, Engine Core Scheduler, KV Cache Manager and GPU Workers"><figcaption>Simplified responsibility view. Process details vary with Data Parallel, Tensor Parallel and Pipeline Parallel.</figcaption></figure>
+<p>This separation helps reason about faults and saturation by layer. The API Server may be healthy while the scheduler queue is long; GPU Workers may be active but unable to admit more sequences because there are not enough KV blocks; and a network or tokenisation problem can degrade end-to-end time without the attention kernel being saturated.</p>
+<p>That is why monitoring only GPU utilisation or total memory is insufficient. Queue state, active sequences, KV blocks, per-request timings and admission errors must be correlated.</p>
+
+<h2 id="capacity">11. Sizing: from bytes per token to available blocks</h2>
+<p>For homogeneous full attention, an approximation for K/V storage per block of B tokens is:</p>
+<pre><code>bytes_per_KV_block =
+  2 × layers × B × KV_heads × head_dim × bytes_per_element
+
+approx_num_blocks =
+  KV_memory_budget / bytes_per_KV_block</code></pre>
+<p>The factor 2 represents Key and Value. The calculation depends on the number of layers that store KV, KV heads —not query heads—, head dimension and effective dtype. GQA/MQA reduce KV heads; hybrid or sliding-window architectures may change the retained length by group or layer.</p>
+<p>The second expression is a planning approximation, not vLLM's exact allocator formula. The available KV budget must leave room for model weights, activations, temporary buffers, kernels, CUDA graphs, memory not used by the process and headroom for workload variation. A calculation consuming 100% of theoretical VRAM is not a safe operational capacity.</p>
+<p>Block count determines how much context can be kept simultaneously. As average context grows, each request uses more blocks. Higher concurrency also increases demand. Prefix caching can reduce duplicate copies of shared prefixes, but its benefit depends on hit rate, retention and eviction policy.</p>
+<p>Serving capacity should be expressed as a workload envelope: prompt/output token distribution, concurrency, arrival rate, shared-prefix ratio, TTFT/TPOT SLOs, request duration and preemption probability. “It fits 100 requests” without these variables is not reproducible sizing.</p>
+
+<h2 id="metrics">12. Metrics and observability: see the service from request and engine perspectives</h2>
+<p>vLLM exposes Prometheus-compatible metrics at /metrics. V1 documentation groups server metrics —gauges and counters— and request-level metrics —histograms. Together they help explain why a user SLO is degrading.</p>
+<table class="data-table"><thead><tr><th>Metric</th><th>What it helps answer</th></tr></thead><tbody>
+<tr><td>vllm:num_requests_running</td><td>How many requests are active inside the engine.</td></tr>
+<tr><td>vllm:kv_cache_usage_perc</td><td>What fraction of KV blocks is occupied.</td></tr>
+<tr><td>vllm:num_requests_waiting</td><td>Queue pressure, where exposed by the applicable version/configuration.</td></tr>
+<tr><td>vllm:prefix_cache_queries / hits</td><td>Prefix cache query volume and hit effectiveness.</td></tr>
+<tr><td>vllm:time_to_first_token_seconds</td><td>Latency distribution until the first output token.</td></tr>
+<tr><td>vllm:inter_token_latency_seconds</td><td>Time between consecutive streamed output events.</td></tr>
+<tr><td>vllm:request_time_per_output_token_seconds</td><td>Per-request TPOT according to the engine's convention.</td></tr>
+<tr><td>vllm:request_queue_time_seconds</td><td>Time spent waiting in the scheduler.</td></tr>
+<tr><td>vllm:request_prefill_time_seconds / decode_time_seconds</td><td>Time attributable to generation phases.</td></tr>
+<tr><td>vllm:admission_rejections_total</td><td>Requests rejected by admission limits.</td></tr>
+</tbody></table>
+<p>ITL and TPOT are not necessarily equal. ITL measures gaps between streamed output events. TPOT is calculated per request, excluding the first token and amortising the remaining generation time over the other output tokens. With speculative decoding, one event can contain multiple tokens; aggregation weights also differ. Before comparing graphs, check the exact metric definitions used by the tool.</p>
+<p>A useful dashboard should combine p50/p95/p99 for TTFT, ITL/TPOT and end-to-end latency with request rate, input/output tokens, queue wait, running/waiting, KV usage, prefix hits, preemption and HTTP 429/503/5xx. GPU memory without request context explains little.</p>
+
+<h2 id="run">13. Trying real vLLM: a startup template, not a lab result</h2>
+<p>This chapter's lab does not install vLLM or download a model. On a Linux machine compatible with the vLLM version and a supported accelerator, the documentation provides this general serving pattern:</p>
+<pre><code># In an isolated environment with vLLM installed and a compatible GPU:
+vllm serve &lt;MODEL_ID&gt; \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --enable-prefix-caching \
+  --max-num-batched-tokens 8192</code></pre>
+<p>8192 is a tuning example, not a universal recommendation. Start conservatively, verify model/backend compatibility and memory, and increase load progressively. Do not expose the endpoint to the Internet without authentication, authorisation, rate limits, input limits and suitable network policy. Binding to 0.0.0.0 opens the service on all host interfaces; use it only when that exposure is intentional and protected.</p>
+<p>After starting the service, validate health, generation endpoint, streaming format and /metrics. Run a controlled matrix of short/long prompts, short/long outputs, increasing concurrency and repeated prefixes. Change one variable per test and record the full configuration.</p>
+
+<h2 id="lab">14. Reproduced laboratory: allocator and scheduler in Python</h2>
+<p>I built a simulator using the Python standard library. It does not reproduce CUDA kernels or vLLM's internal code. Its purpose is to make the invariants studied above verifiable without installing dependencies, downloading weights or using GPU resources.</p>
+<table class="data-table"><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
+<tr><td>Environment</td><td>Windows · Python 3.12.10</td></tr>
+<tr><td>Dependencies</td><td>Standard library · none external</td></tr>
+<tr><td>Device</td><td>CPU · no CUDA or GPU</td></tr>
+<tr><td>Allocator</td><td>8 physical blocks · 4 tokens per block</td></tr>
+<tr><td>Prefix-cache requests</td><td>Two requests with 8 common tokens and different suffixes; a third reuses three complete blocks</td></tr>
+<tr><td>Scheduler</td><td>Token budget 6 · maximum 3 active requests · 4 staggered arrivals</td></tr>
+<tr><td>Checks</td><td>14 automated assertions</td></tr>
+<tr><td>Cost</td><td>€0</td></tr>
+</tbody></table>
+<h3>Experiment A: block tables and reference counting</h3>
+<p>Two requests are created with an identical eight-token prefix. Each block contains four tokens. Their tables point to the same two physical prefix blocks; each shared block has two references. Suffixes are assigned to private blocks. When the first request is released, the shared-block reference count drops to one, so the second request retains valid access.</p>
+<p>The second sequence is then extended until a third block is full. A third request with that complete prefix reuses the first three blocks. Partial final blocks remain separate. The CSV stores physical ID, logical position, tokens, capacity, ref_count and cached state.</p>
+<h3>Experiment B: continuous batching</h3>
+<p>Four requests arrive at steps 0, 1, 2 and 3. The scheduler admits at most three. In each iteration it first grants one token to every request in Decode; it uses the remaining budget to distribute Prefill tokens round-robin; when a request completes, it releases its slot so another request can enter. Each step schedules at most six tokens.</p>
+<p>The simulator uses a simple one-token quantum to make the distribution visible. It does not claim to reproduce the exact vLLM implementation or measure milliseconds, throughput or fairness under a real workload.</p>
+<p><a class="text-link" href="/assets/labs/serving/llm-serving-05-lab.zip">Download laboratory 05 (ZIP) ↗</a></p>
+
+<h2 id="results">15. Results and evidence</h2>
+<p>The local run finished with <strong>LAB STATUS: PASS</strong>. Main results:</p>
+<table class="data-table"><thead><tr><th>Test</th><th>Result</th><th>Status</th></tr></thead><tbody>
+<tr><td>Unused slots · static reservation</td><td>351</td><td>Reference</td></tr>
+<tr><td>Unused slots · blocks of 16</td><td>31</td><td>PASS</td></tr>
+<tr><td>Arithmetic reduction in unused slots</td><td>91.17%</td><td>PASS</td></tr>
+<tr><td>Physical blocks for A and B</td><td>4 vs 6 without sharing</td><td>PASS</td></tr>
+<tr><td>Prefix cache hits after reuse by C</td><td>5 hits in the full run</td><td>PASS</td></tr>
+<tr><td>Completed requests</td><td>4 of 4</td><td>PASS</td></tr>
+<tr><td>Tokens scheduled per step</td><td>Always ≤ 6</td><td>PASS</td></tr>
+<tr><td>Active concurrency</td><td>Maximum 3</td><td>PASS</td></tr>
+<tr><td>Scheduler iterations</td><td>10</td><td>Informational</td></tr>
+</tbody></table>
+<p>The 91.17% belongs to a logical unused-slot scenario versus static reservation of 128 positions per request. It is not a real VRAM reduction or a throughput increase. Four blocks versus six compares a shared identical-prefix case with a no-sharing reference; it is not a test of engine speed.</p>
+<h3>Evidence files</h3>
+<ul><li>reports/metrics.json: configuration and checks.</li><li>reports/fragmentation-metrics.json: static and paged slot arithmetic.</li><li>reports/lab-report.md: full report.</li><li>evidence/block-table-evidence.csv: logical/physical mapping and references.</li><li>evidence/scheduler-events.csv: per-request events by step.</li><li>evidence/scheduler-steps.csv: token budget, prefill/decode and concurrency.</li><li>evidence/request-outcomes.csv: queue wait and completion.</li><li>evidence/visuals/: original SVG diagrams.</li></ul>
+
+<h2 id="security">16. Security and multi-tenancy</h2>
+<p>Prefix caching shares state derived from prompts. In a multi-tenant environment, review which data may share context and what isolation boundaries are required. Do not assume a cache hit is valid just because two requests look similar in visible text: model, revision, tokenisation, configuration and serialised content belong to the identity that the implementation must respect.</p>
+<p>There is a risk beyond hash collisions: the Prefix Caching <em>timing side-channel</em>, documented by vLLM as <strong>CVE-2025-46570</strong>. A tenant sharing the same backend can measure TTFT differences to infer whether a guessed prefix matches content cached by another user. vLLM security documentation describes a mitigation using <code>cache_salt</code>: the value is mixed into the first KV block hash, so only requests carrying the same salt can share prefix blocks.</p><p>In a multi-tenant deployment, the gateway should assign a secret, random salt per tenant (or per user when stricter isolation is required), with sufficient entropy —the guide recommends an unpredictable 256-bit value— and apply it to every request in that scope. Do not use usernames, account IDs or predictable values. Sharing a salt across users in one organisation allows prefix sharing within that group; using one per user reduces sharing and cache hits further. The salt <strong>is not an isolation boundary</strong>: vLLM does not isolate tenants that share a process. For strong isolation requirements, use separate instances and an authorisation layer that controls which salt each client may use.</p>
+<pre><code>response = client.chat.completions.create(
+    model=model_name,
+    messages=messages,
+    extra_body={"cache_salt": tenant_cache_secret},
+)</code></pre>
+<p>This example assumes <code>tenant_cache_secret</code> is generated and controlled server-side by the gateway; do not accept an unvalidated value from the end user.</p>
+<p>The inference endpoint should be treated as a high-compute-cost API: authenticate clients, authorise models, limit input/output tokens, bound concurrency, cancel orphaned work, account usage per tenant and protect metrics/logs against prompt or sensitive-data exposure.</p>
+
+<h2 id="runbook">17. Runbook: what to inspect when a vLLM service degrades</h2>
+<table class="data-table"><thead><tr><th>Symptom</th><th>Correlate first</th><th>Hypothesis to validate</th></tr></thead><tbody>
+<tr><td>High TTFT and growing queue</td><td>Queue time, prompt tokens, prefill time, token budget</td><td>Prefill backlog, excess concurrency, long prompts or poorly sized admission limits.</td></tr>
+<tr><td>High ITL / TPOT</td><td>Decode time, running requests, batch tokens, GPU utilisation</td><td>Prefill contention, oversized batch, memory bandwidth or GPU contention.</td></tr>
+<tr><td>KV usage near limit</td><td>kv_cache_usage_perc, context length, preemption</td><td>Too many long sequences, insufficient KV budget or prefixes that cannot be reused.</td></tr>
+<tr><td>Frequent preemption</td><td>Preemption events, free blocks, sequence lengths</td><td>Over-aggressive admission or optimistic memory sizing.</td></tr>
+<tr><td>Few prefix cache hits</td><td>Queries, hits, common-prefix length</td><td>Variable prefixes, partial blocks, low repetition ratio or frequent eviction.</td></tr>
+<tr><td>HTTP 503</td><td>Admission rejections, queued requests/tokens, healthy replicas</td><td>Intentional backpressure or insufficient capacity; verify client retry policy.</td></tr>
+</tbody></table>
+<p>Practical sequence:</p>
+<ol><li>Determine whether degradation is in API, queue, Prefill, Decode, KV allocation or worker.</li><li>Compare current prompt/output token distributions with baseline.</li><li>Check p50/p95/p99, not averages alone.</li><li>Correlate KV usage, running/waiting, prefix hits and preemption.</li><li>Check recent changes to model, dtype, flags, hardware, concurrency and prompt size.</li><li>Reduce load or apply backpressure before blindly raising limits.</li><li>Validate with a reproducible workload and roll back configuration if SLOs worsen.</li></ol>
+
+<h2 id="limits">18. What this chapter does and does not show</h2>
+<p>This investigation documents the current vLLM V1 architecture and its main KV and scheduling mechanisms. The custom lab validates block allocation, complete-prefix reuse, reference lifecycle, block slack and a teaching token-budget scheduler using the Python standard library.</p>
+<p>It does not run vLLM, call a real model, execute PagedAttention kernels, measure TTFT/TPOT, estimate tokens/s or demonstrate GPU scalability. It also does not replicate every detail of the scheduler, hashing implementation or hybrid-model handling. LAB VERIFIED applies only to the simulator and its assertions.</p>
+<div class="callout"><strong>Conclusion</strong><p>PagedAttention organises KV Cache into physical blocks and lets each sequence reference them through a logical table. Prefix caching can share complete blocks from a repeated prefix when identity and lifecycle constraints match. Continuous batching rebuilds the work set on every iteration and can admit a new request when another finishes. The operational challenge is balancing available blocks, token budget, TTFT, ITL/TPOT, queue depth and memory pressure with explicit backpressure.</p></div>
+
+<h2 id="next">19. What comes next</h2>
+<p>We now know how an engine organises requests and KV memory. Chapter 06 moves to the numeric representation of the model and cache: <strong>Quantization — FP16, BF16, FP8, INT8 and INT4</strong>. We will study scales, zero-points, per-tensor/channel/group quantisation, reconstruction error and the different impact on model weights and KV Cache.</p>
+
+<h2 id="sources">20. Primary sources and documentation</h2>
+<ul>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener">Architecture Overview</a>. V1 scheduler, token budget, policies and preemption.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/paged_attention/" target="_blank" rel="noopener">Paged Attention</a>. Blocks and KV kernel layout.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener">Automatic Prefix Caching — Design</a>. Block data structure, reference counts, free queue and eviction.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/" target="_blank" rel="noopener">Automatic Prefix Caching</a>. Behaviour and enabling.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener">Optimization and Tuning</a>. Chunked Prefill, preemption and performance.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/engine_args/" target="_blank" rel="noopener">Engine Arguments</a>. Token budgets, sequence limits, queues and hashing.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/metrics/" target="_blank" rel="noopener">Metrics</a>. Prometheus and request/engine metrics.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/stable/usage/security/" target="_blank" rel="noopener">Security — Prefix Cache Timing Side-Channel Mitigation</a>. CVE-2025-46570, cache_salt and multi-tenant isolation limits.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" target="_blank" rel="noopener">Benchmark CLI</a>. TTFT, ITL and TPOT definitions.</li>
+<li>Kwon et al., <a href="https://doi.org/10.1145/3600006.3613165" target="_blank" rel="noopener">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>, SOSP 2023.</li>
+</ul>
+<p class="page-end">Documentation reviewed on 14 November 2026. Laboratory results belong to the described simulator and are not extrapolated to production.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">Series status</div><p><strong>Published</strong><br>5 / 8</p><p><strong>Laboratories</strong><br>TinyGPT · Attention · Training · Inference · Serving</p><p><strong>Next block</strong><br>Quantization · FP16/BF16/FP8/INT8/INT4</p><p><strong>Language</strong><br>English · Español</p><p><a class="text-link" href="/en/series/llm-engineering/">Back to LLM Engineering ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering &amp; technology</span></span></a><p>Independent technical publication.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/series/llm-engineering/">LLM Engineering</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU | Consola Abierta</title>
+<meta name="description" content="Deep dive en serving de LLMs: PagedAttention, bloques KV, block tables, prefix caching, continuous batching, chunked prefill, scheduling, preemption y observabilidad. Con laboratorio reproducible en Python estándar.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-serving-05">
+<meta property="og:type" content="article"><meta property="og:title" content="vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU"><meta property="og:description" content="Cómo un motor de serving administra bloques KV, prefijos compartidos y solicitudes concurrentes."><meta property="og:url" content="https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU","description":"Investigación técnica sobre el motor de serving vLLM, la gestión paginada de KV Cache, prefix caching y scheduling continuo. Incluye simulador reproducible con Python estándar.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/"}</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación técnica independiente</span><a href="/en/analysis/vllm-pagedattention-continuous-batching/" lang="en">EN</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 05 / 08</span><a class="text-link" href="/es/series/llm-engineering/">Ver la serie ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/series/llm-engineering/">LLM Engineering</a> / LLM Serving</div><div class="kicker">LLM Engineering · Serving Systems · Documentation reviewed · Lab verified</div>
+<h1>vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU</h1>
+<p class="article-deck">Un modelo puede generar tokens correctamente y aun así ser un mal servicio. Cuando llegan decenas de peticiones con contextos y longitudes diferentes, el problema deja de ser únicamente ejecutar el forward: hay que asignar KV Cache, gestionar memoria, admitir solicitudes, planificar cada iteración y proteger la latencia de quienes ya están generando. Esta es la ingeniería que hay detrás de un motor como vLLM.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>14 de noviembre de 2026</span><span>28–34 min de lectura</span><span>Mid-senior · Senior · Platform / SRE</span></div>
+<div class="status-line">DOCUMENTATION REVIEWED · vLLM V1 documentation checked 14 NOV 2026 · LAB VERIFIED · Python 3.12.10 · CPU-only · 14 checks · 0 €</div>
+</header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido"><div class="toc-title">En esta investigación</div><ol>
+<li><a href="#problem">El problema del serving</a></li><li><a href="#batching">Static batching vs continuous batching</a></li><li><a href="#paged">PagedAttention y bloques KV</a></li><li><a href="#tables">Block tables y direcciones lógicas</a></li><li><a href="#fragmentation">Fragmentación y memoria</a></li><li><a href="#prefix">Automatic Prefix Caching</a></li><li><a href="#scheduler">Scheduler V1 y token budget</a></li><li><a href="#chunked">Chunked Prefill</a></li><li><a href="#preemption">Preemption y backpressure</a></li><li><a href="#architecture">Arquitectura de vLLM</a></li><li><a href="#capacity">Dimensionamiento de GPU</a></li><li><a href="#metrics">Métricas y observabilidad</a></li><li><a href="#run">Ponerlo en marcha</a></li><li><a href="#lab">Laboratorio reproducido</a></li><li><a href="#results">Resultados</a></li><li><a href="#security">Seguridad y multi-tenancy</a></li><li><a href="#runbook">Runbook de diagnóstico</a></li><li><a href="#limits">Límites y conclusiones</a></li><li><a href="#sources">Fuentes primarias</a></li>
+</ol></nav>
+<article class="article-body">
+<div class="callout"><strong>La idea central</strong><p>PagedAttention resuelve cómo almacenar y consultar el estado KV de una secuencia sin exigir una región contigua por petición. Continuous batching resuelve cómo introducir y retirar solicitudes del trabajo del motor en cada iteración. Prefix caching añade una tercera optimización: reutilizar bloques de un prefijo idéntico. Son tres mecanismos distintos que se complementan, pero ninguno sustituye a los otros.</p></div>
+
+<h2 id="problem">1. El problema del serving no es solo generar tokens</h2>
+<p>En el capítulo 04 recorrimos Prefill, Decode y KV Cache. Una petición aislada es sencilla de describir: se procesa un prompt, se genera un token, se actualiza la caché y se repite. En un servicio real, sin embargo, varias peticiones llegan en momentos diferentes, con prompts de tamaños distintos y límites de generación que no coinciden.</p>
+<p>Imagina cuatro solicitudes simultáneas. Una tiene un prompt de 4.000 tokens y quiere generar 100; otra tiene 200 tokens y generará 30; una tercera comparte el mismo contexto de sistema que la primera; y una cuarta termina mientras las demás siguen activas. Si reservamos a cada una una región grande y contigua de memoria, podemos inmovilizar espacio que todavía no utiliza. Si esperamos a que termine el lote completo para admitir más trabajo, dejamos capacidad de GPU sin aprovechar. Y si una petición agota el presupuesto KV, el scheduler necesita decidir qué hacer sin provocar un fallo global.</p>
+<p>El motor de serving debe coordinar, al menos, cinco responsabilidades:</p>
+<ul><li><strong>Execution:</strong> ejecutar los forward passes sobre el modelo y las secuencias activas.</li><li><strong>KV memory management:</strong> asignar, ampliar, compartir, liberar y recuperar bloques.</li><li><strong>Scheduling:</strong> decidir qué tokens y qué solicitudes entran en cada iteración.</li><li><strong>Admission and backpressure:</strong> limitar trabajo en cola cuando la capacidad no puede sostener la demanda.</li><li><strong>Observability:</strong> exponer latencia, utilización, colas, cache hits, preemption y errores.</li></ul>
+<p>vLLM reúne estos mecanismos en un motor de inferencia de alto throughput. PagedAttention fue una de las ideas originales que explican su diseño: llevar el concepto de paginación de memoria al estado KV de los Transformers.</p>
+
+<h2 id="batching">2. Static batching vs continuous batching</h2>
+<h3>Static batching: todos salen cuando termina el más lento</h3>
+<p>En un esquema estático se agrupa un conjunto de secuencias y se ejecuta como lote. Como la generación es autoregresiva, cada secuencia puede producir una cantidad diferente de tokens. Cuando una termina, su posición en el lote puede quedar infrautilizada mientras las otras continúan. Si se espera a que finalice el grupo para lanzar el siguiente, la latencia del miembro más lento condiciona la reutilización de la capacidad.</p>
+<p>El padding de secuencias y las longitudes variables pueden añadir trabajo o huecos. La estrategia tiene sentido en ciertos workloads offline o cuando las formas de entrada y salida son conocidas, pero no es la mejor abstracción para un endpoint interactivo de generación.</p>
+<h3>Continuous batching: el lote cambia en cada iteración</h3>
+<p>Continuous batching reconstruye el conjunto de trabajo en cada iteration del motor. Las solicitudes que siguen generando permanecen activas; las que terminan liberan sus recursos; las que esperan pueden entrar en el siguiente paso si hay presupuesto de secuencias, tokens y memoria. No es necesario esperar a que termine un batch completo.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/continuous-batching-loop.svg" alt="Bucle conceptual de continuous batching: decode, uso del token budget con prefill y admisión de nuevas solicitudes"><figcaption>Modelo conceptual del scheduler: cada iteración vuelve a decidir el trabajo activo. No representa una traza temporal real de vLLM.</figcaption></figure>
+<p>La consecuencia es importante: el motor puede mantener un flujo de trabajo útil aunque las peticiones tengan distinta duración. No significa que todos los tokens se procesen simultáneamente ni que la latencia individual disminuya siempre. Un batch mayor puede mejorar throughput agregado y, a la vez, empeorar la espera o el tiempo entre tokens de una petición concreta.</p>
+<p>La pregunta de optimización no es «¿cuántas peticiones meto en un batch?» de forma aislada. Es «¿qué mezcla de Prefill y Decode puedo ejecutar, con qué presupuesto de memoria, manteniendo los SLO de TTFT e inter-token latency?».</p>
+
+<h2 id="paged">3. PagedAttention: bloques KV en lugar de grandes regiones contiguas</h2>
+<p>La KV Cache crece a medida que aumenta el contexto de cada secuencia. Si una petición necesita T tokens y cada bloque contiene B posiciones, el número mínimo de bloques que necesita es:</p>
+<pre><code>required_blocks = ceil(T / B)
+allocated_slots = required_blocks × B
+tail_waste = allocated_slots - T</code></pre>
+<p>En vez de solicitar una región contigua de T posiciones, el motor mantiene un pool de bloques físicos de tamaño fijo. La secuencia dispone de una tabla que apunta a los bloques que contienen su estado. Los bloques que pertenecen a una misma secuencia lógica no tienen por qué estar adyacentes físicamente.</p>
+<p>El nombre PagedAttention describe tanto la organización paginada del estado KV como la atención que consulta esos bloques. Durante Decode, la query nueva debe leer las Keys y Values del contexto relevante. La implementación de atención utiliza metadatos de bloques para localizar los segmentos de cache que corresponden a cada secuencia. No es simplemente dividir un tensor en trozos en Python: el kernel y la disposición física participan en el acceso eficiente a memoria.</p>
+<p>La documentación de vLLM muestra bloques de tamaño fijo y el kernel recibe estructuras de cache K/V organizadas por número de bloques, heads y posiciones dentro de bloque. El tamaño exacto y el layout dependen de la arquitectura y del backend; no debe interpretarse el ejemplo educativo de cuatro o dieciséis tokens como un valor universal.</p>
+
+<h2 id="tables">4. Block tables: separar posición lógica y dirección física</h2>
+<p>Supongamos un block size de cuatro tokens. Una secuencia de diez tokens puede mapearse así:</p>
+<pre><code>Logical token ranges       Physical block table
+0..3                       [block 7]
+4..7                       [block 2]
+8..9                       [block 11]
+
+Sequence → [7, 2, 11]</code></pre>
+<p>El bloque 7 puede estar en una zona de memoria diferente del bloque 2. La secuencia observa una continuidad lógica, pero el allocator administra piezas físicas independientes. Para atender un query de Decode, el kernel recorre los bloques indicados por la tabla, calcula la contribución de las posiciones y compone el resultado de atención.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/paged-block-mapping.svg" alt="Dos tablas lógicas de secuencia apuntan a dos bloques físicos compartidos de prefijo y a bloques finales privados"><figcaption>Dos solicitudes pueden referenciar los mismos bloques completos cuando el prefijo es idéntico. Los bloques de sufijo divergente permanecen separados.</figcaption></figure>
+<p>Una ventaja clave es que no necesitamos reservar por adelantado una región contigua para la longitud máxima de cada petición. Los bloques se asignan bajo demanda a medida que se procesa el prompt y se generan nuevos tokens. La memoria se gestiona como un pool común, con un mapa lógico por solicitud.</p>
+<p>Esto reduce la fragmentación externa asociada a buscar grandes huecos contiguos para secuencias que crecen y decrecen de manera independiente. No elimina todo el desperdicio: el último bloque de cada secuencia puede quedar parcialmente vacío, y el propio pool necesita metadatos, buffers y capacidad libre para absorber picos.</p>
+
+<h2 id="fragmentation">5. Fragmentación: qué mejora y qué no</h2>
+<p>Para una secuencia con T tokens y bloque de B tokens, el desperdicio del último bloque está entre cero y B−1 posiciones. La eficiencia de ocupación del bloque final depende de la longitud concreta; al sumar muchas solicitudes, el slack puede ser relevante, pero suele ser mucho más acotado que reservar una longitud máxima fija para todas.</p>
+<p>Ejemplo: cuatro contextos de 23, 77, 12 y 49 tokens. Reservar 128 posiciones a cada uno aparta 512 slots. Hay 161 tokens vivos, por lo que la reserva deja 351 slots sin utilizar. Con bloques de 16, la capacidad asignada es 192 slots: el desperdicio de las colas parciales suma 31 posiciones.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/static-vs-paged-fragmentation.svg" alt="Comparación aritmética de slots vacíos al reservar 128 tokens por petición y al asignar bloques de 16 bajo demanda"><figcaption>Escenario aritmético: reducción de slots vacíos, no benchmark, ahorro de VRAM medido ni mejora de throughput.</figcaption></figure>
+<p>En ese escenario, los slots vacíos bajan un 91,17%. Eso no significa que vLLM utilice un 91,17% menos de VRAM en producción. El ejemplo no incluye pesos del modelo, activaciones, workspaces, alineación, buffers, fragmentación del allocator ni el número real de bloques que el motor reserva. Sirve para visualizar el efecto de una reserva bajo demanda con tamaños homogéneos.</p>
+<p>El tamaño de bloque también es un trade-off. Bloques pequeños acotan el slack del último bloque, pero aumentan el número de entradas de tabla y operaciones de gestión. Bloques grandes reducen metadatos por token, pero pueden aumentar el tail waste y cambiar la granularidad de prefix matching. La configuración real se debe leer junto con la implementación y el modelo.</p>
+
+<h2 id="prefix">6. Automatic Prefix Caching: reutilizar trabajo entre solicitudes</h2>
+<p>PagedAttention permite que las secuencias se representen mediante bloques. Automatic Prefix Caching aprovecha esa organización para reutilizar KV ya calculada cuando una nueva petición comparte un prefijo completo con otra. El nuevo request puede saltarse el cómputo del prefijo que ya tiene un cache hit y continuar desde el primer bloque que no coincide.</p>
+<p>Ejemplo: dos llamadas comparten un system prompt y un documento de contexto. Las primeras ocho posiciones pueden estar representadas por dos bloques completos idénticos. La primera solicitud crea esos bloques; la segunda puede referenciar los mismos IDs en vez de almacenar otra copia. Su tabla de bloques comparte el prefijo y después apunta a bloques privados para el sufijo particular.</p>
+<p>La idea requiere más que comparar el texto visible. El cache key se asocia al contenido de tokens y al contexto relevante de la configuración/modelo. En la implementación de vLLM V1, el KV cache manager mantiene objetos de bloque, IDs, hashes, contadores de referencia y una cola de bloques reutilizables. Los bloques sin referencias pueden permanecer cacheados hasta que se necesite recuperar espacio.</p>
+<p>Un bloque compartido no debe sobrescribirse mientras otra secuencia lo utiliza. El reference counting hace visible esta propiedad: crear una nueva referencia incrementa el contador; liberar una solicitud lo decrementa; solo cuando ya no hay referencias se puede reciclar el bloque, respetando si aún forma parte del índice de cache.</p>
+<p>El simulador de este capítulo simplifica el hashing a bloques completos consecutivos y un único modelo didáctico. La implementación real tiene detalles adicionales, como hashing de prefijos, bloques duplicados, free queues y particularidades de modelos híbridos. No conviene convertir el simulador en documentación de implementación.</p>
+<div class="callout"><strong>Prefix caching no es memoria global ilimitada</strong><p>Una entrada puede ser expulsada cuando el pool necesita reutilizar espacio. Los hits dependen de que el prefijo vuelva a llegar, de la retención de bloques, de la concurrencia y del tamaño de bloque. Un cache hit reduce trabajo de Prefill; no elimina Decode para el nuevo sufijo ni garantiza una mejora idéntica en todas las peticiones.</p></div>
+
+<h2 id="scheduler">7. Scheduler V1: un token budget por iteración</h2>
+<p>Una precisión importante de la arquitectura documentada actualmente para vLLM V1: el scheduler no debe entenderse como dos colas rígidas, una de Prefill y otra de Decode, que se ejecutan como fases independientes. Su bucle trabaja con un presupuesto de tokens por iteración y solicitudes en estado running o waiting. Cada secuencia registra cuántos tokens ya se han procesado; el scheduler asigna trabajo para avanzar esa diferencia. El mismo bucle puede integrar chunked prefill, prefix caching y speculative decoding.</p>
+<p>El parámetro clave es max_num_batched_tokens: el máximo de tokens que el scheduler puede procesar en una iteración. También hay límites relacionados con el número de secuencias, solicitudes activas y solicitudes en cola. No son intercambiables:</p>
+<ul><li><strong>max_num_batched_tokens:</strong> presupuesto de tokens de una iteración.</li><li><strong>max_num_seqs:</strong> máximo de secuencias procesables en una iteración y dimensión de buffers asociados.</li><li><strong>max_num_active_seqs:</strong> límite de solicitudes admitidas en estado RUNNING en la configuración que lo soporta.</li><li><strong>max_num_queued_reqs:</strong> control del número total de peticiones en vuelo, waiting o running.</li><li><strong>max_num_queued_tokens:</strong> control del volumen de prompts en la cola de Prefill.</li></ul>
+<p>La política por defecto documentada es FCFS. La documentación también expone una política Priority. Cuando el KV Cache no puede asignar nuevos bloques, el scheduler puede preemptar solicitudes en ejecución hasta recuperar capacidad. En vLLM V1 la estrategia por defecto documentada para esa preemption es recompute, no asumir un swap automático a CPU como en descripciones antiguas.</p>
+<p>Al re-admitir una solicitud preemptada se vuelve a calcular el progreso necesario; parte de ese trabajo puede recuperarse mediante prefix caching o conectores KV compatibles. Preemption es una señal de presión de memoria y una potencial fuente de trabajo repetido. No conviene tratarla como un evento gratuito.</p>
+
+<h2 id="chunked">8. Chunked Prefill: equilibrar prompts y generación</h2>
+<p>Prefill suele ofrecer trabajo matricial más paralelo; Decode es secuencial por solicitud y suele depender más de la lectura de pesos y KV. Si una petición trae un prompt enorme, permitir que lo consuma todo de una vez puede retrasar tokens de salida de peticiones que ya están generando.</p>
+<p>Chunked Prefill divide un prompt largo en segmentos que pueden entrar en iteraciones distintas. La documentación actual de vLLM V1 indica que, cuando está disponible, esta técnica se habilita por defecto y el scheduler prioriza trabajo de Decode antes de asignar el presupuesto restante a Prefill. Si el prompt pendiente no cabe en el token budget de la iteración, se fragmenta.</p>
+<p>El tamaño del presupuesto afecta al equilibrio:</p>
+<ul><li>Un presupuesto menor puede proteger ITL porque limita cuánto Prefill compite en cada paso con Decode.</li><li>Un presupuesto mayor permite procesar más tokens de prompt y puede mejorar TTFT de solicitudes que esperan su primer token.</li><li>El throughput agregado requiere buscar un punto de equilibrio con el modelo, GPU, distribución de contextos y concurrencia reales.</li></ul>
+<p>No copies una cifra de una guía y la conviertas en estándar. Los ejemplos de 2.048 u 8.192 tokens de la documentación son orientaciones de tuning, no una configuración universal ni un resultado garantizado. La selección necesita un benchmark con la carga que realmente va a recibir el servicio.</p>
+
+<h2 id="preemption">9. Admission control, preemption y backpressure</h2>
+<p>Un servidor que acepta peticiones sin límite puede transformar una sobrecarga momentánea en una cola que crece indefinidamente. El usuario ve TTFT cada vez mayor, los timeouts producen reintentos y esos reintentos añaden más carga. El sistema puede permanecer ocupado sin mejorar el trabajo completado.</p>
+<p>Admission control define cuánta carga se acepta. En vLLM existen controles para limitar solicitudes en cola y tokens de prompts pendientes; al alcanzar límites, la capa API puede rechazar nuevas solicitudes con HTTP 503 para que el cliente reintente en otra réplica o más adelante. También se puede establecer una política de prioridad según la clase de servicio.</p>
+<p>Un diseño de producción debería combinar:</p>
+<ul><li>Timeout end-to-end y deadline propagado al gateway y cliente.</li><li>Concurrencia y longitud máxima de prompt/salida por clase de servicio.</li><li>Cola acotada, rechazo explícito y retry con exponential backoff y jitter.</li><li>Cancelación de peticiones que el cliente ya no necesita.</li><li>Rate limits por identidad/tenant y protección contra bursts.</li><li>Alertas de preemption, saturación de KV blocks y crecimiento de cola.</li></ul>
+<p>El error HTTP 503 no es necesariamente un fallo del modelo: puede ser la señal deliberada de que la instancia ha alcanzado su presupuesto de admisión. El cliente debe diferenciar sobrecarga transitoria, error de modelo, timeout y error de autenticación.</p>
+
+<h2 id="architecture">10. Arquitectura operativa de vLLM</h2>
+<p>La documentación V1 describe una separación de responsabilidades entre API Server, Engine Core, GPU Workers y, cuando se escala Data Parallel, un coordinador. El API Server recibe HTTP y procesa inputs; Engine Core contiene el scheduler y la gestión de KV Cache; los workers ejecutan los forward passes del modelo. La cantidad de procesos depende de DP, TP y PP.</p>
+<figure class="evidence-figure"><img src="/assets/labs/serving/vllm-serving-architecture.svg" alt="Arquitectura simplificada con API Server, Engine Core Scheduler, KV Cache Manager y GPU Workers"><figcaption>Vista simplificada de responsabilidades. El detalle de procesos varía con Data Parallel, Tensor Parallel y Pipeline Parallel.</figcaption></figure>
+<p>Esta separación permite razonar sobre fallos y saturación por capa. El API Server puede estar sano mientras el scheduler tiene una cola larga; los GPU Workers pueden estar activos pero sin disponer de suficientes bloques KV para admitir más secuencias; y un problema de red o tokenización puede degradar el tiempo end-to-end sin que el kernel de atención esté saturado.</p>
+<p>Por eso no se debe monitorizar solo la GPU al 100% o la memoria total. Hay que correlacionar estado de la cola, secuencias activas, bloques KV, tiempos por request y errores de admisión.</p>
+
+<h2 id="capacity">11. Dimensionamiento: de bytes por token a bloques disponibles</h2>
+<p>Para full attention homogénea, una aproximación al espacio de K/V para un bloque de B tokens es:</p>
+<pre><code>bytes_per_KV_block =
+  2 × layers × B × KV_heads × head_dim × bytes_per_element
+
+approx_num_blocks =
+  KV_memory_budget / bytes_per_KV_block</code></pre>
+<p>El factor 2 representa Key y Value. El cálculo depende del número de capas que almacenan KV, de KV heads —no confundir con query heads—, de la dimensión por cabeza y del dtype efectivo. GQA/MQA reducen KV heads; las arquitecturas híbridas o sliding-window pueden cambiar la longitud retenida por grupo o capa.</p>
+<p>La segunda expresión es una aproximación de planificación, no la fórmula exacta del allocator de vLLM. El presupuesto disponible para KV debe dejar sitio a pesos, activaciones, buffers temporales, kernels, CUDA graphs, memoria no utilizada por el proceso y margen para variaciones de carga. Una estimación que consuma el 100% de la VRAM teórica no es una capacidad operativa segura.</p>
+<p>El número de bloques determina cuánto contexto simultáneo puede mantenerse. Si el contexto medio crece, cada solicitud consume más bloques. Si sube la concurrencia, también. Prefix caching puede reducir copias duplicadas de prefijos compartidos, pero el beneficio depende de la tasa de coincidencia, la retención y la política de eviction.</p>
+<p>La capacidad de serving debe expresarse como un envelope de carga: distribución de prompt tokens, salida tokens, concurrencia, tasa de llegada, porcentaje de prefijos comunes, SLO de TTFT/TPOT, duración de petición y probabilidad de preemption. Decir «caben 100 requests» sin esas variables no describe un sizing reproducible.</p>
+
+<h2 id="metrics">12. Métricas y observabilidad: mirar el servicio desde el request y el motor</h2>
+<p>vLLM expone métricas compatibles con Prometheus en el endpoint /metrics. La documentación V1 agrupa métricas de servidor —gauges y counters— y métricas por petición —histogramas—. La combinación permite explicar por qué un SLO de usuario se está degradando.</p>
+<table class="data-table"><thead><tr><th>Métrica</th><th>Qué ayuda a responder</th></tr></thead><tbody>
+<tr><td>vllm:num_requests_running</td><td>Cuántas solicitudes están activas dentro del motor.</td></tr>
+<tr><td>vllm:kv_cache_usage_perc</td><td>Qué fracción de bloques KV está ocupada.</td></tr>
+<tr><td>vllm:num_requests_waiting</td><td>Presión de cola, cuando se expone en la versión/configuración aplicable.</td></tr>
+<tr><td>vllm:prefix_cache_queries / hits</td><td>Volumen de consultas y efectividad de Prefix Caching.</td></tr>
+<tr><td>vllm:time_to_first_token_seconds</td><td>Distribución de latencia hasta el primer output token.</td></tr>
+<tr><td>vllm:inter_token_latency_seconds</td><td>Tiempo entre outputs streamed consecutivos.</td></tr>
+<tr><td>vllm:request_time_per_output_token_seconds</td><td>TPOT calculado por request según la convención del motor.</td></tr>
+<tr><td>vllm:request_queue_time_seconds</td><td>Tiempo esperando en el scheduler.</td></tr>
+<tr><td>vllm:request_prefill_time_seconds / decode_time_seconds</td><td>Separación del tiempo atribuible a las partes de la generación.</td></tr>
+<tr><td>vllm:admission_rejections_total</td><td>Solicitudes rechazadas por límites de admisión.</td></tr>
+</tbody></table>
+<p>ITL y TPOT no son necesariamente iguales. ITL mide el hueco entre eventos de output streamed. TPOT se calcula por petición, excluyendo el primer token y amortizando el tiempo sobre el resto de tokens de salida. Con speculative decoding un evento puede contener varios tokens; también cambia el peso estadístico de los agregados. Antes de comparar gráficas, revisa las definiciones exactas de la herramienta.</p>
+<p>Un dashboard útil debería combinar p50/p95/p99 de TTFT, ITL/TPOT y end-to-end latency con tasa de requests, input/output tokens, queue wait, running/waiting, KV usage, prefix-cache hits, preemption y HTTP 429/503/5xx. La memoria de GPU sin contexto de requests explica poco.</p>
+
+<h2 id="run">13. Probar vLLM real: plantilla de arranque, no resultado del laboratorio</h2>
+<p>El laboratorio de esta entrega no instala vLLM ni descarga un modelo. Para una máquina Linux compatible con la versión de vLLM y un dispositivo soportado, la documentación muestra el patrón general:</p>
+<pre><code># En un entorno aislado con vLLM ya instalado y GPU compatible:
+vllm serve &lt;MODEL_ID&gt; \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --enable-prefix-caching \
+  --max-num-batched-tokens 8192</code></pre>
+<p>El valor 8192 es un ejemplo para experimentar con el token budget, no una recomendación universal. Empieza con valores conservadores, comprueba memoria y compatibilidad del modelo/backend y aumenta carga progresivamente. No expongas el endpoint a Internet sin autenticación, autorización, rate limiting, límites de entrada y políticas de red adecuadas. El bind 0.0.0.0 abre el servicio en todas las interfaces del host; úsalo solo cuando esa exposición sea intencionada y esté protegida.</p>
+<p>Después de levantar el servicio, valida salud, endpoint de generación, formato de streaming y /metrics. Ejecuta una matriz controlada de prompts cortos/largos, salidas cortas/largas, concurrencia creciente y prefijos repetidos. Cambia una sola variable por prueba y registra la configuración completa.</p>
+
+<h2 id="lab">14. Laboratorio reproducido: allocator y scheduler en Python</h2>
+<p>He construido un simulador con Python standard library. No reproduce kernels CUDA ni el código interno de vLLM. Su función es hacer verificables los invariantes que acabamos de estudiar sin instalar dependencias, bajar pesos o consumir recursos de GPU.</p>
+<table class="data-table"><thead><tr><th>Parámetro</th><th>Valor</th></tr></thead><tbody>
+<tr><td>Entorno</td><td>Windows · Python 3.12.10</td></tr>
+<tr><td>Dependencias</td><td>Standard library · ninguna externa</td></tr>
+<tr><td>Dispositivo</td><td>CPU · sin CUDA ni GPU</td></tr>
+<tr><td>Allocator</td><td>8 bloques físicos · 4 tokens por bloque</td></tr>
+<tr><td>Requests para prefix caching</td><td>Dos solicitudes con 8 tokens comunes y sufijos distintos; una tercera reutiliza tres bloques completos</td></tr>
+<tr><td>Scheduler</td><td>Token budget 6 · máximo 3 solicitudes activas · 4 llegadas escalonadas</td></tr>
+<tr><td>Checks</td><td>14 comprobaciones automáticas</td></tr>
+<tr><td>Coste</td><td>0 €</td></tr>
+</tbody></table>
+<h3>Experimento A: block table y reference counting</h3>
+<p>Se crean dos solicitudes con un prefijo idéntico de ocho tokens. Cada bloque contiene cuatro tokens. Las dos tablas apuntan a los mismos dos bloques físicos del prefijo; cada bloque compartido tiene dos referencias. Los sufijos se asignan a bloques privados. Cuando se libera la primera solicitud, el contador de los bloques compartidos baja a uno, por lo que la segunda conserva acceso válido.</p>
+<p>Después se amplía la segunda secuencia hasta completar un tercer bloque. Una tercera solicitud con ese prefijo completo reutiliza los tres primeros bloques. Los bloques finales parciales permanecen separados. El CSV conserva el ID físico, la posición lógica, tokens, capacidad, ref_count y estado cacheado.</p>
+<h3>Experimento B: continuous batching</h3>
+<p>Cuatro solicitudes llegan en los pasos 0, 1, 2 y 3. El scheduler admite como máximo tres. En cada iteración da primero un token a cada solicitud que está en Decode; utiliza el presupuesto restante para repartir tokens de Prefill en round-robin; y cuando una petición termina libera su slot para que entre una nueva. Cada paso consume como máximo seis tokens programados.</p>
+<p>El simulador usa un quantum simple de un token para que el reparto sea visible. No pretende imitar la implementación exacta de vLLM, ni medir milisegundos, throughput o fairness bajo una carga real.</p>
+<p><a class="text-link" href="/assets/labs/serving/llm-serving-05-lab.zip">Descargar laboratorio 05 (ZIP) ↗</a></p>
+
+<h2 id="results">15. Resultados y evidencias</h2>
+<p>La ejecución local terminó con <strong>LAB STATUS: PASS</strong>. Resultados principales:</p>
+<table class="data-table"><thead><tr><th>Prueba</th><th>Resultado</th><th>Estado</th></tr></thead><tbody>
+<tr><td>Slots vacíos · reserva estática</td><td>351</td><td>Referencia</td></tr>
+<tr><td>Slots vacíos · bloques de 16</td><td>31</td><td>PASS</td></tr>
+<tr><td>Reducción aritmética de slots vacíos</td><td>91,17%</td><td>PASS</td></tr>
+<tr><td>Bloques físicos para A y B</td><td>4 frente a 6 sin sharing</td><td>PASS</td></tr>
+<tr><td>Prefix cache hits al reutilizar C</td><td>5 hits en la ejecución completa</td><td>PASS</td></tr>
+<tr><td>Requests completadas</td><td>4 de 4</td><td>PASS</td></tr>
+<tr><td>Tokens programados por paso</td><td>Siempre ≤ 6</td><td>PASS</td></tr>
+<tr><td>Concurrencia activa</td><td>Máximo 3</td><td>PASS</td></tr>
+<tr><td>Iteraciones del scheduler</td><td>10</td><td>Informativo</td></tr>
+</tbody></table>
+<p>Los 91,17% pertenecen a un escenario de slots lógicos no usados frente a una reserva estática de 128 posiciones por petición. No son una reducción real de VRAM ni un aumento de throughput. Los cuatro bloques frente a seis comparan un caso de prefijo idéntico con una referencia sin sharing; no son una prueba de la velocidad del motor.</p>
+<h3>Archivos de evidencia</h3>
+<ul><li>reports/metrics.json: configuración y checks.</li><li>reports/fragmentation-metrics.json: cálculo de slots estáticos y paginados.</li><li>reports/lab-report.md: informe completo.</li><li>evidence/block-table-evidence.csv: mapeo lógico/físico y referencias.</li><li>evidence/scheduler-events.csv: eventos por solicitud y paso.</li><li>evidence/scheduler-steps.csv: token budget, prefill/decode y concurrencia.</li><li>evidence/request-outcomes.csv: espera y finalización.</li><li>evidence/visuals/: diagramas SVG originales.</li></ul>
+
+<h2 id="security">16. Seguridad y multi-tenancy</h2>
+<p>Prefix caching comparte estado derivado de prompts. En un entorno multi-tenant hay que revisar qué datos pueden compartir contexto y qué límites de aislamiento son necesarios. No se debe asumir que una coincidencia de prefijo es válida solo porque dos peticiones tienen texto parecido: modelo, revisión, tokenización, configuración y contenido serializado forman parte de la identidad que debe respetar la implementación.</p>
+<p>Existe además un riesgo distinto de las colisiones de hash: el <em>timing side-channel</em> de Prefix Caching, documentado por vLLM como <strong>CVE-2025-46570</strong>. Un tenant que comparte el mismo backend puede medir diferencias de TTFT para inferir si un prefijo que conoce coincide con contenido cacheado por otro usuario. La documentación de seguridad de vLLM describe la mitigación mediante <code>cache_salt</code>: el valor se mezcla en el hash del primer bloque KV, de modo que solo las peticiones con el mismo salt pueden compartir bloques de prefijo.</p><p>En un despliegue multi-tenant, el gateway debe asignar un salt secreto y aleatorio por tenant (o por usuario si se necesita aislamiento más estricto), con suficiente entropía —la guía recomienda un valor impredecible de 256 bits— y aplicarlo a todas las peticiones de ese ámbito. No uses nombres de usuario, IDs de cuenta ni valores predecibles. Compartir salt entre usuarios de una misma organización permite compartir prefijos dentro de ese grupo; usar uno por usuario reduce más el sharing y los cache hits. El salt <strong>no es una frontera de aislamiento</strong>: vLLM no aísla por sí mismo a los tenants que comparten un proceso. Para requisitos fuertes, utiliza instancias separadas y una capa de autorización que controle qué salt puede emplear cada cliente.</p>
+<pre><code>response = client.chat.completions.create(
+    model=model_name,
+    messages=messages,
+    extra_body={"cache_salt": tenant_cache_secret},
+)</code></pre>
+<p>El ejemplo presupone que <code>tenant_cache_secret</code> se genera y controla en el servidor/gateway; no lo aceptes sin validación desde el propio usuario final.</p>
+<p>El endpoint de inferencia debe tratarse como una API de alto coste computacional: autenticar clientes, autorizar modelos, limitar tokens de entrada/salida, acotar concurrencia, cancelar trabajo huérfano, registrar uso por tenant y proteger métricas y logs para que no expongan prompts o información sensible.</p>
+
+<h2 id="runbook">17. Runbook: qué revisar cuando un servicio vLLM se degrada</h2>
+<table class="data-table"><thead><tr><th>Síntoma</th><th>Qué correlacionar primero</th><th>Hipótesis a validar</th></tr></thead><tbody>
+<tr><td>TTFT alto y cola creciente</td><td>Queue time, prompt tokens, prefill time, token budget</td><td>Backlog de Prefill, concurrencia excesiva, prompts largos o admission limit mal dimensionado.</td></tr>
+<tr><td>ITL / TPOT alto</td><td>Decode time, running requests, batch tokens, GPU utilisation</td><td>Competencia de Prefill, batch excesivo, memoria bandwidth o contención de GPU.</td></tr>
+<tr><td>KV usage cerca del límite</td><td>kv_cache_usage_perc, context length, preemption</td><td>Demasiadas secuencias largas, poco presupuesto KV o prefijos no reutilizables.</td></tr>
+<tr><td>Preemption frecuente</td><td>Contador/eventos de preemption, bloques libres, longitudes</td><td>Admisión demasiado agresiva o estimación de memoria optimista.</td></tr>
+<tr><td>Pocos prefix cache hits</td><td>Queries, hits, longitud del prefijo común</td><td>Prefijos variables, bloques parciales, bajo ratio de repetición o eviction frecuente.</td></tr>
+<tr><td>HTTP 503</td><td>Admission rejections, queued requests/tokens, replicas saludables</td><td>Backpressure deliberado o capacidad insuficiente; confirmar retry policy del cliente.</td></tr>
+</tbody></table>
+<p>Secuencia práctica:</p>
+<ol><li>Confirmar si la degradación está en API, cola, Prefill, Decode, KV allocation o worker.</li><li>Comparar la distribución actual de prompt/output tokens con la línea base.</li><li>Revisar p50/p95/p99, no solo promedios.</li><li>Correlacionar kv_cache_usage, running/waiting, prefix hits y preemption.</li><li>Verificar cambios recientes de modelo, dtype, flags, hardware, concurrencia y tamaño de prompt.</li><li>Reducir carga o activar backpressure antes de seguir elevando límites a ciegas.</li><li>Validar con un workload reproducible y rollback de la configuración si empeoran los SLO.</li></ol>
+
+<h2 id="limits">18. Qué demuestra y qué no demuestra este capítulo</h2>
+<p>La investigación documenta la arquitectura actual de vLLM V1 y sus principales mecanismos de gestión de KV y scheduling. El laboratorio propio valida con Python estándar la asignación de bloques, la reutilización de prefijos completos, el ciclo de vida de referencias, el slack de bloques y un scheduler pedagógico con token budget.</p>
+<p>No ejecuta vLLM, no llama a un modelo real, no ejecuta kernels PagedAttention, no mide TTFT/TPOT, no estima tokens/s y no demuestra escalabilidad de GPU. Tampoco replica todos los detalles internos del scheduler, la implementación de hashing o el tratamiento de modelos híbridos. La etiqueta LAB VERIFIED se limita al simulador y sus comprobaciones.</p>
+<div class="callout"><strong>Conclusión</strong><p>PagedAttention organiza la KV Cache en bloques físicos y permite que cada secuencia los referencie mediante una tabla lógica. Prefix caching puede compartir bloques completos de un prefijo repetido, siempre que la identidad y el ciclo de vida sean compatibles. Continuous batching reconstruye el conjunto de trabajo de cada iteración y permite admitir una solicitud nueva cuando otra termina. El reto operativo consiste en equilibrar bloques disponibles, token budget, TTFT, ITL/TPOT, cola y presión de memoria, con backpressure explícito.</p></div>
+
+<h2 id="next">19. Qué viene después</h2>
+<p>Ya sabemos cómo un motor organiza solicitudes y la memoria KV. El capítulo 06 pasa a la representación numérica del modelo y de la cache: <strong>Quantization — FP16, BF16, FP8, INT8 e INT4</strong>. Estudiaremos escalas, zero-points, cuantización por tensor/canal/grupo, error de reconstrucción y el impacto distinto sobre pesos y KV Cache.</p>
+
+<h2 id="sources">20. Fuentes primarias y documentación</h2>
+<ul>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/arch_overview/" target="_blank" rel="noopener">Architecture Overview</a>. Scheduler V1, token budget, políticas y preemption.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/paged_attention/" target="_blank" rel="noopener">Paged Attention</a>. Bloques y layout del KV kernel.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/prefix_caching/" target="_blank" rel="noopener">Automatic Prefix Caching — Design</a>. Block data structure, reference counts, free queue y eviction.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/" target="_blank" rel="noopener">Automatic Prefix Caching</a>. Funcionamiento y activación.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/optimization/" target="_blank" rel="noopener">Optimization and Tuning</a>. Chunked Prefill, preemption y rendimiento.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/configuration/engine_args/" target="_blank" rel="noopener">Engine Arguments</a>. Token budgets, límites de secuencias, cola y hashing.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/design/metrics/" target="_blank" rel="noopener">Metrics</a>. Prometheus y métricas de request/engine.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/stable/usage/security/" target="_blank" rel="noopener">Security — Prefix Cache Timing Side-Channel Mitigation</a>. CVE-2025-46570, cache_salt y límites de aislamiento multi-tenant.</li>
+<li>vLLM, <a href="https://docs.vllm.ai/en/latest/benchmarking/cli/" target="_blank" rel="noopener">Benchmark CLI</a>. Definiciones de TTFT, ITL y TPOT.</li>
+<li>Kwon et al., <a href="https://doi.org/10.1145/3600006.3613165" target="_blank" rel="noopener">Efficient Memory Management for Large Language Model Serving with PagedAttention</a>, SOSP 2023.</li>
+</ul>
+<p class="page-end">Documentación revisada el 14 de noviembre de 2026. Los resultados del laboratorio son del simulador descrito y no se extrapolan a producción.</p>
+</article>
+<aside class="article-aside"><div class="toc-title">Estado de la serie</div><p><strong>Publicados</strong><br>5 / 8</p><p><strong>Laboratorios</strong><br>TinyGPT · Attention · Training · Inference · Serving</p><p><strong>Próximo bloque</strong><br>Quantization · FP16/BF16/FP8/INT8/INT4</p><p><strong>Idioma</strong><br>Español · English</p><p><a class="text-link" href="/es/series/llm-engineering/">Volver a LLM Engineering ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

@@ -1,0 +1,133 @@
+{
+  "host": "PCRAY",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.10",
+  "dependencies": "Python standard library only",
+  "device": "CPU",
+  "cost_eur": 0,
+  "experiments": {
+    "allocator": {
+      "block_size": 4,
+      "pool_blocks": 8,
+      "request_a_initial_block_table": [
+        0,
+        1,
+        2
+      ],
+      "request_b_initial_block_table": [
+        0,
+        1,
+        3
+      ],
+      "initial_unique_physical_blocks_a_b": 4,
+      "unshared_reference_blocks_a_b": 6,
+      "snapshot_after_b_decode": {
+        "pool_blocks": 8,
+        "block_size_tokens": 4,
+        "active_unique_blocks": 4,
+        "referenced_blocks": 4,
+        "cached_full_blocks": 3,
+        "free_blocks": 4,
+        "active_tail_waste_slots": 3,
+        "prefix_cache_hits": 2,
+        "prefix_cache_misses": 2,
+        "evictions": 0,
+        "block_tables": {
+          "B": [
+            0,
+            1,
+            3,
+            4
+          ]
+        }
+      },
+      "prefix_cache_hits_after_c": 5,
+      "prefix_cache_evictions": 0,
+      "final_snapshot": {
+        "pool_blocks": 8,
+        "block_size_tokens": 4,
+        "active_unique_blocks": 5,
+        "referenced_blocks": 5,
+        "cached_full_blocks": 3,
+        "free_blocks": 3,
+        "active_tail_waste_slots": 6,
+        "prefix_cache_hits": 5,
+        "prefix_cache_misses": 2,
+        "evictions": 0,
+        "block_tables": {
+          "B": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "C": [
+            0,
+            1,
+            3,
+            5
+          ]
+        }
+      }
+    },
+    "fragmentation": {
+      "sequence_lengths": [
+        23,
+        77,
+        12,
+        49
+      ],
+      "block_size_tokens": 16,
+      "static_max_tokens_per_sequence": 128,
+      "live_tokens": 161,
+      "static_reserved_slots": 512,
+      "static_wasted_slots": 351,
+      "paged_allocated_slots": 192,
+      "paged_tail_waste_slots": 31,
+      "wasted_slot_reduction_percent": 91.16809116809117,
+      "note": "Illustrative capacity arithmetic, not measured GPU memory or a production benchmark."
+    },
+    "scheduler": {
+      "token_budget_per_step": 6,
+      "max_active_requests": 3,
+      "scheduler_steps": 10,
+      "peak_running_requests": 3,
+      "total_prompt_tokens": 27,
+      "total_output_tokens": 12,
+      "mean_queue_wait_steps": 0.5,
+      "checks": {
+        "all_requests_completed": true,
+        "per_step_token_budget_respected": true,
+        "max_active_requests_respected": true,
+        "every_request_admitted_once": true,
+        "every_prompt_token_processed": true,
+        "every_output_token_generated": true,
+        "continuous_admission_used": true
+      },
+      "policy_note": "Teaching approximation: one decode token per active decoder, then round-robin prompt tokens within the remaining budget. Not vLLM's implementation or a latency model."
+    }
+  },
+  "checks": {
+    "identical_full_prefix_blocks_are_shared": true,
+    "shared_prefix_reference_count_starts_at_two": true,
+    "shared_blocks_survive_first_request_release": true,
+    "later_request_reuses_three_full_prefix_blocks": true,
+    "physical_blocks_lower_than_unshared_reference": true,
+    "partial_tail_blocks_are_not_shared": true,
+    "all_requests_completed": true,
+    "per_step_token_budget_respected": true,
+    "max_active_requests_respected": true,
+    "every_request_admitted_once": true,
+    "every_prompt_token_processed": true,
+    "every_output_token_generated": true,
+    "continuous_admission_used": true,
+    "paged_tail_waste_lower_than_static_reservation": true
+  },
+  "limitations": [
+    "Teaching simulator, not vLLM source code, a CUDA kernel or GPU execution.",
+    "Block IDs and scheduler rounds are logical examples, not hardware measurements.",
+    "Scheduler uses a simplified decode-first, round-robin prefill policy.",
+    "No model weights, tokenizer, CUDA, GPU, external dataset, API or hosted service.",
+    "Production behaviour depends on model architecture, vLLM version, hardware, workload and configuration."
+  ]
+}

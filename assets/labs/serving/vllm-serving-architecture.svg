@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="580" viewBox="0 0 1200 580" role="img" aria-labelledby="title desc">
+<title id="title">Simplified vLLM V1 serving architecture</title>
+<desc id="desc">Client requests enter the API Server, are scheduled by Engine Core which manages KV cache blocks, and are executed by GPU Workers. Metrics are exposed to Prometheus and Grafana.</desc>
+<rect width="1200" height="580" fill="#fbfaf7"/>
+<text x="54" y="54" font-family="Arial" font-size="24" font-weight="700" fill="#192630">Serving responsibilities and control path</text>
+<rect x="54" y="135" width="160" height="88" rx="7" fill="#e8e6d9" stroke="#737047" stroke-width="2"/>
+<text x="134" y="171" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#4b4a2e">Client /</text><text x="134" y="195" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#4b4a2e">Gateway</text>
+<path d="M214 179 H276 M266 171 L278 179 L266 187" stroke="#647078" stroke-width="3" fill="none"/>
+<rect x="282" y="135" width="190" height="88" rx="7" fill="#d7e7e8" stroke="#28566b" stroke-width="2"/>
+<text x="377" y="171" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#17394b">API Server</text><text x="377" y="195" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">HTTP · auth · input</text>
+<path d="M472 179 H528 M518 171 L530 179 L518 187" stroke="#647078" stroke-width="3" fill="none"/>
+<rect x="534" y="96" width="310" height="190" rx="8" fill="#edf0e8" stroke="#737047" stroke-width="2"/>
+<text x="689" y="130" text-anchor="middle" font-family="Arial" font-size="19" font-weight="700" fill="#4b4a2e">Engine Core</text>
+<rect x="560" y="150" width="258" height="52" rx="5" fill="#28566b"/><text x="689" y="182" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="white">Scheduler · token budget</text>
+<rect x="560" y="214" width="258" height="52" rx="5" fill="#a9573d"/><text x="689" y="246" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="white">KV Cache Manager · blocks</text>
+<path d="M844 179 H902 M892 171 L904 179 L892 187" stroke="#647078" stroke-width="3" fill="none"/>
+<rect x="908" y="135" width="238" height="88" rx="7" fill="#f2ded4" stroke="#a9573d" stroke-width="2"/>
+<text x="1027" y="171" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#6c4032">GPU Workers</text><text x="1027" y="195" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">Forward passes · kernels</text>
+<path d="M1027 223 V322 H689 V286" stroke="#647078" stroke-width="2.5" fill="none"/><path d="M681 298 L689 284 L697 298" stroke="#647078" stroke-width="2.5" fill="none"/>
+<rect x="532" y="338" width="314" height="74" rx="6" fill="#17394b"/><text x="689" y="368" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="white">KV block pool</text><text x="689" y="391" text-anchor="middle" font-family="Arial" font-size="13" fill="#d7e7e8">Allocation · sharing · release · eviction</text>
+<path d="M689 412 V458 H377 V223" stroke="#647078" stroke-width="2" stroke-dasharray="7 6" fill="none"/>
+<rect x="54" y="458" width="260" height="72" rx="6" fill="#e3ecec" stroke="#28566b" stroke-width="2"/><text x="184" y="488" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#17394b">Metrics endpoint</text><text x="184" y="512" text-anchor="middle" font-family="Arial" font-size="13" fill="#34444d">Prometheus → Grafana</text>
+<path d="M377 223 V422 H314 V494" stroke="#28566b" stroke-width="2" stroke-dasharray="6 6" fill="none"/>
+<text x="875" y="492" font-family="Arial" font-size="13" fill="#647078">DP coordinator may be present in multi-rank deployments.</text>
+<text x="54" y="559" font-family="Arial" font-size="12" fill="#647078">Simplified role diagram · process counts and communication paths vary with DP / TP / PP configuration.</text>
+</svg>

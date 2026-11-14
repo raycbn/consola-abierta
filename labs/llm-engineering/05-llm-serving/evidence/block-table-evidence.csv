@@ -1,0 +1,9 @@
+request_id,logical_block_index,physical_block_id,token_ids,tokens_in_block,block_capacity,ref_count,cached_full_block
+B,0,0,101;102;103;104,4,4,2,True
+B,1,1,105;106;107;108,4,4,2,True
+B,2,3,201;202;203;204,4,4,2,True
+B,3,4,205,1,4,1,False
+C,0,0,101;102;103;104,4,4,2,True
+C,1,1,105;106;107;108,4,4,2,True
+C,2,3,201;202;203;204,4,4,2,True
+C,3,5,999,1,4,1,False

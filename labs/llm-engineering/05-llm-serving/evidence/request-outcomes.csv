@@ -1,0 +1,5 @@
+request_id,arrival_step,first_scheduled_step,queue_wait_steps,prompt_tokens,output_tokens,prefill_scheduler_steps,decode_scheduler_steps,completion_step,phase
+A,0,0,0,9,4,9,4,5,FINISHED
+B,1,1,0,6,3,6,3,5,FINISHED
+C,2,2,0,5,2,5,2,5,FINISHED
+D,3,5,2,7,3,7,3,9,FINISHED
