@@ -12,7 +12,16 @@ function simulateConsent(gdprApplies) {
   let tcfCallback;
   const handlers = {};
   const link = { hidden: true, addEventListener: (name, callback) => { handlers[name] = callback; } };
-  const googlefc = { callbackQueue: [], showRevocationMessage: () => { revoked++; } };
+  const queue = [];
+  const originalPush = queue.push.bind(queue);
+  queue.push = (...items) => {
+    for (const item of items) {
+      if (typeof item === 'function') item();
+      else originalPush(item);
+    }
+    return queue.length;
+  };
+  const googlefc = { callbackQueue: queue, showRevocationMessage: () => { revoked++; } };
   const document = { documentElement: { lang: 'es' }, querySelectorAll: () => [], getElementById: id => id === 'privacy-settings-link' ? link : null };
   const window = { googlefc, __tcfapi: (command, version, callback) => { if (command === 'addEventListener' && version === 2) tcfCallback = callback; } };
   vm.runInNewContext(siteJs, { document, window, location: { search: '' }, URLSearchParams, fetch: () => { throw new Error('Unexpected network request during consent test'); } });
@@ -64,7 +73,7 @@ for (const [url, file] of [['/es/aviso-legal/', 'es/aviso-legal/index.html'], ['
 }
 check(siteJs.includes('CONSOLA_ABIERTA_CONSENT_MANAGER'), 'central consent manager missing');
 check(siteJs.includes('__tcfapi("addEventListener",2'), 'TCF v2 callback missing');
-check(siteJs.includes('showRevocationMessage'), 'consent revocation method missing');
+check(siteJs.includes('googlefc.callbackQueue.push(googlefc.showRevocationMessage)'), 'consent revocation must use the official callback queue');
 check(siteCss.includes('#privacy-settings-link[hidden]{display:none!important}'), 'hidden consent link must be forcibly hidden in CSS');
 check(consentForEea.visible && consentForEea.revoked === 1, 'consent settings link must appear for EEA and reopen consent preferences');
 check(!consentOutsideEea.visible && consentOutsideEea.revoked === 0, 'consent settings link must stay hidden where GDPR does not apply');

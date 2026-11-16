@@ -28,7 +28,7 @@ if(consentLink){
  googlefc.callbackQueue=googlefc.callbackQueue||[];
  consentLink.addEventListener("click",event=>{
   event.preventDefault();
-  if(typeof googlefc.showRevocationMessage==="function")googlefc.showRevocationMessage();
+  if(typeof googlefc.showRevocationMessage==="function")googlefc.callbackQueue.push(googlefc.showRevocationMessage);
  });
  googlefc.callbackQueue.push({
   "CONSENT_API_READY":()=>{
