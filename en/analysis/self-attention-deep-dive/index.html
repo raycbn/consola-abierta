@@ -96,7 +96,7 @@
 <div class="callout"><strong>The central question</strong><p>How does a sequence of vectors become a new contextual representation, and how does the optimiser know what to change? The lab implements the forward pass, derives Q/K/V gradients manually, compares them with autograd, checks one derivative using finite differences, and studies attention variants that affect inference memory.</p></div>
 
 <h2 id="scope">1. The mechanism we isolate</h2>
-<p>In the previous chapter we built the anatomy of a decoder-only Transformer and followed the path from token IDs to logits. Here we zoom in on the component that mixes information across positions: <strong>self-attention</strong>. We will not train another language model. We will isolate the operation and test its properties with controlled tensors.</p>
+<p>In the previous chapter we built the anatomy of a <a href="/en/analysis/inside-transformer-anatomy-llm/">decoder-only Transformer</a> and followed the path from token IDs to logits. Here we zoom in on the component that mixes information across positions: <strong>self-attention</strong>. We will not train another language model. We will isolate the operation and test its properties with controlled tensors.</p>
 <p>In self-attention, Query, Key and Value are calculated from the same sequence of hidden states. A Query is compared with the available Keys; the result determines how much each Value contributes to the output. This is a functional description, not a literal semantic interpretation: a Query is not necessarily a linguistic question, nor is a Key an interpretable label. They are learned vectors in a representation space.</p>
 <p>The original <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al. (2017)</a> formulation is scaled dot-product attention. Modern Transformers add architectural and implementation choices —causality, RoPE, GQA, efficient kernels— that should be separated so we do not mix three different questions: what attention computes, how it encodes position, and how it is executed with less memory traffic.</p>
 
@@ -215,7 +215,7 @@ dL/dW_V = X.T @ (dL/dV)</code></pre>
 <pre><code>KV bytes = 2 × H_kv × d_head × bytes_per_element
 Cache bytes = KV bytes × sequence_length × batch_size × layers</code></pre>
 <p>The first factor 2 represents Key and Value. To illustrate the effect, use 32 Query heads, d_head = 128, BF16 (2 bytes) and a 4,096-token sequence. The table shows one layer and one sequence; multiply by batch and layer count to estimate the model total:</p>
-<table class="data-table"><thead><tr><th>Design</th><th>KV heads</th><th>Bytes per token and layer</th><th>KV cache per layer</th></tr></thead><tbody>
+<table class="data-table"><thead><tr><th>Design</th><th>KV heads</th><th>Bytes per token and layer</th><th><a href="/en/analysis/llm-inference-prefill-decode-kv-cache/">KV cache</a> per layer</th></tr></thead><tbody>
 <tr><td>MHA</td><td>32</td><td>16 KiB</td><td>64 MiB</td></tr><tr><td>GQA</td><td>8</td><td>4 KiB</td><td>16 MiB</td></tr><tr><td>GQA</td><td>4</td><td>2 KiB</td><td>8 MiB</td></tr><tr><td>MQA</td><td>1</td><td>512 B</td><td>2 MiB</td></tr>
 </tbody></table>
 <p>In this example, GQA with four KV heads reduces theoretical cache to 12.5% of MHA; MQA brings it down to 3.125%. The reduction is proportional to the number of KV heads while d_head, sequence length, batch and dtype remain constant. This is not a measurement of allocator behaviour, paged layout, fragmentation or kernel temporary memory.</p>

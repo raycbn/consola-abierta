@@ -114,7 +114,7 @@
 <div class="callout"><strong>La pregunta central</strong><p>¿Cómo convierte una secuencia de vectores en una nueva representación contextual, y cómo sabe el optimizador qué debe cambiar? El laboratorio implementa el forward pass, deriva manualmente los gradientes de Q/K/V, los contrasta con autograd, comprueba una derivada mediante diferencias finitas y estudia las variantes de atención que afectan a la memoria de inferencia.</p></div>
 
 <h2 id="scope">1. El mecanismo que vamos a aislar</h2>
-<p>En el capítulo anterior construimos la anatomía de un decoder-only Transformer y recorrimos el flujo desde los token IDs hasta los logits. Aquí hacemos zoom en el componente que mezcla información entre posiciones: <strong>self-attention</strong>. No vamos a entrenar otro modelo de lenguaje; vamos a aislar la operación y probar sus propiedades con tensores controlados.</p>
+<p>En el capítulo anterior construimos la anatomía de un <a href="/es/analisis/anatomia-interna-transformer-llm/">decoder-only Transformer</a> y recorrimos el flujo desde los token IDs hasta los logits. Aquí hacemos zoom en el componente que mezcla información entre posiciones: <strong>self-attention</strong>. No vamos a entrenar otro modelo de lenguaje; vamos a aislar la operación y probar sus propiedades con tensores controlados.</p>
 <p>En self-attention, Query, Key y Value se calculan a partir de la misma secuencia de estados ocultos. Una Query se compara con las Keys disponibles; el resultado determina cuánto contribuye cada Value a la salida. Es una descripción funcional, no una traducción semántica literal: una Query no es necesariamente una pregunta lingüística, ni una Key una etiqueta interpretable. Son vectores aprendidos en un espacio de representación.</p>
 <p>La operación original de <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al. (2017)</a> se formula como scaled dot-product attention. Los Transformers actuales añaden decisiones arquitectónicas y de implementación —causalidad, RoPE, GQA, kernels eficientes— que conviene separar para no mezclar tres preguntas distintas: qué calcula la atención, cómo incorpora posición y cómo se ejecuta con menos memoria o movimiento de datos.</p>
 
@@ -247,7 +247,7 @@ dL/dW_V = X.T @ (dL/dV)</code></pre>
 <pre><code>KV bytes = 2 × H_kv × d_head × bytes_per_element
 Cache bytes = KV bytes × sequence_length × batch_size × layers</code></pre>
 <p>El primer factor 2 representa Key y Value. Para visualizar el efecto, usamos 32 Query heads, d_head = 128, BF16 (2 bytes) y una secuencia de 4.096 tokens. La tabla muestra una sola capa y una sola secuencia; para obtener el total de un modelo se multiplica por batch y número de capas:</p>
-<table class="data-table"><thead><tr><th>Diseño</th><th>KV heads</th><th>Bytes por token y capa</th><th>KV cache por capa</th></tr></thead><tbody>
+<table class="data-table"><thead><tr><th>Diseño</th><th>KV heads</th><th>Bytes por token y capa</th><th><a href="/es/analisis/inferencia-llm-prefill-decode-kv-cache/">KV cache</a> por capa</th></tr></thead><tbody>
 <tr><td>MHA</td><td>32</td><td>16 KiB</td><td>64 MiB</td></tr>
 <tr><td>GQA</td><td>8</td><td>4 KiB</td><td>16 MiB</td></tr>
 <tr><td>GQA</td><td>4</td><td>2 KiB</td><td>8 MiB</td></tr>

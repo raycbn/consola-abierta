@@ -91,7 +91,7 @@
 <div class="callout"><strong>The central idea</strong><p>Quantization represents a tensor using a smaller set of values, together with parameters that explain that representation. The format (FP8, INT8, INT4, NF4), scale granularity (tensor, channel, group), target (weights, activations or KV Cache), algorithm (RTN, GPTQ, AWQ, SmoothQuant) and execution kernel are related but different decisions. A four-bit label alone does not answer any deployment question.</p></div>
 
 <h2 id="problem">1. Why quantize: memory, bandwidth and serving capacity</h2>
-<p>In chapter 05 we saw how vLLM manages KV state through blocks and a continuous scheduler. Before the engine can take advantage of those blocks, it must load model weights and execute matrix operations. In many deployments, weights consume a substantial share of available VRAM. Reducing bits per parameter can let a model fit on a smaller GPU, free memory for KV Cache or reduce memory traffic.</p>
+<p>In chapter 05 we saw how <a href="/en/analysis/vllm-pagedattention-continuous-batching/">vLLM</a> manages KV state through blocks and a continuous scheduler. Before the engine can take advantage of those blocks, it must load model weights and execute matrix operations. In many deployments, weights consume a substantial share of available VRAM. Reducing bits per parameter can let a model fit on a smaller GPU, free memory for KV Cache or reduce memory traffic.</p>
 <p>There are three distinct motivations:</p>
 <ul>
 <li><strong>Memory footprint:</strong> fewer bits reduce checkpoint payload and, when the runtime keeps weights quantized, resident weight memory.</li>
@@ -252,7 +252,7 @@ W' x' = W D D^-1 x = W x</code></pre>
 <p>Total GPU consumption must add weights, KV Cache, temporary activations, execution buffers, workspaces, communication memory, modules kept in FP16/BF16/FP32 and allocator reservations. Also consider whether weights are replicated or sharded across GPUs. A model that fits based on weights alone may still fail when admitting long sequences or high concurrency.</p>
 
 <h2 id="kv">17. Quantized KV Cache: compress attention state, not the model</h2>
-<p>KV Cache stores Keys and Values for every token retained in the context. An approximate payload formula is:</p>
+<p><a href="/en/analysis/llm-inference-prefill-decode-kv-cache/">KV Cache</a> stores Keys and Values for every token retained in the context. An approximate payload formula is:</p>
 <pre><code>KV_bytes =
   2 × num_layers × batch_sequences × context_tokens
     × num_kv_heads × head_dim × bytes_per_element</code></pre>

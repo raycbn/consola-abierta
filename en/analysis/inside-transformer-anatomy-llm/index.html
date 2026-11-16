@@ -149,7 +149,7 @@ input_ids.dtype = torch.int64</code></pre>
 <p>The intuition behind attention is that a position builds a representation by combining information from other positions. Each hidden vector <code>X</code> is projected into three learned spaces:</p>
 <p><code>Q = X W_Q</code>, <code>K = X W_K</code> and <code>V = X W_V</code>.</p>
 <p>Query (Q) represents the pattern a position uses to look for information; Key (K) represents what each position can be matched against; Value (V) contains the vector that will be mixed after attention weights are calculated. These are conceptual guides, not literal statements about what a head “thinks”. The matrices <code>W_Q</code>, <code>W_K</code> and <code>W_V</code> are learned parameters.</p>
-<figure class="evidence-figure"><img src="/assets/labs/transformer-internals/attention-dataflow.svg" alt="Q K V tensor flow from linear projections through scaled dot-product attention and head concatenation"><figcaption>Q/K/V tensor flow. This is an explanatory diagram of the operations, not a tool screenshot or a visualisation of learned weights.</figcaption></figure>
+<figure class="evidence-figure"><img src="/assets/labs/transformer-internals/attention-dataflow.svg" alt="Q K V tensor flow from linear projections through scaled dot-product attention and head concatenation"><figcaption><a href="/en/analysis/self-attention-deep-dive/">Q/K/V</a> tensor flow. This is an explanatory diagram of the operations, not a tool screenshot or a visualisation of learned weights.</figcaption></figure>
 <h3>4.1 Scaled dot-product attention</h3>
 <p>First, each Query is compared with each Key using a matrix product. The result is scaled by the square root of the head dimension, normalised with softmax, and applied to Values:</p>
 <pre class="equation"><code>Attention(Q, K, V) = softmax((Q · Kᵀ) / √dₖ) · V</code></pre>
@@ -223,7 +223,7 @@ x = x + FeedForward(LayerNorm(x))</code></pre>
 logits, loss = model(input_ids, targets)
 loss.backward()
 optimizer.step()</code></pre>
-<p>Our lab uses AdamW and gradient clipping to norm 1.0. The CSV records loss and pre-clipping gradient norm for every step. The curve separates training loss from validation loss; the validation split is kept out of optimiser updates.</p>
+<p>Our lab uses <a href="/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/">AdamW</a> and gradient clipping to norm 1.0. The CSV records loss and pre-clipping gradient norm for every step. The curve separates training loss from validation loss; the validation split is kept out of optimiser updates.</p>
 <h3>10.2 Inference: autoregressive generation</h3>
 <p>During generation, the model does not know future tokens. It computes a distribution for the next token, selects one according to a sampling strategy, appends it to the context and repeats. This sequential dependency is one reason LLM serving requires dedicated optimisations.</p>
 <p>The TinyGPT generator recomputes the full context at each step. It does not implement a KV Cache; it must not be used to benchmark serving performance. Key/value caching, prefill/decode, batching and engines such as vLLM are covered in later articles.</p>

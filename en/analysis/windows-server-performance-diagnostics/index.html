@@ -121,7 +121,7 @@
 Get-Counter -ListSet * |
   Sort-Object CounterSetName |
   Select-Object CounterSetName, Paths</code></pre>
-<p><code>Get-Counter</code> is available on Windows in PowerShell 7. Microsoft explicitly notes the localisation of counter names and recommends enumerating sets. Also verify that instances exist on the target: roles, drivers and devices do not expose identical counter sets on every machine.</p>
+<p><code>Get-Counter</code> is available on Windows in <a href="/en/analysis/powershell-7-6-enterprise-migration/">PowerShell</a> 7. Microsoft explicitly notes the localisation of counter names and recommends enumerating sets. Also verify that instances exist on the target: roles, drivers and devices do not expose identical counter sets on every machine.</p>
 <h3>2.2 A reference collector with logman</h3>
 <p>The following set is an investigation baseline, not a universal template. It captures CPU, memory, process, disk and NIC signals every 15 seconds. Tune counters to the question being investigated; adding every instance of every object without a hypothesis increases volume and makes analysis harder.</p>
 <pre><code>New-Item -Path 'C:\PerfLogs' -ItemType Directory -Force | Out-Null

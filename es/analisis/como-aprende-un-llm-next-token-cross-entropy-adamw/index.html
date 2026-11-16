@@ -97,7 +97,7 @@
 
 <h2 id="scope">1. Qué significa que un LLM aprenda</h2>
 <p>En un decoder-only language model, el entrenamiento habitual consiste en modelar la probabilidad de una secuencia como una cadena de predicciones condicionadas por el prefijo. El modelo recibe tokens previos y estima una distribución para el siguiente. Durante el pretraining, los propios textos aportan los targets: no es necesario que una persona etiquete manualmente cada token siguiente.</p>
-<p>La arquitectura Transformer del capítulo 01 y la operación de self-attention del capítulo 02 ya están construidas. Aquí tratamos sus pesos como parámetros θ. Aprender consiste en encontrar valores de θ que reduzcan una función objetivo sobre ejemplos de entrenamiento. El optimizador no introduce conocimiento externo: transforma gradientes en actualizaciones de parámetros.</p>
+<p>La arquitectura <a href="/es/analisis/anatomia-interna-transformer-llm/">Transformer</a> del capítulo 01 y la operación de <a href="/es/analisis/self-attention-en-profundidad/">self-attention</a> del capítulo 02 ya están construidas. Aquí tratamos sus pesos como parámetros θ. Aprender consiste en encontrar valores de θ que reduzcan una función objetivo sobre ejemplos de entrenamiento. El optimizador no introduce conocimiento externo: transforma gradientes en actualizaciones de parámetros.</p>
 <p>Conviene separar tres capas de razonamiento:</p>
 <ul><li><strong>Objetivo:</strong> qué probabilidad queremos aumentar o qué error queremos reducir.</li><li><strong>Gradiente:</strong> cómo cambia el objetivo cuando modificamos cada parámetro.</li><li><strong>Optimizador:</strong> cómo combina gradientes, learning rate, estado histórico y regularización para producir un update.</li></ul>
 

@@ -91,7 +91,7 @@
 <div class="callout"><strong>La idea central</strong><p>Distributed inference no consiste en dividir el número de GPUs entre el tamaño del modelo. Consiste en elegir un layout de tensores y una topología de ejecución. Tensor Parallelism divide el cálculo dentro de capas; Pipeline Parallelism divide la profundidad; Data Parallelism replica el modelo para repartir peticiones. Cada estrategia mueve datos diferentes y tiene un coste distinto. La interconexión física es parte del diseño, no un detalle de infraestructura que se resuelve después.</p></div>
 
 <h2 id="problem">1. Por qué distribuir: capacidad, latencia y throughput son objetivos diferentes</h2>
-<p>En los capítulos anteriores hemos reducido la precisión de los pesos con quantization y aprendido cómo vLLM administra memoria KV y peticiones mediante Continuous Batching. Aun así, un modelo puede no caber en una GPU, consumir demasiada memoria para mantener suficiente KV Cache o no alcanzar el throughput objetivo. Distribuir la inferencia permite repartir pesos, operaciones o carga entre varios aceleradores.</p>
+<p>En los capítulos anteriores hemos reducido la precisión de los pesos con quantization y aprendido cómo <a href="/es/analisis/vllm-pagedattention-continuous-batching/">vLLM</a> administra memoria KV y peticiones mediante Continuous Batching. Aun así, un modelo puede no caber en una GPU, consumir demasiada memoria para mantener suficiente <a href="/es/analisis/inferencia-llm-prefill-decode-kv-cache/">KV Cache</a> o no alcanzar el throughput objetivo. Distribuir la inferencia permite repartir pesos, operaciones o carga entre varios aceleradores.</p>
 <p>Conviene separar tres objetivos:</p>
 <ul>
 <li><strong>Capacity:</strong> el modelo o su estado no cabe en una GPU. La prioridad es que cada dispositivo almacene una fracción del modelo y que la inferencia sea posible.</li>
@@ -309,7 +309,7 @@ nvidia-smi topo -p2p p</code></pre>
 <h3>Serving benchmark</h3>
 <p>Después mide vLLM o el engine final con prompts y outputs representativos, batch/concurrency definidos y warmup. Conserva:</p>
 <ul><li>TTFT, TPOT/inter-token latency y percentiles p50/p95/p99.</li><li>Input/output tokens por segundo y requests por segundo.</li><li>Concurrencia activa, queue time, prompt length, output length y distribución de long-context.</li><li>GPU memory, utilización, HBM, enlaces, KV usage, colas y errores.</li><li>TP/PP degree, rank mapping, versión de CUDA/driver/NCCL, backend, algoritmo elegido y transport.</li></ul>
-<p>Los microbenchmarks ayudan a localizar un problema de transporte. No sustituyen la medición end-to-end de la aplicación. <a href="https://github.com/NVIDIA/nccl-tests" rel="noopener">NVIDIA NCCL Tests</a> · <a href="https://github.com/NVIDIA/nvbandwidth" rel="noopener">NVIDIA nvbandwidth</a>.</p>
+<p>Los micro<a href="/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/">benchmarks</a> ayudan a localizar un problema de transporte. No sustituyen la medición end-to-end de la aplicación. <a href="https://github.com/NVIDIA/nccl-tests" rel="noopener">NVIDIA NCCL Tests</a> · <a href="https://github.com/NVIDIA/nvbandwidth" rel="noopener">NVIDIA nvbandwidth</a>.</p>
 
 <h2 id="observability">18. NCCL logs y observabilidad: detectar qué ruta se está usando</h2>
 <p>Para una investigación controlada, NCCL puede elevar el nivel de logging:</p>

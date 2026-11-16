@@ -203,7 +203,7 @@ total_token_throughput = (input_tokens + output_tokens) / measurement_window_sec
 <p>Los valores son ilustrativos, no una configuración recomendada. Un benchmark real debe completar campos verificables.</p>
 
 <h2 id="vllm">11. Benchmarking práctico con vLLM</h2>
-<p>vLLM ofrece comandos separados para medir serving por API y throughput offline. No son equivalentes: <code>bench serve</code> observa el endpoint desde un cliente; <code>bench throughput</code> se centra en generación dentro del proceso y no reproduce por sí solo la ruta de red, gateway y API que ve el usuario.</p>
+<p><a href="/es/analisis/vllm-pagedattention-continuous-batching/">vLLM</a> ofrece comandos separados para medir serving por API y throughput offline. No son equivalentes: <code>bench serve</code> observa el endpoint desde un cliente; <code>bench throughput</code> se centra en generación dentro del proceso y no reproduce por sí solo la ruta de red, gateway y API que ve el usuario.</p>
 <h3>Levantar un servidor</h3><pre><code>vllm serve MODEL_ID --enable-per-request-metrics</code></pre>
 <p>Usa un modelo al que tengas acceso y cuyos términos permitan la prueba. Fija revisión y configuración. La instrumentación por petición facilita el diagnóstico, pero conviene realizar también una medición headline con el mínimo overhead posible.</p>
 <h3>Generar carga mediante el endpoint</h3><pre><code>vllm bench serve \
@@ -262,7 +262,7 @@ total_token_throughput = (input_tokens + output_tokens) / measurement_window_sec
 
 <h2 id="longcontext">16. Long context, prefix cache y continuous batching</h2>
 <p>Aumentar input length eleva el trabajo de Prefill y el tamaño de KV Cache. La capacidad de admitir nuevas secuencias puede caer aunque el throughput de una fase suba. Un prefix cache hit también puede beneficiar mucho más a un prompt largo que a uno corto.</p>
-<p>Continuous batching permite incorporar nuevas secuencias cuando otras terminan; no es el mismo experimento que un static batch cerrado. Registra running/waiting requests, preemption, KV block pressure, prefix cache hits y secuencias activas.</p>
+<p><a href="/es/analisis/vllm-pagedattention-continuous-batching/">Continuous batching</a> permite incorporar nuevas secuencias cuando otras terminan; no es el mismo experimento que un static batch cerrado. Registra running/waiting requests, preemption, KV block pressure, prefix cache hits y secuencias activas.</p>
 <ul><li><strong>Cache cold:</strong> prefijos no reutilizados, cache reseteada de forma declarada.</li><li><strong>Prefix warm:</strong> instrucciones/prefijos repetidos con cache activa.</li><li><strong>Long prompt:</strong> input tokens altos y output fijo, para aislar Prefill.</li><li><strong>Long decode:</strong> prompt fijo y output largo, para estudiar generación y ocupación.</li><li><strong>Mixed:</strong> distribución de producción con longitudes variables.</li></ul>
 <p>Especifica max_model_len, max_num_seqs, KV dtype, block size, chunked prefill, speculative decoding y políticas de scheduler/cache que alteren el resultado.</p>
 

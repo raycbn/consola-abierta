@@ -258,6 +258,7 @@ SELECT CASE WHEN OBJECT_ID(N'dbo.CA_TempdbLogGrowthLab', N'U') IS NULL
 <li><strong>Do not copy the lab configuration into production.</strong> The 8 MB increment was selected to expose growth events; production sizing must reflect workload and storage capacity.</li>
 <li><strong>Do not generalise this fix to every reuse wait.</strong> Read the observed wait reason and follow the relevant diagnostic path. Not every log reuse issue is fixed by rolling back a transaction.</li>
 </ul>
+<p>To extend diagnosis to the host running the instance, see the <a href="/en/analysis/windows-server-performance-diagnostics/">Windows Server performance diagnostics methodology</a>, which correlates CPU, memory, storage and networking.</p>
 <h2 id="sources">10. Primary sources and lab package</h2>
 <ul>
 <li><a href="https://learn.microsoft.com/en-us/sql/relational-databases/logs/the-transaction-log-sql-server?view=sql-server-ver17" target="_blank" rel="noopener">Microsoft Learn — The transaction log</a>. Log truncation, reuse and wait reasons.</li>

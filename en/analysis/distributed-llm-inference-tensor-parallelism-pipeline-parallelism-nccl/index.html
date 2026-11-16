@@ -91,7 +91,7 @@
 <div class="callout"><strong>The central idea</strong><p>Distributed inference is not about dividing the GPU count by the model size. It is about choosing a tensor layout and an execution topology. Tensor Parallelism divides computation inside layers; Pipeline Parallelism divides model depth; Data Parallelism replicates the model to distribute requests. Each strategy moves different data and has a different cost. Physical interconnect is part of the design, not an infrastructure detail to solve afterwards.</p></div>
 
 <h2 id="problem">1. Why distribute: capacity, latency and throughput are different goals</h2>
-<p>In previous chapters we reduced weight precision through quantization and learned how vLLM manages KV memory and requests with Continuous Batching. Even so, a model may not fit on one GPU, may consume too much memory to retain enough KV Cache, or may fail to meet a throughput target. Distributed inference lets us split weights, operations or request load across accelerators.</p>
+<p>In previous chapters we reduced weight precision through quantization and learned how <a href="/en/analysis/vllm-pagedattention-continuous-batching/">vLLM</a> manages KV memory and requests with Continuous Batching. Even so, a model may not fit on one GPU, may consume too much memory to retain enough <a href="/en/analysis/llm-inference-prefill-decode-kv-cache/">KV Cache</a>, or may fail to meet a throughput target. Distributed inference lets us split weights, operations or request load across accelerators.</p>
 <p>Keep three goals separate:</p>
 <ul>
 <li><strong>Capacity:</strong> the model or its state does not fit on one GPU. The priority is to store a fraction of the model on each device and make inference possible.</li>
@@ -309,7 +309,7 @@ nvidia-smi topo -p2p p</code></pre>
 <h3>Serving benchmark</h3>
 <p>Then benchmark vLLM or the final engine with representative prompts and outputs, defined concurrency and warmup. Keep:</p>
 <ul><li>TTFT, TPOT/inter-token latency and p50/p95/p99 percentiles.</li><li>Input/output tokens per second and requests per second.</li><li>Active concurrency, queue time, prompt length, output length and long-context distribution.</li><li>GPU memory, utilization, HBM, links, KV usage, queues and errors.</li><li>TP/PP degree, rank mapping, CUDA/driver/NCCL versions, backend, selected algorithm and transport.</li></ul>
-<p>Microbenchmarks help isolate transport problems. They do not replace end-to-end application measurement. <a href="https://github.com/NVIDIA/nccl-tests" rel="noopener">NVIDIA NCCL Tests</a> · <a href="https://github.com/NVIDIA/nvbandwidth" rel="noopener">NVIDIA nvbandwidth</a>.</p>
+<p>Micro<a href="/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/">benchmarks</a> help isolate transport problems. They do not replace end-to-end application measurement. <a href="https://github.com/NVIDIA/nccl-tests" rel="noopener">NVIDIA NCCL Tests</a> · <a href="https://github.com/NVIDIA/nvbandwidth" rel="noopener">NVIDIA nvbandwidth</a>.</p>
 
 <h2 id="observability">18. NCCL logs and observability: identify which path is being used</h2>
 <p>For a controlled investigation, NCCL can increase its logging level:</p>

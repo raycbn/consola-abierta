@@ -121,7 +121,7 @@
 Get-Counter -ListSet * |
   Sort-Object CounterSetName |
   Select-Object CounterSetName, Paths</code></pre>
-<p>En PowerShell 7, <code>Get-Counter</code> está disponible en Windows. La propia documentación advierte de la localización de los nombres y recomienda enumerar los conjuntos. Verifica también que las instancias existen en esa máquina; no todos los roles, drivers o dispositivos exponen el mismo conjunto de contadores.</p>
+<p>En <a href="/es/analisis/powershell-7-6-migracion-empresarial/">PowerShell</a> 7, <code>Get-Counter</code> está disponible en Windows. La propia documentación advierte de la localización de los nombres y recomienda enumerar los conjuntos. Verifica también que las instancias existen en esa máquina; no todos los roles, drivers o dispositivos exponen el mismo conjunto de contadores.</p>
 <h3>2.2 Recopilador de referencia con logman</h3>
 <p>El siguiente conjunto es una base de investigación, no una plantilla universal. Recoge señales de CPU, memoria, proceso, disco y NIC a intervalos de 15 segundos. Ajusta los contadores a la pregunta que estés intentando responder; añadir todas las instancias y todos los objetos sin criterio aumenta el volumen y complica la lectura.</p>
 <pre><code>New-Item -Path 'C:\PerfLogs' -ItemType Directory -Force | Out-Null

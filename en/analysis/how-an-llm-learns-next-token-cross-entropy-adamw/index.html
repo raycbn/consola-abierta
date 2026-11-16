@@ -97,7 +97,7 @@
 
 <h2 id="scope">1. What does it mean for an LLM to learn?</h2>
 <p>A decoder-only language model is commonly trained to model a sequence as a chain of predictions conditioned on the preceding prefix. The model receives earlier tokens and estimates a distribution for the next one. During pretraining, the text itself supplies the targets: each next token is a training target without requiring manual annotation.</p>
-<p>The Transformer architecture from chapter 01 and the self-attention operation from chapter 02 are already in place. Here we treat their weights as parameters θ. Learning means finding parameter values that reduce an objective over training examples. The optimiser does not add outside knowledge; it turns gradients into parameter updates.</p>
+<p>The Transformer architecture from <a href="/en/analysis/inside-transformer-anatomy-llm/">chapter 01</a> and the <a href="/en/analysis/self-attention-deep-dive/">self-attention</a> operation from chapter 02 are already in place. Here we treat their weights as parameters θ. Learning means finding parameter values that reduce an objective over training examples. The optimiser does not add outside knowledge; it turns gradients into parameter updates.</p>
 <p>Keep three layers of reasoning distinct:</p>
 <ul><li><strong>Objective:</strong> which probability should increase, or which error should decrease?</li><li><strong>Gradient:</strong> how does the objective change when a parameter changes?</li><li><strong>Optimiser:</strong> how does the update combine gradients, learning rate, historical state and regularisation?</li></ul>
 

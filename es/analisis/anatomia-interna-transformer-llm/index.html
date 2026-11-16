@@ -149,7 +149,7 @@ input_ids.dtype = torch.int64</code></pre>
 <p>La intuición de atención es que una posición construye una representación combinando información de otras posiciones. Para cada vector oculto <code>X</code> se calculan tres proyecciones aprendidas:</p>
 <p><code>Q = X W_Q</code>, <code>K = X W_K</code> y <code>V = X W_V</code>.</p>
 <p>Query (Q) representa el patrón que una posición utiliza para buscar información; Key (K) representa con qué se compara cada posición; Value (V) contiene el vector que se mezcla una vez calculados los pesos. Esta explicación es una guía conceptual, no una interpretación literal de lo que “piensa” cada cabeza. Las matrices <code>W_Q</code>, <code>W_K</code> y <code>W_V</code> son parámetros aprendidos por el modelo.</p>
-<figure class="evidence-figure"><img src="/assets/labs/transformer-internals/attention-dataflow.svg" alt="Flujo de tensores Q K V desde las proyecciones lineales hasta scaled dot-product attention y concatenación de cabezas"><figcaption>Flujo tensorial de Q/K/V. El diagrama es un esquema explicativo de las operaciones, no una captura de una herramienta ni una visualización de los pesos aprendidos.</figcaption></figure>
+<figure class="evidence-figure"><img src="/assets/labs/transformer-internals/attention-dataflow.svg" alt="Flujo de tensores Q K V desde las proyecciones lineales hasta scaled dot-product attention y concatenación de cabezas"><figcaption>Flujo tensorial de <a href="/es/analisis/self-attention-en-profundidad/">Q/K/V</a>. El diagrama es un esquema explicativo de las operaciones, no una captura de una herramienta ni una visualización de los pesos aprendidos.</figcaption></figure>
 <h3>4.1 Scaled dot-product attention</h3>
 <p>Primero se calcula la compatibilidad de cada Query con cada Key mediante un producto matricial. Después se escala por la raíz cuadrada de la dimensión de la cabeza, se normaliza con softmax y se aplica el resultado a Values:</p>
 <pre class="equation"><code>Attention(Q, K, V) = softmax((Q · Kᵀ) / √dₖ) · V</code></pre>
@@ -223,7 +223,7 @@ x = x + FeedForward(LayerNorm(x))</code></pre>
 logits, loss = model(input_ids, targets)
 loss.backward()
 optimizer.step()</code></pre>
-<p>En el laboratorio usamos AdamW y gradient clipping a norma 1.0. El CSV guarda la loss y la norma del gradiente previa al clipping para cada paso. La curva separa training loss y validation loss; el conjunto de validación se mantiene fuera de las actualizaciones del optimizador.</p>
+<p>En el laboratorio usamos <a href="/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/">AdamW</a> y gradient clipping a norma 1.0. El CSV guarda la loss y la norma del gradiente previa al clipping para cada paso. La curva separa training loss y validation loss; el conjunto de validación se mantiene fuera de las actualizaciones del optimizador.</p>
 <h3>10.2 Inference: generación autoregresiva</h3>
 <p>En generación, el modelo no conoce los tokens futuros. Calcula una distribución para el siguiente token, selecciona uno según la estrategia de sampling y lo añade al contexto. Repite el ciclo hasta alcanzar una condición de parada. Esta dependencia secuencial es una de las razones por las que el serving de LLM requiere optimizaciones específicas.</p>
 <p>El generador TinyGPT recalcula el contexto completo en cada paso. No implementa KV Cache; por ello no debe utilizarse para medir rendimiento de serving. La caché de Key y Value, el prefill/decode, el batching y los motores como vLLM se tratan en artículos posteriores.</p>

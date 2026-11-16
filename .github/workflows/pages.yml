@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Validate structured data
         run: node validate-structured-data.cjs
+      - name: Validate internal links
+        run: node validate-internal-links.cjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:

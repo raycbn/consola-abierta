@@ -91,7 +91,7 @@
 <div class="callout"><strong>La idea central</strong><p>Cuantizar es representar un tensor mediante un conjunto más pequeño de valores, acompañado por parámetros que permiten interpretar esa representación. El formato (FP8, INT8, INT4, NF4), la granularidad de las escalas (tensor, canal, grupo), el objetivo (weights, activations o KV Cache), el algoritmo (RTN, GPTQ, AWQ, SmoothQuant) y el kernel de ejecución son decisiones relacionadas, pero diferentes. Una etiqueta de 4 bits no responde por sí sola a ninguna de las preguntas de despliegue.</p></div>
 
 <h2 id="problem">1. Por qué cuantizamos: memoria, bandwidth y capacidad de serving</h2>
-<p>En el capítulo 05 vimos que vLLM administra el estado KV con bloques y un scheduler continuo. Antes de que el motor pueda aprovechar esos bloques, necesita cargar los pesos del modelo y ejecutar operaciones matriciales. En muchos despliegues, los pesos ocupan una parte sustancial de la VRAM disponible. Reducir sus bits por parámetro puede permitir que el modelo entre en una GPU más pequeña, liberar memoria para KV Cache o reducir tráfico de memoria.</p>
+<p>En el capítulo 05 vimos que <a href="/es/analisis/vllm-pagedattention-continuous-batching/">vLLM</a> administra el estado KV con bloques y un scheduler continuo. Antes de que el motor pueda aprovechar esos bloques, necesita cargar los pesos del modelo y ejecutar operaciones matriciales. En muchos despliegues, los pesos ocupan una parte sustancial de la VRAM disponible. Reducir sus bits por parámetro puede permitir que el modelo entre en una GPU más pequeña, liberar memoria para KV Cache o reducir tráfico de memoria.</p>
 <p>Hay tres motivaciones distintas:</p>
 <ul>
 <li><strong>Memory footprint:</strong> representar los parámetros con menos bits reduce el payload del checkpoint y, cuando el runtime lo conserva cuantizado, la memoria de pesos residente.</li>
@@ -252,7 +252,7 @@ W' x' = W D D^-1 x = W x</code></pre>
 <p>El consumo total de GPU requiere sumar pesos, KV Cache, activaciones, buffers de ejecución, workspaces, memoria de comunicación, módulos que se mantienen en FP16/BF16/FP32 y reservas del allocator. También hay que tener en cuenta si los pesos se replican o se reparten entre GPUs. Un modelo que cabe por los pesos puede fallar al admitir secuencias largas o concurrencia alta.</p>
 
 <h2 id="kv">17. Quantized KV Cache: comprimir estado de atención, no el modelo</h2>
-<p>La KV Cache almacena Keys y Values para cada token que mantiene el contexto. Una aproximación del payload es:</p>
+<p>La <a href="/es/analisis/inferencia-llm-prefill-decode-kv-cache/">KV Cache</a> almacena Keys y Values para cada token que mantiene el contexto. Una aproximación del payload es:</p>
 <pre><code>KV_bytes =
   2 × num_layers × batch_sequences × context_tokens
     × num_kv_heads × head_dim × bytes_per_element</code></pre>
