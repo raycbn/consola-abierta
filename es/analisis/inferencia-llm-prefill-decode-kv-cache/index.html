@@ -12,6 +12,7 @@
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"LLM Inference: Prefill, Decode y KV Cache","description":"Análisis técnico de las fases de inferencia autoregresiva y el almacenamiento y reutilización de Key/Value states, con un laboratorio CPU reproducible.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/"}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
 </head>
 <body>
 <a class="skip-link" href="#content">Saltar al contenido</a>
@@ -199,6 +200,13 @@ context = weights @ V_all</code></pre>
 <li>Vaswani et al. (2017), <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention Is All You Need</a>. Fundamentos de atención y Transformer.</li>
 </ul>
 <p class="page-end">Fuentes revisadas el 14 de noviembre de 2026. Los resultados experimentales corresponden al laboratorio CPU descrito y no se extrapolan a sistemas de producción.</p>
+<section class="article-continuity" aria-label="Contin?a tu recorrido" data-learning-route="llm" data-learning-step="4">
+<div class="article-continuity-head"><span class="article-continuity-kicker">SIGUIENTE PASO DE APRENDIZAJE</span><h2>Contin?a tu recorrido</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Siguiente lectura</p><h3><a href="/es/analisis/vllm-pagedattention-continuous-batching/">vLLM por dentro: PagedAttention y Continuous Batching</a></h3><p>Pasa de una secuencia aislada a muchas peticiones concurrentes y estudia c?mo se gestiona la KV Cache compartida por el runtime.</p><a class="article-continuity-link" href="/es/analisis/vllm-pagedattention-continuous-batching/">Leer siguiente investigaci?n ?</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Pr?ctica asociada</p><h3>Laboratorio 04 ? Inference</h3><p>Valida la equivalencia num?rica entre decode incremental y forward completo y calcula memoria KV en CPU.</p><a class="article-continuity-link" href="/assets/labs/inference/inference-engineering-04-lab.zip">Descargar laboratorio ?</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Tu ruta</p><h3><a href="/es/rutas/#llm-04">LLM Engineering ? etapa 4 de 8</a></h3><p>Separar Prefill y Decode y cuantificar memoria KV.</p><a class="article-continuity-link" href="/es/rutas/#llm-04">Ver esta etapa en la ruta ?</a></div>
+</div></section>
 </article>
 <aside class="article-aside"><div class="toc-title">Estado de la serie</div><p><strong>Publicados</strong><br>4 / 8</p><p><strong>Laboratorios</strong><br>TinyGPT · Attention · Training · Inference</p><p><strong>Siguiente bloque</strong><br>vLLM · PagedAttention · Continuous Batching</p><p><strong>Idioma</strong><br>Español · English</p><p><a class="text-link" href="/es/series/llm-engineering/">Volver a LLM Engineering ↗</a></p></aside>
 </div>

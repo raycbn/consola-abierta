@@ -13,6 +13,7 @@
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Anatomía interna de un Transformer: de los tokens a un LLM decoder-only","description":"Análisis técnico de embeddings, self-attention, Q/K/V, causal masking, Pre-LayerNorm, logits y entrenamiento autoregresivo, con laboratorio PyTorch reproducido.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/anatomia-interna-transformer-llm/"}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
 </head>
 <body>
 <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -259,6 +260,13 @@ optimizer.step()</code></pre>
 <li><a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">Andrej Karpathy — nanoGPT, model.py</a>. Implementación compacta de referencia para inspeccionar bloques GPT y su entrenamiento.</li>
 </ul>
 <p class="page-end">Fecha de publicación: 14 noviembre 2026 · Entorno reproducido: Windows 11 build 26300, Python 3.12.10, PyTorch 2.14.0+cpu, Intel Core i5-1155G7, 16 GB RAM, CPU-only. Revisión documental: 14 noviembre 2026. El laboratorio no es un benchmark ni una prueba de calidad de generación de un LLM de propósito general.</p>
+<section class="article-continuity" aria-label="Contin?a tu recorrido" data-learning-route="llm" data-learning-step="1">
+<div class="article-continuity-head"><span class="article-continuity-kicker">SIGUIENTE PASO DE APRENDIZAJE</span><h2>Contin?a tu recorrido</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Siguiente lectura</p><h3><a href="/es/analisis/self-attention-en-profundidad/">Self-Attention en profundidad</a></h3><p>Una vez conocido el recorrido del Transformer, a?sla la operaci?n que mezcla informaci?n entre tokens y deriva sus gradientes.</p><a class="article-continuity-link" href="/es/analisis/self-attention-en-profundidad/">Leer siguiente investigaci?n ?</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Pr?ctica asociada</p><h3>Laboratorio 01 ? TinyGPT</h3><p>Implementa y entrena un decoder-only peque?o en CPU con PyTorch; incluye c?digo, checkpoint y evidencias.</p><a class="article-continuity-link" href="/assets/labs/transformer-internals/transformer-internals-01-lab.zip">Descargar laboratorio ?</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Tu ruta</p><h3><a href="/es/rutas/#llm-01">LLM Engineering ? etapa 1 de 8</a></h3><p>Fundamentos: tokens, embeddings, Q/K/V, causal masking y decoder blocks.</p><a class="article-continuity-link" href="/es/rutas/#llm-01">Ver esta etapa en la ruta ?</a></div>
+</div></section>
 </article>
 <aside class="article-aside"><div class="toc-title">Ficha técnica</div>
 <p><strong>Serie</strong><br>LLM Engineering · 01 / 08</p>

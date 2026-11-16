@@ -13,6 +13,7 @@
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Inside a Transformer: from tokens to a decoder-only LLM","description":"A technical deep dive into embeddings, self-attention, Q/K/V, causal masking, Pre-LayerNorm, logits and autoregressive training, with a reproduced PyTorch lab.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/inside-transformer-anatomy-llm/"}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
 </head>
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
@@ -259,6 +260,13 @@ optimizer.step()</code></pre>
 <li><a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">Andrej Karpathy — nanoGPT, model.py</a>. Compact reference implementation for inspecting GPT blocks and training.</li>
 </ul>
 <p class="page-end">Publication date: 14 November 2026 · Reproduced environment: Windows 11 build 26300, Python 3.12.10, PyTorch 2.14.0+cpu, Intel Core i5-1155G7, 16 GB RAM, CPU-only. Documentation reviewed: 14 November 2026. This lab is not a benchmark or a test of general-purpose LLM generation quality.</p>
+<section class="article-continuity" aria-label="Keep learning" data-learning-route="llm" data-learning-step="1">
+<div class="article-continuity-head"><span class="article-continuity-kicker">CONTINUE YOUR LEARNING</span><h2>Keep learning</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Next reading</p><h3><a href="/en/analysis/self-attention-deep-dive/">Self-Attention Deep Dive</a></h3><p>Once you understand the Transformer data flow, isolate the operation that mixes information across tokens and derive its gradients.</p><a class="article-continuity-link" href="/en/analysis/self-attention-deep-dive/">Read the next investigation ?</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Hands-on practice</p><h3>Lab 01 ? TinyGPT</h3><p>Implement and train a small decoder-only model on CPU with PyTorch; includes code, checkpoint and evidence.</p><a class="article-continuity-link" href="/assets/labs/transformer-internals/transformer-internals-01-lab.zip">Download lab ?</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Your learning path</p><h3><a href="/en/paths/#llm-01">LLM Engineering ? stage 1 of 8</a></h3><p>Foundations: tokens, embeddings, Q/K/V, causal masking and decoder blocks.</p><a class="article-continuity-link" href="/en/paths/#llm-01">View this stage in the path ?</a></div>
+</div></section>
 </article>
 <aside class="article-aside"><div class="toc-title">Technical brief</div>
 <p><strong>Series</strong><br>LLM Engineering · 01 / 08</p><p><strong>Architecture</strong><br>Decoder-only · Pre-LN</p><p><strong>Framework</strong><br>PyTorch 2.14.0+cpu</p><p><strong>Parameters</strong><br>110,464</p><p><strong>Training</strong><br>600 steps · 53.383 s</p><p><strong>Causal validation</strong><br>Future mass = 0 · prefix delta = 0</p><p><strong>Evidence</strong><br>Lab verified · CPU-only</p>

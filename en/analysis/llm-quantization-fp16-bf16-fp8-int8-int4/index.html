@@ -12,6 +12,7 @@
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"LLM Quantization: FP16, BF16, FP8, INT8 and INT4 from the inside","description":"Technical investigation into low-precision formats, weight and activation quantization, calibration, post-training methods and KV Cache quantization. Includes a reproducible Python standard-library lab.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/llm-quantization-fp16-bf16-fp8-int8-int4/"}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
 </head>
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
@@ -316,6 +317,13 @@ cd .\llm-quantization-06
 <li><a href="https://arxiv.org/abs/2305.14314" rel="noopener">Dettmers et al. — QLoRA: Efficient Finetuning of Quantized LLMs</a>.</li>
 </ul>
 <p class="page-end">Documentation and compatibility matrix reviewed on 14 November 2026. Framework, kernel and format support can change; check documentation for the exact release before deployment.</p>
+<section class="article-continuity" aria-label="Keep learning" data-learning-route="llm" data-learning-step="6">
+<div class="article-continuity-head"><span class="article-continuity-kicker">CONTINUE YOUR LEARNING</span><h2>Keep learning</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Next reading</p><h3><a href="/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/">Distributed LLM Inference: Tensor and Pipeline Parallelism</a></h3><p>After optimising representation, study how to partition the model and move tensors across GPUs and nodes.</p><a class="article-continuity-link" href="/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/">Read the next investigation ?</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Hands-on practice</p><h3>Lab 06 ? Quantization</h3><p>Explore scales, zero-points, clipping, outliers and reconstruction error with a numerical simulator; it does not quantise real checkpoints.</p><a class="article-continuity-link" href="/assets/labs/quantization/llm-quantization-06-lab.zip">Download lab ?</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Your learning path</p><h3><a href="/en/paths/#llm-06">LLM Engineering ? stage 6 of 8</a></h3><p>Compare precision, scaling, granularity and memory trade-offs.</p><a class="article-continuity-link" href="/en/paths/#llm-06">View this stage in the path ?</a></div>
+</div></section>
 </article>
 <aside class="article-aside"><div class="toc-title">This instalment</div><p><strong>Series</strong><br>LLM Engineering · 06 / 08</p><p><strong>Concepts</strong><br>FP16 · BF16 · FP8 · INT8 · INT4 · NF4 · GPTQ · AWQ · SmoothQuant</p><p><strong>Lab</strong><br>Python 3.12 · CPU-only · 12 checks PASS</p><p><strong>Cost</strong><br>€0 · no external dependencies</p><p><strong>Next</strong><br>Distributed Inference</p><p><a href="/assets/labs/quantization/llm-quantization-06-lab.zip">Download lab ↗</a></p></aside>
 </div>

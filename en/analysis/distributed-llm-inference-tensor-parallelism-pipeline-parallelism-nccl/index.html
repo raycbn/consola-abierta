@@ -12,6 +12,7 @@
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL","description":"Technical investigation into model partitioning, collective communication, GPU topology and multi-node serving. Includes a reproducible TP, PP and NCCL concepts simulator written with the Python standard library.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"en","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
 </head>
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
@@ -329,6 +330,13 @@ cd .\llm-distributed-inference-07
 <li><a href="https://docs.nvidia.com/megatron-core/developer-guide/latest/user-guide/parallelism-guide.html" rel="noopener">Megatron Core — Parallelism Strategies Guide</a>: TP, PP, CP, EP and combined parallelism.</li>
 </ul>
 <p class="page-end">Documentation reviewed on 14 November 2026. Hardware compatibility, algorithms and runtime options depend on the exact installed release; always validate against the production release and model.</p>
+<section class="article-continuity" aria-label="Keep learning" data-learning-route="llm" data-learning-step="7">
+<div class="article-continuity-head"><span class="article-continuity-kicker">CONTINUE YOUR LEARNING</span><h2>Keep learning</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Next reading</p><h3><a href="/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/">LLM Benchmarking: TTFT, TPOT and Throughput</a></h3><p>Close the loop by measuring the whole system: user latency, aggregate throughput, queues, percentiles and goodput.</p><a class="article-continuity-link" href="/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/">Read the next investigation ?</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Hands-on practice</p><h3>Lab 07 ? Distributed Inference</h3><p>Model sharding, ideal Ring AllReduce volume, pipeline fill/drain and topologies. Network profiles are hypothetical.</p><a class="article-continuity-link" href="/assets/labs/distributed-inference/llm-distributed-inference-07-lab.zip">Download lab ?</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Your learning path</p><h3><a href="/en/paths/#llm-07">LLM Engineering ? stage 7 of 8</a></h3><p>Understand partitioning, communication collectives and physical topology.</p><a class="article-continuity-link" href="/en/paths/#llm-07">View this stage in the path ?</a></div>
+</div></section>
 </article>
 <aside class="article-aside"><div class="toc-title">This instalment</div><p><strong>Series</strong><br>LLM Engineering · 07 / 08</p><p><strong>Concepts</strong><br>TP · PP · DP · CP · EP · NCCL · NVLink · PCIe · RDMA</p><p><strong>Lab</strong><br>Python 3.12 · CPU-only · 16 checks PASS</p><p><strong>Cost</strong><br>€0 · no external dependencies</p><p><strong>Next</strong><br>LLM Benchmarking</p><p><a href="/assets/labs/distributed-inference/llm-distributed-inference-07-lab.zip">Download lab ↗</a></p></aside>
 </div>

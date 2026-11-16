@@ -13,6 +13,7 @@
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Self-Attention en profundidad: matemáticas, gradientes y variantes modernas","description":"Derivación matemática de self-attention, gradientes Q/K/V, softmax scaling, GQA/MQA y RoPE con laboratorio PyTorch verificado.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
 </head>
 <body>
 <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -278,6 +279,13 @@ def self_attention(q, k, v, causal=True):
 <li>Jain y Wallace (2019), <a href="https://aclanthology.org/N19-1357/" target="_blank" rel="noopener">Attention is not Explanation</a>; Wiegreffe y Pinter (2019), <a href="https://aclanthology.org/D19-1002/" target="_blank" rel="noopener">Attention is not not Explanation</a>. Debate sobre el uso de pesos de atención como explicación.</li>
 </ul>
 <p class="page-end">Fuentes contrastadas el 14 de noviembre de 2026. Laboratorio reproducido en el entorno indicado; las cifras no se extrapolan a GPU ni a modelos de producción.</p>
+<section class="article-continuity" aria-label="Contin?a tu recorrido" data-learning-route="llm" data-learning-step="2">
+<div class="article-continuity-head"><span class="article-continuity-kicker">SIGUIENTE PASO DE APRENDIZAJE</span><h2>Contin?a tu recorrido</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Siguiente lectura</p><h3><a href="/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/">C?mo aprende un LLM: Cross Entropy, backpropagation y AdamW</a></h3><p>Conecta el mecanismo de atenci?n con el objetivo next-token y el proceso que convierte el error en updates de par?metros.</p><a class="article-continuity-link" href="/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/">Leer siguiente investigaci?n ?</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Pr?ctica asociada</p><h3>Laboratorio 02 ? Self-Attention</h3><p>Contrasta derivadas manuales con autograd y valida gradientes, SDPA, variantes GQA/MQA y una identidad de RoPE.</p><a class="article-continuity-link" href="/assets/labs/self-attention/self-attention-02-lab.zip">Descargar laboratorio ?</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Tu ruta</p><h3><a href="/es/rutas/#llm-02">LLM Engineering ? etapa 2 de 8</a></h3><p>Derivar scores, softmax, weighted sum y backward pass; comparar MHA, MQA y GQA.</p><a class="article-continuity-link" href="/es/rutas/#llm-02">Ver esta etapa en la ruta ?</a></div>
+</div></section>
 </article>
 <aside class="article-aside"><div class="toc-title">Estado de la serie</div><p><strong>Publicados</strong><br>2 / 8</p><p><strong>Laboratorios</strong><br>TinyGPT · Attention gradients · GQA</p><p><strong>Siguiente bloque</strong><br>Training · Cross Entropy · AdamW</p><p><strong>Idioma</strong><br>Español · English</p><p><a class="text-link" href="/es/series/llm-engineering/">Volver a LLM Engineering ↗</a></p></aside>
 </div>
