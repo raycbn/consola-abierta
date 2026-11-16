@@ -291,21 +291,6 @@ SELECT CASE WHEN OBJECT_ID(N'dbo.CA_TempdbLogGrowthLab', N'U') IS NULL
 </article>
 <aside class="article-aside"><div class="toc-title">Ficha técnica</div><p><strong>Plataforma</strong><br>SQL Server 2022 Developer RTM</p><p><strong>Base de datos</strong><br>tempdb · recuperación SIMPLE</p><p><strong>Herramientas</strong><br>SQLCMD · SSMS · DMVs · default trace</p><p><strong>Resultado</strong><br>216 MB · 99,16 % · ACTIVE_TRANSACTION</p><p><strong>Validación</strong><br>1,78 % usado · NOTHING · cero transacciones activas</p><p><strong>Etiqueta de evidencia</strong><br>Lab verified · no es producción</p></aside>
 </div></main>
-<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a data-catalog-footer href="/es/laboratorios/">Laboratorios</a><a data-path-footer href="/es/rutas/">Rutas</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
-<script src="/assets/site.js" defer></script><script>
-(() => {
-  const link = document.getElementById('privacy-settings-link');
-  if (!link) return;
-  window.googlefc = window.googlefc || {};
-  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    window.googlefc.callbackQueue.push({'CONSENT_API_READY': () => { if (typeof window.googlefc.showRevocationMessage === 'function') window.googlefc.showRevocationMessage(); }});
-  });
-  window.googlefc.callbackQueue.push({'CONSENT_API_READY': () => {
-    if (typeof window.__tcfapi !== 'function') return;
-    window.__tcfapi('addEventListener', 0, (tcData, success) => { link.hidden = !(success && tcData && tcData.gdprApplies); });
-  }});
-})();
-</script>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a data-catalog-footer href="/es/laboratorios/">Laboratorios</a><a data-path-footer href="/es/rutas/">Rutas</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" data-privacy-settings hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
 </body></html>

@@ -27,6 +27,8 @@ jobs:
         run: node validate-structured-data.cjs
       - name: Validate internal links
         run: node validate-internal-links.cjs
+      - name: Validate privacy and consent implementation
+        run: node validate-privacy-implementation.cjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:

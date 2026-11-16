@@ -21,4 +21,22 @@ for(const form of forms){
 const cards=[...document.querySelectorAll("[data-archive-card]")];
 if(cards.length){const topic=new URLSearchParams(location.search).get("topic");let count=0;cards.forEach(c=>{const show=!topic||(c.dataset.topic||"").split(/\s+/).includes(topic);c.hidden=!show;if(show)count++;});const empty=document.querySelector("#archive-empty");if(empty)empty.hidden=count>0;}
 document.querySelectorAll("[data-year]").forEach(n=>n.textContent=String(new Date().getFullYear()));
+// CONSOLA_ABIERTA_CONSENT_MANAGER: centralised, persistent consent-preference access.
+const consentLink=document.getElementById("privacy-settings-link");
+if(consentLink){
+ const googlefc=window.googlefc=window.googlefc||{};
+ googlefc.callbackQueue=googlefc.callbackQueue||[];
+ consentLink.addEventListener("click",event=>{
+  event.preventDefault();
+  if(typeof googlefc.showRevocationMessage==="function")googlefc.showRevocationMessage();
+ });
+ googlefc.callbackQueue.push({
+  "CONSENT_API_READY":()=>{
+   if(typeof window.__tcfapi!=="function")return;
+   window.__tcfapi("addEventListener",2,(tcData,success)=>{
+    consentLink.hidden=!(success&&tcData&&tcData.gdprApplies);
+   });
+  }
+ });
+}
 })();
