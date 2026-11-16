@@ -10,9 +10,67 @@
 <link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-llm-07">
 <meta property="og:type" content="article"><meta property="og:title" content="Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism y NCCL"><meta property="og:description" content="Cómo repartir una inferencia entre GPUs, qué comunica NCCL y cómo diagnosticar la topología y los cuellos de botella."><meta property="og:url" content="https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism y NCCL","description":"Investigación técnica sobre particionado de modelos, comunicación colectiva, topología de GPU y serving multi-node. Incluye simulador reproducible de TP, PP y NCCL en Python estándar.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism y NCCL",
+  "description": "Analiza Tensor y Pipeline Parallelism, colectivas NCCL, NVLink y RDMA en inferencia distribuida de LLMs mediante benchmarking reproducible.",
+  "datePublished": "2026-11-14",
+  "dateModified": "2026-11-14",
+  "inLanguage": "es",
+  "author": {
+    "@type": "Person",
+    "@id": "https://consolaabierta.com/#ray-vega",
+    "name": "Ray Vega",
+    "url": "https://consolaabierta.com/es/sobre/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://consolaabierta.com/#organization",
+    "name": "Consola Abierta",
+    "url": "https://consolaabierta.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/"
+  },
+  "@id": "https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/#article",
+  "image": [
+    "https://consolaabierta.com/assets/og/og-llm-transformer.png"
+  ],
+  "articleSection": "LLM Engineering"
+}
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="/assets/article-continuity.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "LLM Engineering",
+      "item": "https://consolaabierta.com/es/series/llm-engineering/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Distributed Inference"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip-link" href="#content">Saltar al contenido</a>

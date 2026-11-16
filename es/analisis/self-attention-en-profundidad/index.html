@@ -11,9 +11,67 @@
 <meta property="og:type" content="article"><meta property="og:title" content="Self-Attention en profundidad: matemáticas, gradientes y variantes modernas"><meta property="og:description" content="De Q/K/V a los gradientes. Derivaciones, MHA/GQA/MQA, RoPE y un laboratorio PyTorch verificado en CPU."><meta property="og:url" content="https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"><meta property="og:site_name" content="Consola Abierta">
 <meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Self-Attention en profundidad: matemáticas, gradientes y variantes modernas","description":"Derivación matemática de self-attention, gradientes Q/K/V, softmax scaling, GQA/MQA y RoPE con laboratorio PyTorch verificado.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Self-Attention en profundidad: matemáticas, gradientes y variantes modernas",
+  "description": "Deriva Query, Key y Value, softmax y causal masking; sigue backpropagation y compara MHA, MQA, GQA y RoPE con un laboratorio PyTorch.",
+  "datePublished": "2026-11-14",
+  "dateModified": "2026-11-14",
+  "inLanguage": "es",
+  "author": {
+    "@type": "Person",
+    "@id": "https://consolaabierta.com/#ray-vega",
+    "name": "Ray Vega",
+    "url": "https://consolaabierta.com/es/sobre/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://consolaabierta.com/#organization",
+    "name": "Consola Abierta",
+    "url": "https://consolaabierta.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://consolaabierta.com/es/analisis/self-attention-en-profundidad/"
+  },
+  "@id": "https://consolaabierta.com/es/analisis/self-attention-en-profundidad/#article",
+  "image": [
+    "https://consolaabierta.com/assets/og/og-llm-transformer.png"
+  ],
+  "articleSection": "LLM Engineering"
+}
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="/assets/article-continuity.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/self-attention-en-profundidad/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "LLM Engineering",
+      "item": "https://consolaabierta.com/es/series/llm-engineering/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Attention Mechanisms"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip-link" href="#contenido">Saltar al contenido</a>

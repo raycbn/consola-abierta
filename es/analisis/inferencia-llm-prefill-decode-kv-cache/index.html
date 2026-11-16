@@ -10,9 +10,67 @@
 <link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-inference-04">
 <meta property="og:type" content="article"><meta property="og:title" content="LLM Inference: Prefill, Decode y KV Cache"><meta property="og:description" content="Qué ocurre después del entrenamiento: procesamiento del prompt, generación token a token y gestión de memoria de atención."><meta property="og:url" content="https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"LLM Inference: Prefill, Decode y KV Cache","description":"Análisis técnico de las fases de inferencia autoregresiva y el almacenamiento y reutilización de Key/Value states, con un laboratorio CPU reproducible.","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/"}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "LLM Inference: Prefill, Decode y KV Cache",
+  "description": "Analiza Prefill, Decode y KV Cache en inferencia autoregresiva: complejidad, consumo de memoria y laboratorio reproducible en PyTorch CPU.",
+  "datePublished": "2026-11-14",
+  "dateModified": "2026-11-14",
+  "inLanguage": "es",
+  "author": {
+    "@type": "Person",
+    "@id": "https://consolaabierta.com/#ray-vega",
+    "name": "Ray Vega",
+    "url": "https://consolaabierta.com/es/sobre/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://consolaabierta.com/#organization",
+    "name": "Consola Abierta",
+    "url": "https://consolaabierta.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/"
+  },
+  "@id": "https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/#article",
+  "image": [
+    "https://consolaabierta.com/assets/og/og-llm-transformer.png"
+  ],
+  "articleSection": "LLM Engineering"
+}
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="/assets/article-continuity.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "LLM Engineering",
+      "item": "https://consolaabierta.com/es/series/llm-engineering/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Inference Engineering"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip-link" href="#content">Saltar al contenido</a>

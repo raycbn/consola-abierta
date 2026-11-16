@@ -11,9 +11,67 @@
 <meta property="og:type" content="article"><meta property="og:title" content="SQL Server tempdb: diagnosticar el crecimiento del log por transacciones abiertas"><meta property="og:description" content="Reproducción lab-verified: 8 MB a 216 MB, 99,16 % de ocupación y recuperación sin reducir el fichero."><meta property="og:url" content="https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/"><meta property="og:site_name" content="Consola Abierta">
 <meta property="og:image" content="https://consolaabierta.com/assets/labs/tempdb-log-growth/ssms-visual-diagnosis-active.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1600"><meta property="og:image:height" content="900"><meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"SQL Server tempdb: diagnosticar el crecimiento del log por transacciones abiertas","description":"Laboratorio reproducido en SQL Server 2022 para identificar ACTIVE_TRANSACTION, autogrowth y reutilización del log de tempdb.","datePublished":"2026-11-13","dateModified":"2026-11-13","inLanguage":"es","author":{"@type":"Person","name":"Ray Vega"},"publisher":{"@type":"Organization","name":"Consola Abierta","url":"https://consolaabierta.com/"},"mainEntityOfPage":"https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/"}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "SQL Server tempdb: diagnosticar el crecimiento del log provocado por una transacción abierta",
+  "description": "Reproduce en SQL Server 2022 cómo una transacción abierta impide reutilizar el log de tempdb y provoca autogrowth. Diagnóstico con DMVs y SSMS.",
+  "datePublished": "2026-11-13",
+  "dateModified": "2026-11-13",
+  "inLanguage": "es",
+  "author": {
+    "@type": "Person",
+    "@id": "https://consolaabierta.com/#ray-vega",
+    "name": "Ray Vega",
+    "url": "https://consolaabierta.com/es/sobre/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://consolaabierta.com/#organization",
+    "name": "Consola Abierta",
+    "url": "https://consolaabierta.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/"
+  },
+  "@id": "https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/#article",
+  "image": [
+    "https://consolaabierta.com/assets/labs/tempdb-log-growth/ssms-visual-diagnosis-active.png"
+  ],
+  "articleSection": "Systems & Infrastructure"
+}
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="/assets/article-continuity.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Systems & Infrastructure",
+      "item": "https://consolaabierta.com/#especialidades"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "SQL Server"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip-link" href="#contenido">Saltar al contenido</a>

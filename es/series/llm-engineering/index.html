@@ -9,13 +9,119 @@
 <link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-llm-01">
 <meta property="og:type" content="website"><meta property="og:title" content="LLM Engineering — From Internals to Production"><meta property="og:description" content="Una ruta técnica profunda desde la arquitectura Transformer hasta los sistemas LLM en producción."><meta property="og:url" content="https://consolaabierta.com/es/series/llm-engineering/"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta name="twitter:card" content="summary_large_image">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "https://consolaabierta.com/es/series/llm-engineering/#webpage",
+  "name": "LLM Engineering — From Internals to Production",
+  "description": "Serie avanzada sobre arquitectura Transformer, entrenamiento, inferencia y serving de LLMs, con ocho capítulos y laboratorios gratuitos.",
+  "url": "https://consolaabierta.com/es/series/llm-engineering/",
+  "inLanguage": "es",
+  "isPartOf": {
+    "@id": "https://consolaabierta.com/#website"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": 8,
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/anatomia-interna-transformer-llm/",
+          "name": "Anatomía interna de un Transformer: de los tokens a un LLM decoder-only"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/self-attention-en-profundidad/",
+          "name": "Self-Attention en profundidad: matemáticas, gradientes y variantes modernas"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/como-aprende-un-llm-next-token-cross-entropy-adamw/",
+          "name": "Cómo aprende un LLM: next-token prediction, Cross Entropy, backpropagation y AdamW"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/",
+          "name": "LLM Inference: Prefill, Decode y KV Cache"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/vllm-pagedattention-continuous-batching/",
+          "name": "vLLM por dentro: PagedAttention, Continuous Batching y memoria GPU"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 6,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/cuantizacion-llm-fp16-bf16-fp8-int8-int4/",
+          "name": "Cuantización de LLMs: FP16, BF16, FP8, INT8 e INT4 por dentro"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 7,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/",
+          "name": "Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism y NCCL"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 8,
+        "item": {
+          "@id": "https://consolaabierta.com/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/",
+          "name": "Benchmarking de LLMs: TTFT, TPOT, throughput y metodología reproducible"
+        }
+      }
+    ]
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/series/llm-engineering/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "LLM Engineering"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip-link" href="#content">Saltar al contenido</a>
 <header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Serie técnica</span><a href="/en/series/llm-engineering/" lang="en">EN</a></div></div>
 <nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a data-catalog-nav href="/es/laboratorios/">Laboratorios</a><a data-path-nav href="/es/rutas/">Rutas</a><a href="/es/series/llm-engineering/" aria-current="page">LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 8 INVESTIGACIONES · COMPLETA</span></div></nav></div></header>
 <main id="content" class="site-shell">
-<header class="article-header"><div class="kicker">Serie de ingeniería · AI / LLMs</div><h1>LLM Engineering — From Internals to Production</h1><p class="article-deck">Una ruta técnica para entender qué ocurre dentro de los modelos de lenguaje: arquitectura, entrenamiento, inferencia, serving, quantization y sistemas distribuidos.</p>
+<header class="article-header"><nav class="breadcrumbs" aria-label="Ruta de navegaciÃ³n"><a href="/">Inicio</a> / <span aria-current="page">LLM Engineering</span></nav><div class="kicker">Serie de ingeniería · AI / LLMs</div><h1>LLM Engineering — From Internals to Production</h1><p class="article-deck">Una ruta técnica para entender qué ocurre dentro de los modelos de lenguaje: arquitectura, entrenamiento, inferencia, serving, quantization y sistemas distribuidos.</p>
 <div class="status-line">Enfoque: matemáticas · código · arquitectura · experimentación · evidencias reproducibles</div></header>
 <div class="article-layout"><nav class="toc"><div class="toc-title">La ruta</div><ol><li><a href="#approach">Enfoque editorial</a></li><li><a href="#roadmap">Ocho investigaciones</a></li><li><a href="#lab">Laboratorios y evidencias</a></li><li><a href="#standards">Criterios técnicos</a></li></ol></nav>
 <article class="article-body">

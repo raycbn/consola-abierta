@@ -9,13 +9,119 @@
 <link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css?v=20261114-llm-01">
 <meta property="og:type" content="website"><meta property="og:title" content="LLM Engineering — From Internals to Production"><meta property="og:description" content="A deep technical path from Transformer architecture to production LLM systems."><meta property="og:url" content="https://consolaabierta.com/en/series/llm-engineering/"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-llm-transformer.png"><meta name="twitter:card" content="summary_large_image">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "https://consolaabierta.com/en/series/llm-engineering/#webpage",
+  "name": "LLM Engineering — From Internals to Production",
+  "description": "An advanced series on Transformer architecture, LLM training, inference and serving, with eight technical investigations and free reproducible labs.",
+  "url": "https://consolaabierta.com/en/series/llm-engineering/",
+  "inLanguage": "en",
+  "isPartOf": {
+    "@id": "https://consolaabierta.com/#website"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": 8,
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/inside-transformer-anatomy-llm/",
+          "name": "Inside a Transformer: from tokens to a decoder-only LLM"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/self-attention-deep-dive/",
+          "name": "Self-Attention Deep Dive: mathematics, gradients and modern variants"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/how-an-llm-learns-next-token-cross-entropy-adamw/",
+          "name": "How an LLM Learns: Next-Token Prediction, Cross Entropy, Backpropagation and AdamW"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/llm-inference-prefill-decode-kv-cache/",
+          "name": "LLM Inference: Prefill, Decode and KV Cache"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 5,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/vllm-pagedattention-continuous-batching/",
+          "name": "Inside vLLM: PagedAttention, Continuous Batching and GPU Memory"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 6,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/llm-quantization-fp16-bf16-fp8-int8-int4/",
+          "name": "LLM Quantization: FP16, BF16, FP8, INT8 and INT4 from the inside"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 7,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/distributed-llm-inference-tensor-parallelism-pipeline-parallelism-nccl/",
+          "name": "Distributed LLM Inference: Tensor Parallelism, Pipeline Parallelism and NCCL"
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 8,
+        "item": {
+          "@id": "https://consolaabierta.com/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/",
+          "name": "LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology"
+        }
+      }
+    ]
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/en/series/llm-engineering/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://consolaabierta.com/en/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "LLM Engineering"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
 <header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><div class="header-meta"><span>Technical series</span><a href="/es/series/llm-engineering/" lang="es">ES</a></div></div>
 <nav class="primary-nav"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a data-catalog-nav href="/en/labs/">Labs</a><a data-path-nav href="/en/paths/">Learning paths</a><a href="/en/series/llm-engineering/" aria-current="page">LLM Engineering</a><a href="/en/about/">About</a></div><div class="nav-tools"><span class="edition">LLM ENGINEERING · 8 INVESTIGATIONS · COMPLETE</span></div></nav></div></header>
 <main id="content" class="site-shell">
-<header class="article-header"><div class="kicker">Engineering series · AI / LLMs</div><h1>LLM Engineering — From Internals to Production</h1><p class="article-deck">A technical path through language-model architecture, training, inference, serving, quantization and distributed systems.</p>
+<header class="article-header"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/en/">Home</a> / <span aria-current="page">LLM Engineering</span></nav><div class="kicker">Engineering series · AI / LLMs</div><h1>LLM Engineering — From Internals to Production</h1><p class="article-deck">A technical path through language-model architecture, training, inference, serving, quantization and distributed systems.</p>
 <div class="status-line">Focus: mathematics · code · architecture · experimentation · reproducible evidence</div></header>
 <div class="article-layout"><nav class="toc"><div class="toc-title">Roadmap</div><ol><li><a href="#approach">Editorial approach</a></li><li><a href="#roadmap">Eight investigations</a></li><li><a href="#lab">Labs and evidence</a></li><li><a href="#standards">Technical standards</a></li></ol></nav>
 <article class="article-body">
