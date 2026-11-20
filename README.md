@@ -6,9 +6,9 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - Static HTML/CSS/JavaScript; no framework, build step or application server.
 - Spanish edition at / and English edition at /en/.
 - Article archives at /es/articulos/ and /en/articles/.
-- 22 article URLs: 11 Spanish articles and their 11 English editions.
+- 24 article URLs: 12 Spanish articles and their 12 English editions.
 - Language-aware catalogue search powered by /search-index.json and assets/site.js.
-- Seven specialty filters on the archives, including the LLM Engineering series. Empty specialties show an explicit empty state, not placeholder links.
+- Seven specialty filters on the archives, including Resilience & Recovery and the LLM Engineering series. Empty specialties show an explicit empty state, not placeholder links.
 - RSS feeds: /feed.xml (Spanish) and /en/feed.xml (English), with an XSLT browser view and Atom self links.
 - Sitemap and robots: /sitemap.xml and /robots.txt.
 - Public corrections: /es/contacto/ and /en/contact/ via GitHub Issues (public); private contact: contacto@consolaabierta.com (published).
@@ -16,7 +16,7 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
 - The public sitemap pages include a cookie/privacy preferences link wired to Google's `googlefc.showRevocationMessage` API. The link is shown only when the TCF reports that GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
 - Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
-- GitHub Pages deploys the repository root on pushes to main, using .github/workflows/pages.yml.
+- 10 downloadable labs, including the offline Recovery Test Scorecard (Python 3.10+, standard library) with seven unit tests. The scorecard evaluates manually entered RTO/RPO timestamps and evidence references; it does not run recovery operations.\n- GitHub Pages runs the scorecard unit tests, rebuilds its ZIP package, then runs the site validators before deployment on pushes to main, using .github/workflows/pages.yml.
 
 ## Local preview
 Run a static server from the repository root:
@@ -25,7 +25,7 @@ npx http-server . -p 4173
 Then open http://127.0.0.1:4173/.
 
 ## Quality checks
-- `node validate-text-encoding.cjs` checks text sources for common mojibake and known accent-replacement regressions.
+- `python -m unittest discover -s assets/labs/recovery-test-scorecard/tests -v` checks the offline recovery scorecard (7 tests).\n- `python assets/labs/recovery-test-scorecard/build_lab.py` regenerates its downloadable ZIP.\n- `node validate-text-encoding.cjs` checks text sources for common mojibake and known accent-replacement regressions.
 - `node validate-structured-data.cjs` checks sitemap routes, canonicals, JSON-LD and visible breadcrumbs.
 - `node validate-internal-links.cjs` checks contextual article links and article/lab/learning-path relationships.
 - `node validate-privacy-implementation.cjs` checks AdSense identifiers, legal-page publication gates and consent-preference wiring.
