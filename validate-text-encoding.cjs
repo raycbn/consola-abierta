@@ -7,7 +7,8 @@ const IGNORED_DIRS = new Set([".git", "node_modules"]);
 const CHECKS = [
   { label: "replacement character", pattern: /\uFFFD/g },
   { label: "UTF-8 mojibake", pattern: /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF])/g },
-  { label: "letter replaced by question mark inside a word", pattern: /\p{L}{2,}\?[\p{L}]{1,}\b/giu }
+  { label: "letter replaced by question mark inside a word", pattern: /\p{L}{2,}\?[\p{L}]{1,}\b/giu },
+  { label: "standalone separator replaced by question mark", pattern: /\s\?\s/g }
 ];
 
 const failures = [];
@@ -17,6 +18,7 @@ function cleanForTextChecks(line) {
   return line
     .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
     .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<(pre|code)\b[\s\S]*?<\/\1>/gi, " ")
     .replace(/\b(?:href|src|action|poster)\s*=\s*(["'])[^"']*\1/gi, " ")
     .replace(/https?:\/\/[^\s<"']+/gi, " ");
 }
