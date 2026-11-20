@@ -1,0 +1,6 @@
+SYNTHETIC EXERCISE EVIDENCE — NOT A REAL NETWORK CONFIGURATION
+
+The test network route and firewall checks were recorded as completed.
+The checklist did not contain a separate second-reviewer role, review timestamp,
+or independent evidence reference. The observation is limited to the completeness
+of the record; it does not assert that the network was connected to production.

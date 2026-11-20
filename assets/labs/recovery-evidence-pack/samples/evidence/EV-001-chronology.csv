@@ -1,0 +1,6 @@
+event_id,event_time,timezone,event,owner_role,result
+T-001,2026-11-19T09:00:00+01:00,Europe/Madrid,Exercise briefing,DR exercise lead,Complete
+T-002,2026-11-19T09:08:00+01:00,Europe/Madrid,Isolation gate reviewed,Network evaluator,Recorded with review-reference gap
+T-003,2026-11-19T09:34:00+01:00,Europe/Madrid,Application tiers available,Platform lead,Complete
+T-004,2026-11-19T10:12:00+01:00,Europe/Madrid,Synthetic transaction accepted,Service owner,Pass
+T-005,2026-11-19T10:25:00+01:00,Europe/Madrid,Exercise closed,DR exercise lead,Complete

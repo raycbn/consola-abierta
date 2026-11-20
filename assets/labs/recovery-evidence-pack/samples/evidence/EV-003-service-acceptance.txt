@@ -1,0 +1,8 @@
+SYNTHETIC EXERCISE EVIDENCE — NO CUSTOMER OR PRODUCTION DATA
+
+Test endpoint: https://application.test.invalid/health
+Synthetic transaction: TX-SAMPLE-017
+Expected result: HTTP 200 and business test marker accepted
+Observed result: HTTP 200 and marker accepted
+Acceptance role: Service owner
+Result: PASS within the declared exercise scope

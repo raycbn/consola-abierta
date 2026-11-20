@@ -32,10 +32,9 @@ jobs:
       - name: Build recovery runbook preflight ZIP
         run: python assets/labs/recovery-runbook-preflight/build_lab.py
       - name: Test recovery evidence pack lab
-        run: |
-          mkdir -p "$RUNNER_TEMP/recovery-evidence-pack"
-          unzip -q assets/labs/recovery-evidence-pack/recovery-evidence-pack-03-lab.zip -d "$RUNNER_TEMP/recovery-evidence-pack"
-          python -m unittest discover -s "$RUNNER_TEMP/recovery-evidence-pack/recovery-evidence-pack-03-lab/tests" -v
+        run: python -m unittest discover -s assets/labs/recovery-evidence-pack/tests -v
+      - name: Build recovery evidence pack ZIP
+        run: python assets/labs/recovery-evidence-pack/build_lab.py
       - name: Validate text encoding
         run: node validate-text-encoding.cjs
       - name: Validate structured data

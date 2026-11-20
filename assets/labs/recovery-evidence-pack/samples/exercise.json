@@ -1,0 +1,36 @@
+{
+  "exercise": {
+    "id": "DR-EX-2026-017",
+    "title": "Sample isolated recovery exercise",
+    "date": "2026-11-19",
+    "start_at": "2026-11-19T09:00:00+01:00",
+    "end_at": "2026-11-19T10:25:00+01:00",
+    "scope": "Synthetic three-tier service in an isolated test recovery network; no production traffic or customer data.",
+    "scenario": "Planned test failover followed by service validation and cleanup.",
+    "lead_role": "DR exercise lead",
+    "sponsor_role": "Service owner",
+    "executive_summary": "The test environment was recovered and the agreed synthetic transaction completed. The exercise met the service validation objective, while the evidence for independent isolation review was incomplete. One corrective action remains open.",
+    "decisions_and_risks": "No production-impacting issue was observed in this synthetic exercise. Keep the evidence-review gap open until the next exercise demonstrates independent review and the action owner supplies closure evidence."
+  },
+  "objectives": [
+    {"id":"OBJ-01","statement":"Recover the sample service in the isolated recovery environment.","success_criteria":"All required tiers are available and a synthetic transaction succeeds.","result":"met"},
+    {"id":"OBJ-02","statement":"Capture traceable evidence for the recovery and network isolation checks.","success_criteria":"Each critical check has an evidence ID, collector role and timezone-aware collection timestamp.","result":"partially_met"}
+  ],
+  "participants": [
+    {"role":"DR exercise lead","team":"Continuity"},
+    {"role":"Network evaluator","team":"Infrastructure"},
+    {"role":"Service owner","team":"Application"}
+  ],
+  "evidence": [
+    {"id":"EV-001","path":"EV-001-chronology.csv","description":"Synthetic event chronology for preparation, recovery and service validation.","collected_by_role":"DR exercise lead","collected_at":"2026-11-19T10:35:00+01:00","source":"Exercise timeline export","classification":"synthetic-internal","objective_ids":["OBJ-01","OBJ-02"]},
+    {"id":"EV-002","path":"EV-002-network-review.txt","description":"Synthetic notes showing the isolation check was performed but the independent reviewer reference was omitted.","collected_by_role":"Network evaluator","collected_at":"2026-11-19T10:40:00+01:00","source":"Network test checklist","classification":"synthetic-internal","objective_ids":["OBJ-02"]},
+    {"id":"EV-003","path":"EV-003-service-acceptance.txt","description":"Synthetic functional acceptance result for a non-production test transaction.","collected_by_role":"Service owner","collected_at":"2026-11-19T10:42:00+01:00","source":"Application test result","classification":"synthetic-internal","objective_ids":["OBJ-01"]}
+  ],
+  "observations": [
+    {"id":"OBS-001","type":"strength","objective_id":"OBJ-01","statement":"The application owner completed the agreed synthetic transaction after all required tiers were available.","impact":"The exercise demonstrated the defined service-level acceptance check in the test scope.","evaluator_role":"Service owner","evidence_ids":["EV-001","EV-003"]},
+    {"id":"OBS-002","type":"improvement","objective_id":"OBJ-02","statement":"The network isolation checklist records the check result but does not retain a separate reviewer reference.","impact":"A later reviewer cannot establish from the pack alone who independently reviewed the isolation evidence.","recommendation":"Add a second-reviewer role, review timestamp and evidence reference to the isolation gate record.","evaluator_role":"DR exercise evaluator","evidence_ids":["EV-002"]}
+  ],
+  "actions": [
+    {"id":"ACT-001","observation_id":"OBS-002","action":"Update the isolation checklist and demonstrate independent review in the next scheduled exercise.","owner_role":"Network service owner","priority":"P2","due_date":"2026-12-04","status":"open","verification_method":"Review a completed checklist from the next exercise and confirm reviewer identity-by-role, timestamp and evidence reference are present.","closure_evidence_ids":[]}
+  ]
+}
