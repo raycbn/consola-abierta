@@ -132,11 +132,11 @@ def validate_plan(plan: Any) -> dict[str, Any]:
 
 def render_markdown(result: dict[str,Any]) -> str:
     lines = [f"# Runbook preflight report: {result.get('plan_name','Untitled plan')}","",
-             f"- **Exercise type:** \`{result.get('exercise_type','unknown')}\`",
+             f"- **Exercise type:** `{result.get('exercise_type','unknown')}`",
              f"- **Result:** **{result['status']}**",f"- **Steps parsed:** {result['step_count']}","",
              "## Dependency-aware execution order",""]
     order = result.get("execution_order",[])
-    lines.extend([f"{number}. \`{step_id}\`" for number,step_id in enumerate(order,start=1)] or ["No execution order available."])
+    lines.extend([f"{number}. `{step_id}`" for number,step_id in enumerate(order,start=1)] or ["No execution order available."])
     lines.extend(["","## Errors",""])
     lines.extend([f"- {item}" for item in result["errors"]] or ["- None"])
     lines.extend(["","## Warnings",""])
