@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas | Consola Abierta</title><meta name="description" content="Cómo construir un expediente auditable de un ejercicio Disaster Recovery: registro de evidencias, cronología, hashes, hallazgos, recomendaciones y seguimiento de acciones correctivas."><meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/recovery-evidence-pack-after-action-report/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article"><meta property="og:title" content="Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas | Consola Abierta"><meta property="og:description" content="Cómo construir un expediente auditable de un ejercicio Disaster Recovery: registro de evidencias, cronología, hashes, hallazgos, recomendaciones y seguimiento de acciones correctivas."><meta property="og:url" content="https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/"><meta property="og:site_name" content="Consola Abierta"><meta property="og:image" content="https://consolaabierta.com/assets/og/og-default.png"><meta property="og:image:type" content="image/png"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta RSS" href="/feed.xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas",
+  "description": "Cómo construir un expediente auditable de un ejercicio Disaster Recovery: registro de evidencias, cronología, hashes, hallazgos, recomendaciones y seguimiento de acciones correctivas.",
+  "datePublished": "2026-11-20",
+  "dateModified": "2026-11-20",
+  "inLanguage": "es",
+  "author": {
+    "@type": "Person",
+    "@id": "https://consolaabierta.com/#ray-vega",
+    "name": "Ray Vega",
+    "url": "https://consolaabierta.com/es/sobre/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://consolaabierta.com/#organization",
+    "name": "Consola Abierta",
+    "url": "https://consolaabierta.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/"
+  },
+  "@id": "https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/#article",
+  "image": [
+    "https://consolaabierta.com/assets/og/og-default.png"
+  ],
+  "articleSection": "Resilience & Recovery"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Resilience & Recovery",
+      "item": "https://consolaabierta.com/es/rutas/#resilience"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Evidence Pack & AAR/IP"
+    }
+  ]
+}
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head><body>
+<a class="skip-link" href="#content">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación técnica independiente</span><a href="/en/analysis/recovery-evidence-pack-after-action-report/">EN</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/laboratorios/">Laboratorios</a><a href="/es/rutas/">Rutas</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto</a></div><div class="nav-tools"><form class="search-form" data-search-form data-search-lang="es"><input data-search-input type="search" placeholder="Buscar en todos los artículos" aria-label="Buscar en todos los artículos"><button>Buscar ↗</button></form></div></nav></div></header>
+<main class="site-shell" id="content">
+<header class="article-header"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/rutas/#resilience">Resilience &amp; Recovery</a> / Evidence Pack &amp; AAR/IP</div><div class="kicker">Resilience &amp; Recovery · Evidencias y mejora continua</div><h1>Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas</h1><p class="article-deck">Cómo construir un expediente auditable de un ejercicio Disaster Recovery: registro de evidencias, cronología, hashes, hallazgos, recomendaciones y seguimiento de acciones correctivas.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>Publicado 20 noviembre 2026</span><span>16–20 min de lectura</span><span>Mid-senior · Senior · IT Continuity</span></div>
+<div class="status-line">FUENTES OFICIALES · CISA · FEMA · NIST · LAB OFFLINE VERIFICADO · 21 TESTS · DATOS SINTÉTICOS</div></header>
+<div class="article-layout"><nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En esta investigación</div><ol><li><a href="#two-products">Evidence Pack y AAR/IP</a></li><li><a href="#evidence-model">Modelo de evidencia</a></li><li><a href="#capture">Recogida sin alterar originales</a></li><li><a href="#time">Cronología y tiempo</a></li><li><a href="#integrity">Hashes y garantías</a></li><li><a href="#structure">Estructura de carpetas</a></li><li><a href="#evaluation">Evaluación por objetivos</a></li><li><a href="#aar">Redacción del AAR</a></li><li><a href="#improvement">Improvement Plan</a></li><li><a href="#review">Aprobación y distribución</a></li><li><a href="#lab">Laboratorio</a></li><li><a href="#sources">Fuentes</a></li></ol></nav>
+<article class="article-body">
+<div class="callout"><strong>Idea central</strong><p>El expediente de evidencias y el AAR/IP son productos distintos. El primero permite localizar y revisar los artefactos originales; el segundo explica qué se evaluó, qué ocurrió, qué significa y qué debe corregirse. SHA-256 ayuda a detectar cambios en un fichero, pero no acredita por sí solo autoría, tiempo de creación ni cadena de custodia.</p></div>
+<p>Esta es la tercera etapa de Resilience &amp; Recovery. Tras <a href="/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">definir y medir el ejercicio DR</a> y <a href="/es/analisis/runbook-test-failover-failback-recuperacion-controlada/">operar test failover o failback</a>, toca cerrar el ciclo con un registro defendible. La pregunta ya no es solo «¿se recuperó el servicio?», sino «¿qué evidencia sostiene esa conclusión, qué limitaciones hubo y quién corregirá las desviaciones?».</p>
+<h2 id="two-products">1. Evidence Pack y AAR/IP: no son lo mismo</h2>
+<p>El Evidence Pack reúne referencias controladas a logs exportados, cronologías, resultados funcionales, registros de cambios, métricas, capturas y aprobaciones. El After-Action Report / Improvement Plan sintetiza objetivos, analiza el desempeño y convierte oportunidades de mejora en acciones con responsables y fechas.</p>
+<div class="table-wrap"><table><thead><tr><th>Producto</th><th>Pregunta</th><th>Contenido</th></tr></thead><tbody>
+<tr><td><strong>Evidence Pack</strong></td><td>¿Qué ocurrió y qué registro lo respalda?</td><td>Registro de evidencias, originales o referencias, cronología, metadatos, hashes, clasificación y aprobaciones.</td></tr>
+<tr><td><strong>AAR</strong></td><td>¿Qué evaluamos y qué observamos?</td><td>Alcance, escenario, objetivos, criterios, resultados, fortalezas, hallazgos, impacto y limitaciones.</td></tr>
+<tr><td><strong>Improvement Plan</strong></td><td>¿Qué cambia, quién lo hace y cómo se verifica?</td><td>Acción correctiva, prioridad, propietario, fecha, dependencias, método de verificación, estado y evidencia de cierre.</td></tr>
+</tbody></table></div>
+<p>Una captura pegada en el informe no reemplaza el registro original ni su contexto. Del mismo modo, una carpeta con cientos de logs no constituye un análisis de resultados.</p>
+
+<h2 id="evidence-model">2. Diseña el registro de evidencias antes del ejercicio</h2>
+<p>Asigna un identificador único a cada elemento y vincúlalo al objetivo que respalda. Como mínimo registra:</p>
+<ul>
+<li><strong>ID:</strong> EV-001, sin reutilización entre ejercicios.</li>
+<li><strong>Origen:</strong> sistema, herramienta, componente o repositorio productor.</li>
+<li><strong>Descripción:</strong> qué representa, consulta/filtro aplicado y límites del artefacto.</li>
+<li><strong>Tiempo:</strong> hora del evento, hora de recogida/exportación y hora de ingestión si existe.</li>
+<li><strong>Zona horaria:</strong> ISO-8601 con offset explícito y fuente de sincronización relevante.</li>
+<li><strong>Responsable:</strong> rol recolector y rol independiente que revisa.</li>
+<li><strong>Relación:</strong> objetivo, hito, criterio de aceptación, observación y acción.</li>
+<li><strong>Protección:</strong> clasificación, ubicación, retención, propietario y restricciones de acceso.</li>
+</ul>
+<p>El registro debe permitir responder qué fuente generó el dato, qué intervalo cubre, qué filtros se aplicaron, quién lo obtuvo, cuándo, dónde está el original y qué objetivo permite evaluar.</p>
+
+<h2 id="capture">3. Recoge sin alterar el original</h2>
+<p>Planifica qué registros pueden expirar y cómo exportarlos. En DR pueden intervenir logs de plataforma, eventos de hipervisor, replicación, firewall, DNS, balanceadores, bases de datos, middleware, aplicación, monitorización y aceptación de negocio.</p>
+<ol>
+<li><strong>Identifica la fuente:</strong> sistema, entorno, componente, versión y propietario.</li>
+<li><strong>Preserva el original:</strong> exporta sin editar. Si necesitas anonimizar o recortar, conserva el original bajo acceso restringido y documenta la copia derivada.</li>
+<li><strong>Registra el contexto:</strong> intervalo, filtros, consulta, timezone, versión de herramienta, change ID y rol recolector.</li>
+<li><strong>Asigna EV-ID:</strong> vincula ID con timeline, objetivo y hallazgo. Evita nombres ambiguos como <code>final2_ok.png</code>.</li>
+<li><strong>Calcula integridad:</strong> genera la huella criptográfica del fichero exportado y conserva algoritmo y valor.</li>
+<li><strong>Revisa:</strong> un segundo rol confirma que el artefacto coincide con la referencia, se puede abrir y no contiene información fuera de alcance.</li>
+</ol>
+<p>Una captura aporta contexto, pero puede omitir filtros, rango temporal, paginación o datos previos. Conserva también el export original o una consulta reproducible cuando sea posible. No alteres los logs para hacerlos más legibles: genera una copia derivada y registra la transformación.</p>
+
+<h2 id="time">4. Cronología: conserva hora del evento y hora de recogida</h2>
+<p>Conserva al menos tres referencias temporales:</p>
+<ul><li><strong>Event time:</strong> cuándo afirma la fuente que ocurrió la actividad.</li><li><strong>Collection time:</strong> cuándo se exportó o recogió el registro.</li><li><strong>Ingestion time:</strong> cuándo el sistema central lo recibió o indexó, si existe.</li></ul>
+<p>Usa ISO-8601 con offset explícito, por ejemplo <code>2026-11-19T09:34:12+01:00</code>. Puedes normalizar una vista analítica a UTC, pero conserva el valor original y el offset. Documenta NTP, desviaciones de reloj, ajustes, retrasos de ingestión y diferencias entre hora de máquina y hora del operador. Un timestamp escrito en CSV no es confiable sin saber qué reloj lo produjo.</p>
+<p>El timeline debe referenciar EV-IDs: hora, evento, componente, rol, resultado y desviación. Añade request ID, transaction ID, execution ID o change ID cuando exista y sea seguro retenerlo.</p>
+
+<h2 id="integrity">5. Hashes, firmas y almacenamiento: garantías diferentes</h2>
+<p>SHA-256 produce una huella del contenido leído. Si al recalcularla posteriormente el resultado cambia, el fichero ya no coincide con la huella inicial. Es útil para detectar modificaciones dentro de un flujo controlado.</p>
+<p>Un hash aislado no demuestra quién generó el fichero, si la fuente era auténtica, si la hora es correcta, si el artefacto ya estaba alterado antes del hash, ni si cumple requisitos legales o de cadena de custodia forense. Tampoco impide que alguien sustituya el fichero y el manifiesto a la vez.</p>
+<p>Controles más fuertes pueden requerir firma digital del manifiesto, sellado de tiempo confiable, almacenamiento inmutable/WORM, RBAC, auditoría de acceso, versionado y revisión independiente. La necesidad depende del riesgo, la política de retención, la jurisdicción y el proceso de incident response. No llames «evidence vault» a un ZIP con hashes.</p>
+
+<h2 id="structure">6. Estructura una carpeta revisable</h2>
+<pre><code>DR-EX-2026-017/
+├── 00-governance/
+│   ├── exercise-charter.pdf
+│   ├── approvals/
+│   └── participant-roles.csv
+├── 01-timeline/
+│   ├── master-timeline.csv
+│   └── clock-sources.md
+├── 02-platform/
+├── 03-network-identity/
+├── 04-data-and-replication/
+├── 05-service-acceptance/
+├── 06-findings/
+├── 07-improvement-plan/
+└── manifest/
+    ├── evidence-register.csv
+    ├── manifest.json
+    └── manifest.sha256</code></pre>
+<p>Las carpetas son categorías, no permisos. Aplica el control de acceso en el repositorio. El índice debe permitir saltar desde un hallazgo hasta el objetivo y los artefactos exactos.</p>
+
+<h2 id="evaluation">7. Evalúa objetivos con evidencia, no con impresiones</h2>
+<p>Recupera el objetivo aprobado y su criterio medible. Para cada objetivo documenta resultado —cumplido, parcialmente cumplido, no cumplido o no probado—, observación, impacto, evidencia y limitaciones.</p>
+<div class="table-wrap"><table><thead><tr><th>Objetivo</th><th>Criterio</th><th>Resultado</th><th>Evidencia</th></tr></thead><tbody>
+<tr><td>Recuperar el servicio de prueba</td><td>Todas las capas disponibles y transacción sintética aceptada.</td><td>Cumplido</td><td>EV-001, EV-003</td></tr>
+<tr><td>Demostrar aislamiento y trazabilidad</td><td>Controles revisados por dos roles y referencias conservadas.</td><td>Parcial</td><td>EV-002: falta referencia de segunda revisión.</td></tr>
+</tbody></table></div>
+<p>El ejemplo es sintético. El resultado técnico puede ser satisfactorio y la demostración documental quedar incompleta. No rellenes ese vacío suponiendo que alguien revisó el control.</p>
+
+<h2 id="aar">8. Redacta el AAR: observación, análisis y recomendación</h2>
+<p>Un AAR de DR puede incluir resumen ejecutivo, perfil del ejercicio, evaluación por objetivo, fortalezas, áreas de mejora, decisiones, riesgo residual y limitaciones.</p>
+<p>Separa las capas: «No se registró el identificador de segunda revisión» es una observación. «Esto impide demostrar una revisión independiente» es el impacto. «Añadir un campo de revisor, hora y evidencia» es una recomendación. La acción correctiva concreta, el responsable y la fecha pertenecen al Improvement Plan.</p>
+<p>CISA indica expresamente que el área de mejora debe describir el problema, sin incluir recomendación ni acción correctiva, documentadas por separado. FEMA HSEEP también separa evaluación e improvement planning. Son referencias estadounidenses de ejercicios que deben adaptarse, no una obligación universal para toda empresa.</p>
+
+<h2 id="improvement">9. Crea un Improvement Plan verificable</h2>
+<p>Cada mejora debe convertirse en una acción verificable, salvo que el riesgo se acepte formalmente o exista una justificación documentada para no actuar. Registra ID de acción y hallazgo, cambio esperado, prioridad y justificación, propietario, fecha objetivo, dependencias, estado, método de verificación, criterio de éxito y evidencia de cierre.</p>
+<p>«Actualizar el procedimiento» es insuficiente. Mejor: «Añadir revisión por un segundo operador a la puerta de aislamiento y demostrar en el siguiente ejercicio que se conserva rol, hora, resultado y EV-ID». La acción sigue abierta hasta que se pruebe el nuevo comportamiento; no se cierra porque se haya editado un documento.</p>
+<p>Revisa periódicamente acciones vencidas, bloqueos, riesgos aceptados y recurrencias. FEMA describe el Improvement Plan como un documento dinámico cuyos correctivos se monitorizan y ejecutan de forma continua.</p>
+
+<h2 id="review">10. Revisión, aprobación y distribución</h2>
+<ul>
+<li>cada objetivo tiene resultado y criterios no alterados retrospectivamente;</li>
+<li>cada hallazgo tiene evidencia, impacto y objetivo asociado;</li>
+<li>cada mejora tiene acción, propietario y fecha o disposición de riesgo aprobada;</li>
+<li>acciones cerradas aportan evidencia de verificación, no solo un «done»;</li>
+<li>las conclusiones no exceden lo que permiten afirmar las fuentes;</li>
+<li>se documentan evidencias ausentes, simulaciones, supuestos y limitaciones;</li>
+<li>service owner y responsables de riesgo/operación aprueban la versión distribuida.</li>
+</ul>
+<p>Separa el expediente técnico completo de la versión ejecutiva. Esta puede ocultar rutas internas, hostnames, IPs, datos personales o detalles de seguridad, manteniendo la trazabilidad al original autorizado. Aplica minimización de datos, clasificación y retención corporativa; no publiques logs, capturas ni datos de clientes.</p>
+
+<h2 id="lab">11. Laboratorio offline: Recovery Evidence Pack Builder</h2>
+<p>El Lab 03 valida un JSON de ejercicio y referencias a ficheros locales. Comprueba IDs, objetivos, timestamps con zona, rutas relativas seguras, artefactos existentes, relaciones entre evidencias y hallazgos, propietarios/fechas de acciones y evidencia de cierre. Genera manifiesto JSON, registro CSV, borrador AAR/IP en Markdown e informe de validación.</p>
+<pre><code>python evidence_pack.py samples/exercise.json --evidence-dir samples/evidence --out evidence-pack-out
+python -m unittest discover -s tests -v</code></pre>
+<div class="article-note"><strong>Límite:</strong> no firma manifiestos, no ofrece WORM, no establece sellado de tiempo, no protege originales, no valida autenticidad ni es una herramienta forense o de cumplimiento. Referencia ficheros sin copiarlos ni modificarlos. El ejemplo es sintético.</div>
+<p><a class="text-link" href="/assets/labs/recovery-evidence-pack/recovery-evidence-pack-03-lab.zip" download>Descargar Recovery Evidence Pack Builder — Lab 03 ↗</a></p>
+
+<h2 id="sources">12. Fuentes primarias y plantillas</h2>
+<ul class="reference-list">
+<li><a href="https://preptoolkit.fema.gov/web/hseep-resources/improvement-planning" target="_blank" rel="noopener">FEMA — HSEEP Improvement Planning Templates</a>. Plantillas AAR/IP; el programa de acciones correctivas se describe como un documento dinámico, monitorizado y ejecutado de forma continua.</li>
+<li><a href="https://www.cisa.gov/sites/default/files/2023-01/8_-_ctep_aar-ip_template_2020_final_508.pdf" target="_blank" rel="noopener">CISA — Tabletop Exercise Package: AAR/IP Template</a>. Separa objetivos, fortalezas, áreas de mejora, análisis, recomendaciones y acciones del Improvement Plan.</li>
+<li><a href="https://www.cisa.gov/sites/default/files/2024-01/essstep-after-action-report-improvement-plan-template_112023_508.pdf" target="_blank" rel="noopener">CISA — Emergency Services Sector AAR/IP Template</a>. Ejemplo sectorial de evaluación por objetivos y plan de mejora.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/84/final" target="_blank" rel="noopener">NIST SP 800-84</a>. Recogida de notas/evidencias de ejercicio e informes posteriores. Publicada en septiembre de 2006; guía fundacional, no estándar reciente.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/92/final" target="_blank" rel="noopener">NIST SP 800-92</a>. Gestión empresarial de logs. Publicada en septiembre de 2006; orientación general, no procedimiento forense paso a paso.</li>
+</ul>
+
+<section class="article-continuity" aria-label="Continúa tu recorrido" data-learning-route="resilience" data-learning-step="3">
+<div class="article-continuity-head"><span class="article-continuity-kicker">SIGUIENTE PASO DE APRENDIZAJE</span><h2>Continúa tu recorrido</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Práctica asociada</p><h3>Recovery Evidence Pack Builder · Lab 03</h3><p>Genera un índice de evidencias con SHA-256 y un borrador AAR/IP a partir de metadatos estructurados.</p><a class="article-continuity-link" href="/assets/labs/recovery-evidence-pack/recovery-evidence-pack-03-lab.zip">Descargar laboratorio ↗</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Etapa anterior</p><h3><a href="/es/analisis/runbook-test-failover-failback-recuperacion-controlada/">Runbook de Test Failover y Failback</a></h3><p>Define aislamiento, dependencias, gates, rollback y retorno controlado.</p><a class="article-continuity-link" href="/es/analisis/runbook-test-failover-failback-recuperacion-controlada/">Leer investigación ↗</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Tu ruta</p><h3><a href="/es/rutas/#resilience-03">Resilience &amp; Recovery · etapa 3</a></h3><p>Cerrar el ejercicio con evidencias, análisis y mejora verificable.</p><a class="article-continuity-link" href="/es/rutas/#resilience-03">Ver etapa en la ruta ↗</a></div>
+</div></section></article>
+<aside class="article-aside"><div class="toc-title">Ficha técnica</div><p><strong>Tema</strong><br>Resilience &amp; Recovery</p><p><strong>Enfoque</strong><br>Evidencia, AAR/IP y acciones correctivas</p><p><strong>Laboratorio</strong><br>Python 3.10+ · stdlib · 21 tests</p><p><strong>Límite</strong><br>Sin firma, WORM ni cadena de custodia</p><p><a class="text-link" href="/es/laboratorios/">Ver catálogo de laboratorios ↗</a></p><p><a class="text-link" href="/es/rutas/">Ver ruta Resilience &amp; Recovery ↗</a></p></aside>
+</div></main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/laboratorios/">Laboratorios</a><a href="/es/rutas/">Rutas</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" data-privacy-settings hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>
