@@ -1,0 +1,21 @@
+{
+  "case_id": "DR-EXERCISE-2026-001",
+  "scenario": "Synthetic example: recovery of a three-tier business application in an isolated test environment.",
+  "objectives": {
+    "rto_minutes": 90,
+    "rpo_minutes": 15
+  },
+  "timestamps": {
+    "disruption_started_at": "2026-11-20T08:00:00Z",
+    "last_recoverable_point_at": "2026-11-20T07:42:00Z",
+    "service_restored_at": "2026-11-20T09:23:00Z",
+    "business_accepted_at": "2026-11-20T09:31:00Z"
+  },
+  "milestones": [
+    {"name": "Recovery decision", "at": "2026-11-20T08:08:00Z", "owner": "Exercise controller", "evidence": "EV-001 decision log"},
+    {"name": "Dependencies ready", "at": "2026-11-20T08:42:00Z", "owner": "Infrastructure lead", "evidence": "EV-002 dependency checklist"},
+    {"name": "Service available", "at": "2026-11-20T09:23:00Z", "owner": "Application lead", "evidence": "EV-003 health and smoke tests"},
+    {"name": "Technical validation", "at": "2026-11-20T09:26:00Z", "owner": "Test lead", "evidence": "EV-004 functional test results"},
+    {"name": "Business acceptance", "at": "2026-11-20T09:31:00Z", "owner": "Service owner", "evidence": "EV-005 acceptance record"}
+  ]
+}
