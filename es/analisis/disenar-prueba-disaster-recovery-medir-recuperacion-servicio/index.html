@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Diseñar una prueba de Disaster Recovery y medir la recuperación | Consola Abierta</title>
+<meta name="description" content="Método para definir el alcance, medir RTO y RPO, validar dependencias, probar el servicio y cerrar una prueba de Disaster Recovery con evidencias.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article"><meta property="og:title" content="Diseñar una prueba de Disaster Recovery y medir la recuperación | Consola Abierta"><meta property="og:description" content="Método para definir el alcance, medir RTO y RPO, validar dependencias, probar el servicio y cerrar una prueba de Disaster Recovery con evidencias."><meta property="og:url" content="https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/"><meta property="og:site_name" content="Consola Abierta">
+<meta property="og:image" content="https://consolaabierta.com/assets/og/og-default.png"><meta property="og:image:type" content="image/png"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/feed.xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Diseñar una prueba de Disaster Recovery: cómo medir la recuperación de un servicio",
+  "description": "Método para definir el alcance, medir RTO y RPO, validar dependencias, probar el servicio y cerrar una prueba de Disaster Recovery con evidencias.",
+  "datePublished": "2026-11-20",
+  "dateModified": "2026-11-20",
+  "inLanguage": "es",
+  "author": {"@type": "Person", "@id": "https://consolaabierta.com/#ray-vega", "name": "Ray Vega", "url": "https://consolaabierta.com/es/sobre/"},
+  "publisher": {"@type": "Organization", "@id": "https://consolaabierta.com/#organization", "name": "Consola Abierta", "url": "https://consolaabierta.com/"},
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/"},
+  "@id": "https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/#article",
+  "image": ["https://consolaabierta.com/assets/og/og-default.png"],
+  "articleSection": "Resilience & Recovery"
+}
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/#breadcrumb",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Inicio","item":"https://consolaabierta.com/"},
+    {"@type":"ListItem","position":2,"name":"Resilience & Recovery","item":"https://consolaabierta.com/es/articulos/?topic=resilience-recovery,
+    {"@type":"ListItem","position":3,"name":"Pruebas DR"}
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/" aria-label="Consola Abierta, inicio"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación independiente</span><a href="/en/analysis/disaster-recovery-test-design-measuring-service-recovery/" lang="en">EN</a></div></div>
+<nav class="primary-nav" aria-label="Navegación principal"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a data-catalog-nav href="/es/laboratorios/">Laboratorios</a><a data-path-nav href="/es/rutas/">Rutas</a><a href="/#especialidades>Especialidades</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">RESILIENCE &amp; RECOVERY</span><a class="text-link" href="/es/articulos/">Volver al índice ↗</a></div></nav></div></header>
+<main id="contenido" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/articulos/?topic=resilience-recovery">Resilience &amp; Recovery</a> / Pruebas DR</div><div class="kicker">Resilience & Recovery · Test Engineering · Guía práctica</div>
+<h1>Diseñar una prueba de Disaster Recovery: cómo medir la recuperación de un servicio</h1>
+<p class="article-deck">Método para definir el alcance, medir RTO y RPO, validar dependencias, probar el servicio y cerrar una prueba de Disaster Recovery con evidencias.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>Publicado 20 noviembre 2026</span><span>16–20 min de lectura</span><span>Mid-senior · Senior · Continuidad IT</span></div>
+<div class="status-line">DOCUMENTACIÓN REVISADA · NIST · AWS · MICROSOFT · CISA · SCORECARD LAB VERIFICADO · 7 TESTS · NO SE HA EJECUTADO UN FAILOVER</div></header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En esta investigación</div><ol>
+<li><a href="#problem">Qué demuestra una prueba</a></li><li><a href="#scope">Definir el servicio</a></li><li><a href="#objectives">RTO y RPO</a></li><li><a href="#exercise-types">Tipos de ejercicio</a></li><li><a href="#timeline">Hitos medibles</a></li><li><a href="#evidence">Evidencias</a></li><li><a href="#example">Ejemplo medido</a></li><li><a href="#cleanup">Cleanup / Failback</a></li><li><a href="#improve">Mejora continua</a></li><li><a href="#lab">Laboratorio</a></li><li><a href="#sources">Fuentes</a></li>
+</ol></nav>
+<article class="article-body">
+
+<div class="callout"><strong>La idea principal</strong><p>Una prueba de Disaster Recovery no demuestra que el servicio se pueda recuperar porque una VM arranque o porque el job de replicación termine en verde. Debe demostrar, dentro de un alcance y unas reglas de seguridad aprobadas, que el servicio mínimo acordado vuelve a funcionar, que el punto de datos recuperado es utilizable y que la evidencia permite comparar el resultado con los objetivos de negocio.</p></div>
+
+<h2 id="problem">1. Qué demuestra —y qué no— una prueba de DR</h2>
+<p>Un plan de recuperación describe una capacidad prevista. Una prueba aporta evidencia sobre esa capacidad en un escenario, una fecha y unas condiciones concretas. No son lo mismo. Un runbook puede estar actualizado y seguir fallando por una credencial caducada, un registro DNS que apunta al sitio equivocado, una dependencia que no estaba inventariada o una copia de datos que nunca se ha restaurado.</p>
+<p>Conviene separar cuatro afirmaciones que a menudo se mezclan:</p>
+<ul>
+<li><strong>La copia existe:</strong> el backup o la réplica aparece como completada.</li>
+<li><strong>La infraestructura arranca:</strong> los recursos pueden iniciarse en el destino previsto.</li>
+<li><strong>La aplicación funciona:</strong> las dependencias responden y las funciones críticas pasan las comprobaciones técnicas.</li>
+<li><strong>El servicio se acepta:</strong> el responsable funcional confirma que el proceso de negocio mínimo puede continuar.</li>
+</ul>
+<p>Una prueba puede validar una de estas capas sin validar las siguientes. El informe debe decir exactamente hasta dónde se llegó. No marques un servicio como recuperado si solo has comprobado que sus máquinas están encendidas.</p>
+<p>La guía de contingencia de NIST describe la planificación de recuperación como un conjunto coordinado de planes, procedimientos y medidas técnicas. Su guía de pruebas, formación y ejercicios aborda el diseño, la ejecución y la evaluación de esos eventos. Son referencias fundacionales publicadas en 2010 y 2006; deben leerse como orientación técnica, no como sustituto de los requisitos actuales de la organización o de la regulación aplicable.</p>
+
+<h2 id="scope">2. Define el servicio antes de elegir la prueba</h2>
+<p>El alcance no debería ser «recuperar el servidor APP01». Debería identificar el servicio que se quiere recuperar, qué capacidad mínima debe ofrecer y qué dependencias tienen que estar disponibles para que esa capacidad exista.</p>
+<table class="data-table"><thead><tr><th>Dimensión</th><th>Pregunta que debe quedar respondida</th><th>Evidencia esperada</th></tr></thead><tbody>
+<tr><td>Servicio</td><td>¿Qué proceso o funcionalidad vuelve a estar disponible?</td><td>Catálogo de servicio y criterio de aceptación</td></tr>
+<tr><td>Datos</td><td>¿Qué punto de recuperación es aceptable y consistente?</td><td>Marca temporal, origen y validación de integridad</td></tr>
+<tr><td>Dependencias</td><td>¿Qué identidad, DNS, red, almacenamiento, base de datos o proveedor hace falta?</td><td>Mapa de dependencias y orden de arranque</td></tr>
+<tr><td>Personas</td><td>¿Quién activa, ejecuta, valida y acepta?</td><td>Roles, suplentes y contactos de escalado</td></tr>
+<tr><td>Entorno</td><td>¿Dónde se prueba y qué conexiones están permitidas?</td><td>Topología aislada y reglas de seguridad</td></tr>
+<tr><td>Cierre</td><td>¿Cómo se limpia el entorno y se vuelve a la situación inicial?</td><td>Plan de cleanup, failback y reconciliación</td></tr>
+</tbody></table>
+<p>Para una aplicación de tres capas, la secuencia puede exigir que la base de datos esté disponible antes del middleware y que el frontend arranque al final. Microsoft documenta precisamente este patrón en sus planes de recuperación de Azure Site Recovery. En un entorno real, el mapa también puede incluir Active Directory, DNS, certificados, secretos, firewalls, balanceadores, colas, almacenamiento, servicios externos y herramientas de monitorización.</p>
+<p>La dependencia que no aparece en el inventario tampoco aparecerá mágicamente en el runbook. Antes de la prueba, revisa el mapa con los equipos propietarios de la aplicación y de la plataforma.</p>
+
+<h2 id="objectives">3. RTO y RPO: objetivos distintos, mediciones distintas</h2>
+<p>El <strong>Recovery Time Objective (RTO)</strong> expresa el tiempo máximo de interrupción que el negocio considera aceptable para un servicio. El <strong>Recovery Point Objective (RPO)</strong> expresa la pérdida máxima de datos, medida en tiempo, que el negocio está dispuesto a asumir. AWS explica esta diferencia en su pilar de fiabilidad: el RTO no es una media operativa como MTTR, sino un objetivo que se compara con un evento de recuperación concreto.</p>
+<table class="data-table"><thead><tr><th>Indicador</th><th>Qué mide</th><th>Medición de referencia</th></tr></thead><tbody>
+<tr><td>RTO observado</td><td>Tiempo desde el inicio acordado de la interrupción hasta la restauración del servicio mínimo acordado</td><td><code>service_restored_at − disruption_started_at</code></td></tr>
+<tr><td>RPO observado</td><td>Antigüedad del último punto de datos confirmado como recuperable en el momento de la interrupción</td><td><code>disruption_started_at − last_recoverable_point_at</code></td></tr>
+<tr><td>Tiempo hasta aceptación</td><td>Demora adicional entre la disponibilidad técnica y la aceptación funcional</td><td><code>business_accepted_at − service_restored_at</code></td></tr>
+</tbody></table>
+<p>Los nombres de los hitos importan. Si en una prueba se empieza a contar cuando se declara el desastre y en otra desde que se detecta la primera interrupción, los resultados no son comparables. Del mismo modo, «servicio restaurado» debe tener una definición verificable: por ejemplo, dependencias disponibles, autenticación correcta, transacción sintética completada y funciones críticas accesibles.</p>
+<p>El RPO tampoco debe calcularse a partir de la hora en la que el software dice que terminó un backup, sin más. El punto debe estar identificado y demostrado como recuperable y consistente. Una copia puede existir y aun así fallar al restaurarse, carecer de datos de aplicación o no ser utilizable por el servicio.</p>
+<p>Establece objetivos por servicio y criticidad. Un RTO único para toda la plataforma suele ocultar que las aplicaciones tienen dependencias, tolerancias y prioridades diferentes.</p>
+
+<h2 id="exercise-types">4. Elige el nivel de ejercicio según el riesgo</h2>
+<p>No todas las pruebas necesitan un failover completo. Lo importante es que el tipo de ejercicio responda a una pregunta concreta y que el informe no exagere lo que ha validado.</p>
+<table class="data-table"><thead><tr><th>Tipo</th><th>Qué permite comprobar</th><th>Qué no demuestra por sí solo</th></tr></thead><tbody>
+<tr><td>Tabletop / walkthrough</td><td>Roles, decisiones, contactos, escalado, comprensión del plan y lagunas del procedimiento</td><td>Que los sistemas arranquen o que los datos se restauren</td></tr>
+<tr><td>Prueba de componente</td><td>Restore de una base de datos, recuperación de un volumen, restauración de una VM o validación de una réplica</td><td>Que la aplicación completa funcione con todas sus dependencias</td></tr>
+<tr><td>Test failover aislado</td><td>Secuencia técnica de recuperación y comportamiento del servicio en una red de prueba separada</td><td>Que un cambio de producción, DNS global o failback esté validado</td></tr>
+<tr><td>Prueba extremo a extremo</td><td>Dependencias, autenticación, datos, transacciones funcionales, observabilidad y aceptación de negocio</td><td>Que cualquier escenario alternativo o desastre distinto vaya a comportarse igual</td></tr>
+<tr><td>Failover controlado</td><td>La transición real a la ubicación o plataforma alternativa, con su impacto y coordinación</td><td>Que la vuelta al sitio primario o la reconciliación de datos estén resueltas automáticamente</td></tr>
+</tbody></table>
+<p>Microsoft recomienda realizar un test failover antes de un failover completo y validar las aplicaciones y sus dependencias. Para evitar interferir con producción, la documentación de Active Directory y DNS de Azure Site Recovery describe el uso de una red aislada para el ejercicio y advierte de la necesidad de disponer primero de los servicios de identidad y resolución que requiere la aplicación.</p>
+<p>La elección del ejercicio debe incluir un criterio de parada. Define qué condición obliga a abortar, quién puede detenerlo, qué recursos se crean y qué proceso los elimina. Si no existe una forma segura de aislar el tráfico o evitar escrituras cruzadas, la prueba no está lista para ejecutarse.</p>
+
+<h2 id="timeline">5. Diseña hitos que se puedan medir</h2>
+<p>Una única marca de «inicio» y otra de «fin» no bastan para explicar dónde se ha consumido el tiempo. Registra hitos con responsables y relojes sincronizados. El siguiente esquema es una estructura de trabajo, no una secuencia obligatoria para todos los servicios:</p>
+<div class="article-diagram"><div class="diagram-label">Figura 1 · Cadena de evidencia de una prueba de recuperación</div><div class="diagram-steps"><div class="diagram-step"><b>01 / IMPACTO</b><span>Interrupción, alcance y T0 acordado</span></div><div class="diagram-step"><b>02 / ACTIVACIÓN</b><span>Decisión, autoridad y coordinación</span></div><div class="diagram-step"><b>03 / PLATAFORMA</b><span>Datos, red, identidad y dependencias</span></div><div class="diagram-step"><b>04 / SERVICIO</b><span>Aplicación, validación y aceptación</span></div></div></div>
+<table class="data-table"><thead><tr><th>Hito</th><th>Qué registrar</th><th>Quién lo confirma</th></tr></thead><tbody>
+<tr><td>Interrupción (T0)</td><td>Hora de inicio conforme a la definición aprobada y alcance afectado</td><td>Incident manager / service owner</td></tr>
+<tr><td>Activación</td><td>Decisión, plan activado, responsables y comunicaciones</td><td>Responsable de continuidad</td></tr>
+<tr><td>Punto de datos</td><td>Identificador y timestamp del punto elegido; comprobación de consistencia</td><td>Data / database owner</td></tr>
+<tr><td>Dependencias</td><td>Identidad, DNS, red, almacenamiento, base de datos y middleware listos</td><td>Responsables de plataforma</td></tr>
+<tr><td>Servicio disponible</td><td>Pruebas de salud y funciones técnicas acordadas completadas</td><td>Application owner</td></tr>
+<tr><td>Validación funcional</td><td>Transacciones sintéticas y flujos de negocio mínimos ejecutados</td><td>Test lead / business representative</td></tr>
+<tr><td>Aceptación y cierre</td><td>Decisión de aceptación, incidencias, cleanup y acciones de mejora</td><td>Service owner / exercise controller</td></tr>
+</tbody></table>
+<p>Guarda los tiempos en UTC o registra explícitamente el offset. No mezcles la hora del panel del proveedor, el servidor de base de datos y la herramienta de tickets sin normalizar las zonas horarias. Si hay varias regiones o equipos, un reloj desajustado puede parecer una recuperación imposible o un RPO negativo.</p>
+
+<h2 id="evidence">6. La evidencia debe permitir reconstruir la prueba</h2>
+<p>Una captura de pantalla aislada no sustituye a un registro de ejecución. El expediente debería permitir que otra persona entienda qué se probó, con qué versión de procedimiento, bajo qué condiciones, qué resultado se obtuvo y qué quedó fuera.</p>
+<ul>
+<li><strong>Identificación:</strong> servicio, escenario, fecha, alcance y versión de los planes o runbooks.</li>
+<li><strong>Objetivos:</strong> RTO/RPO aprobados, criterio de inicio y condición de servicio restaurado.</li>
+<li><strong>Entorno:</strong> topología de prueba, aislamiento, versiones, puntos de recuperación y cambios aplicados.</li>
+<li><strong>Marcas temporales:</strong> activación, restauración de dependencias, disponibilidad técnica, pruebas y aceptación.</li>
+<li><strong>Validación:</strong> pruebas de datos, autenticación, transacciones y comprobaciones funcionales acordadas.</li>
+<li><strong>Desviaciones:</strong> pasos manuales no documentados, errores, retrasos, dependencias inesperadas y riesgos residuales.</li>
+<li><strong>Cierre:</strong> limpieza, reconciliación, vuelta al estado de partida, responsables y acciones con fecha objetivo.</li>
+</ul>
+<p>Referencia cada evidencia mediante un identificador de ticket, log, informe, captura o repositorio autorizado. No incluyas credenciales, datos de clientes ni documentación interna sensible en un paquete público. El laboratorio de este artículo usa referencias ficticias como <code>EV-003</code>; no contiene datos de ningún entorno real.</p>
+
+<h2 id="example">7. Ejemplo: cumplir RTO no compensa incumplir RPO</h2>
+<p>El paquete de práctica incluye un caso completamente sintético. Sirve para comprobar el cálculo y la lógica del informe, no para afirmar que se ha realizado una recuperación real.</p>
+<table class="data-table"><thead><tr><th>Dato de ejemplo</th><th>Valor</th><th>Resultado</th></tr></thead><tbody>
+<tr><td>RTO objetivo</td><td>90 minutos</td><td>Objetivo aprobado ficticio</td></tr>
+<tr><td>RTO observado</td><td>83 minutos</td><td><strong>PASS</strong> — dentro del objetivo</td></tr>
+<tr><td>RPO objetivo</td><td>15 minutos</td><td>Objetivo aprobado ficticio</td></tr>
+<tr><td>RPO observado</td><td>18 minutos</td><td><strong>FAIL</strong> — supera el objetivo en 3 minutos</td></tr>
+<tr><td>Demora hasta aceptación funcional</td><td>8 minutos adicionales</td><td>Se informa aparte; no se oculta dentro del RTO configurado</td></tr>
+</tbody></table>
+<p>El resultado global es <strong>FAIL</strong>. El servicio mínimo aparece disponible dentro del RTO, pero el punto recuperable está más atrás de lo permitido por el RPO. El equipo debe investigar el desfase de replicación o el punto de restauración, cuantificar el impacto de los datos y decidir si la estrategia cumple la necesidad de negocio. No es correcto promediar los dos objetivos ni etiquetar la prueba como satisfactoria por haber cumplido uno.</p>
+
+<h2 id="cleanup">8. Cleanup, failback y seguridad del ejercicio</h2>
+<p>La prueba no termina cuando se muestra la página de login. Antes de ejecutar, documenta la vuelta al estado inicial y los criterios para confirmar que el entorno de prueba se ha eliminado o aislado correctamente.</p>
+<ul>
+<li>Usa una red de prueba independiente y verifica rutas, peering, VPN y reglas antes de iniciar recursos recuperados.</li>
+<li>Controla DNS, IPs, identidad, certificados y secretos para impedir que una instancia de prueba escriba en sistemas productivos.</li>
+<li>Usa cuentas y datos de prueba aprobados; deshabilita integraciones externas que pudieran enviar correos, pagos o notificaciones reales.</li>
+<li>Registra quién autoriza el inicio, el cambio de fase y la cancelación. Ten a mano el procedimiento de parada.</li>
+<li>Ejecuta cleanup y valida que no quedan VMs, volúmenes, snapshots, interfaces, reglas temporales ni recursos facturables.</li>
+<li>Si el ejercicio incluye failback, trata la vuelta como una fase independiente: sincronización, conflictos, fuente autoritativa, DNS y aceptación deben estar definidos.</li>
+</ul>
+<p>Un test failover y un failback no son operaciones simétricas. La ubicación alternativa puede recibir escrituras nuevas durante una prueba; antes de volver al origen hay que saber qué datos son autoritativos y cómo se reconcilian. No presupongas que borrar las máquinas temporales equivale a completar la vuelta al estado original.</p>
+
+<h2 id="improve">9. Cierra con un informe de mejora, no solo con un porcentaje</h2>
+<p>El cierre debe separar los objetivos cumplidos, los incumplidos, las partes no probadas y las limitaciones del ejercicio. Para cada hallazgo registra impacto, causa confirmada o pendiente, acción correctiva, responsable, fecha comprometida y evidencia necesaria para cerrar la acción.</p>
+<p>El modelo de After-Action Report / Improvement Plan de CISA es una referencia útil para convertir observaciones del ejercicio en fortalezas, áreas de mejora y acciones asignadas. El valor está en verificar posteriormente que la corrección se ha implantado y que una nueva prueba demuestra su eficacia.</p>
+<p>No inventes una periodicidad universal. AWS Well-Architected indica que no existe una frecuencia única válida para todas las estrategias DR salvo requisitos regulatorios explícitos. Define la cadencia en función de criticidad, cambios de arquitectura, crecimiento de datos, modificaciones de dependencias, fallos previos y resultados de las pruebas. Un cambio importante puede exigir una prueba extraordinaria aunque el calendario anual no haya llegado.</p>
+
+<h2 id="lab">10. Laboratorio: Recovery Test Scorecard</h2>
+<p>El paquete de descarga contiene un analizador offline en Python estándar, datos sintéticos, README y siete pruebas unitarias. Introduce los timestamps acordados y las referencias de evidencias; el programa calcula RTO y RPO, comprueba el orden de hitos y genera un informe JSON y Markdown.</p>
+<div class="article-note"><strong>Alcance del laboratorio</strong>El scorecard valida los datos introducidos. No ejecuta restauraciones, failover, replicación, consultas a monitorización ni pruebas funcionales. No demuestra por sí mismo que el punto de recuperación sea válido. Usa datos sintéticos o metadatos aprobados; no exportes información sensible.</div>
+<pre><code>python recovery_scorecard.py sample-test.json \\
+  --json-out report.json \\
+  --markdown-out report.md</code></pre>
+<p>Requisitos: Python 3.10 o posterior, sin paquetes de terceros. El código devuelve exit code <code>0</code> si se cumplen objetivos y evidencias, <code>1</code> si genera un informe con algún fallo y <code>2</code> si el input es inválido. El ejemplo incluido da FAIL deliberadamente porque el RPO observado supera el objetivo.</p>
+<p><a class="text-link" href="/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip" download>Descargar Recovery Test Scorecard — Lab 01 ↗</a> · <a class="text-link" href="/assets/labs/recovery-test-scorecard/README.md">Leer README ↗</a></p>
+
+<h2 id="sources">11. Fuentes primarias y documentación</h2>
+<ul class="reference-list">
+<li><a href="https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final" target="_blank" rel="noopener">NIST SP 800-34 Rev. 1 — Contingency Planning Guide for Federal Information Systems</a>. Guía de planificación de contingencia, prioridades, recuperación y relación entre planes. Publicada en 2010.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/84/final" target="_blank" rel="noopener">NIST SP 800-84 — Guide to Test, Training, and Exercise Programs for IT Plans and Capabilities</a>. Diseño, desarrollo, ejecución y evaluación de pruebas, formación y ejercicios. Publicada en 2006.</li>
+<li><a href="https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/disaster-recovery-dr-objectives.html" target="_blank" rel="noopener">AWS Well-Architected Reliability Pillar — Disaster Recovery objectives</a>. Definiciones de RTO y RPO y su relación con objetivos de recuperación.</li>
+<li><a href="https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/plan-for-disaster-recovery-dr.html" target="_blank" rel="noopener">AWS Well-Architected — Plan for Disaster Recovery</a>. Definir objetivos, probar la implementación y gestionar drift.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/recovery-plan-overview" target="_blank" rel="noopener">Microsoft Learn — About recovery plans in Azure Site Recovery</a>. Dependencias de aplicaciones, orden de recuperación y test failover.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-active-directory" target="_blank" rel="noopener">Microsoft Learn — Set up Active Directory/DNS disaster recovery with Azure Site Recovery</a>. Consideraciones de aislamiento de red y recuperación previa de identidad/DNS.</li>
+<li><a href="https://www.cisa.gov/sites/default/files/publications/3%20-%20CTEP%20Facilitator%20Evaluator%20Handbook%20%282020%29%20FINAL_508.pdf" target="_blank" rel="noopener">CISA Tabletop Exercise Package — Facilitator / Evaluator Handbook</a>. After-Action Report / Improvement Plan para documentar resultados y acciones.</li>
+</ul>
+<p class="page-end">Documentación revisada el 20 de noviembre de 2026. El scorecard se ha ejecutado localmente con siete pruebas automatizadas. No se ha realizado ni se afirma haber realizado un failover o una restauración de infraestructura. El ejemplo numérico es sintético.</p>
+
+<div class="author-card"><span class="avatar">RV</span><div><strong>Ray Vega</strong><p>Fundador y editor de Consola Abierta. Escribe sobre sistemas, operaciones IT, continuidad tecnológica, automatización e ingeniería.</p></div></div>
+<section class="references"><h3>Lecturas relacionadas</h3><ol><li><a href="/es/analisis/diagnostico-rendimiento-windows-server/">Diagnóstico avanzado de rendimiento en Windows Server</a>: medir estado y dependencias antes de intervenir.</li><li><a href="/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/">SQL Server tempdb: crecimiento del log por una transacción abierta</a>: reproducir, diagnosticar y validar una recuperación de un componente de datos.</li></ol></section>
+<section class="article-continuity" aria-label="Continúa tu recorrido" data-learning-route="resilience" data-learning-step="1">
+<div class="article-continuity-head"><span class="article-continuity-kicker">SIGUIENTE PASO DE APRENDIZAJE</span><h2>Continúa tu recorrido</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Práctica asociada</p><h3>Recovery Test Scorecard · Lab 01</h3><p>Calcula RTO y RPO por separado, comprueba la cronología y genera un informe de evidencias en local.</p><a class="article-continuity-link" href="/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip">Descargar laboratorio ↗</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Lectura relacionada</p><h3><a href="/es/analisis/diagnostico-rendimiento-windows-server/">Diagnóstico de Windows Server</a></h3><p>Practica la correlación de señales técnicas y marcas temporales antes de establecer una línea base de servicio.</p><a class="article-continuity-link" href="/es/analisis/diagnostico-rendimiento-windows-server/">Leer investigación ↗</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Tu ruta</p><h3><a href="/es/rutas/#resilience-01">Resilience &amp; Recovery · etapa 1</a></h3><p>Definir objetivos, diseñar ejercicios y demostrar la recuperación con criterios y evidencias.</p><a class="article-continuity-link" href="/es/rutas/#resilience-01">Ver esta etapa en la ruta ↗</a></div>
+</div></section>
+
+</article>
+<aside class="article-aside"><div class="toc-title">Ficha técnica</div><p><strong>Tema</strong><br>Resilience &amp; Recovery</p><p><strong>Enfoque</strong><br>Diseño y medición de ejercicios DR</p><p><strong>RTO / RPO</strong><br>Objetivo vs resultado observado</p><p><strong>Laboratorio</strong><br>Python 3.10+ · stdlib · 7 tests</p><p><strong>Límite</strong><br>Sin failover ni acceso a producción</p><p><a class="text-link" href="/es/laboratorios/">Ver catálogo de laboratorios ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/laboratorios/">Laboratorios</a><a href="/es/rutas/">Rutas</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto editorial</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="#privacy-settings" id="privacy-settings-link" data-privacy-settings hidden>Configurar cookies y privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>
