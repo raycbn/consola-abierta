@@ -2,16 +2,24 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = __dirname;
-const INCLUDED = new Set([".html", ".js", ".css", ".json", ".xml", ".md", ".txt", ".yml", ".yaml"]);
+const INCLUDED = new Set([".html", ".json", ".md", ".txt", ".xml", ".yml", ".yaml"]);
 const IGNORED_DIRS = new Set([".git", "node_modules"]);
 const CHECKS = [
   { label: "replacement character", pattern: /\uFFFD/g },
   { label: "UTF-8 mojibake", pattern: /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF])/g },
-  { label: "known accent replaced by question mark", pattern: /\b(?:atenci|reutilizaci|navegaci|investigaci)\?n\b/gi }
+  { label: "letter replaced by question mark inside a word", pattern: /\p{L}{2,}\?[\p{L}]{1,}\b/giu }
 ];
 
 const failures = [];
 let scanned = 0;
+
+function cleanForTextChecks(line) {
+  return line
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/\b(?:href|src|action|poster)\s*=\s*(["'])[^"']*\1/gi, " ")
+    .replace(/https?:\/\/[^\s<"']+/gi, " ");
+}
 
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -28,9 +36,10 @@ function walk(directory) {
 
     const lines = content.split(/\r?\n/);
     for (let index = 0; index < lines.length; index++) {
+      const searchable = cleanForTextChecks(lines[index]);
       for (const check of CHECKS) {
         check.pattern.lastIndex = 0;
-        const match = check.pattern.exec(lines[index]);
+        const match = check.pattern.exec(searchable);
         if (match) {
           failures.push(relative + ":" + (index + 1) + ": " + check.label + " — " + lines[index].trim().slice(0, 180));
         }
