@@ -114,21 +114,21 @@
       "read": "28–34 min"
     },
     {
-      "labels": "AI ? LLM Engineering ? Inference Engineering",
+      "labels": "AI · LLM Engineering · Inference Engineering",
       "lang": "es",
       "title": "LLM Inference: Prefill, Decode y KV Cache",
       "url": "/es/analisis/inferencia-llm-prefill-decode-kv-cache/",
-      "summary": "Prefill, Decode y KV Cache: c?mo se procesa el prompt, c?mo se generan tokens y c?mo dimensionar la memoria K/V. Laboratorio PyTorch reproducible en CPU.",
+      "summary": "Prefill, Decode y KV Cache: cómo se procesa el prompt, cómo se generan tokens y cómo dimensionar la memoria K/V. Laboratorio PyTorch reproducible en CPU.",
       "topics": [
         "llm-engineering",
         "ai-for-it",
         "systems-infrastructure"
       ],
       "date": "2026-11-14",
-      "read": "24?28 min"
+      "read": "24–28 min"
     },
     {
-      "labels": "AI ? LLM Engineering ? Inference Engineering",
+      "labels": "AI · LLM Engineering · Inference Engineering",
       "lang": "en",
       "title": "LLM Inference: Prefill, Decode and KV Cache",
       "url": "/en/analysis/llm-inference-prefill-decode-kv-cache/",
@@ -139,7 +139,7 @@
         "systems-infrastructure"
       ],
       "date": "2026-11-14",
-      "read": "24?28 min"
+      "read": "24–28 min"
     },
     {
       "labels": "AI · LLM Engineering · Training & Optimisation",
