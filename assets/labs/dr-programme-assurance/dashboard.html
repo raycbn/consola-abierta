@@ -24,7 +24,7 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 <body>
 <main class="wrap">
 <div class="top"><div class="brand">Consola Abierta <span style="color:#71899c">/</span> Resilience &amp; Recovery</div><a href="https://consolaabierta.com/es/analisis/aseguramiento-programa-anual-disaster-recovery/" target="_blank" rel="noopener">Guía DR Programme Assurance ↗</a></div>
-<section class="hero"><div><p class="eyebrow">Portfolio visibility · offline dashboard</p><h1>DR Programme Assurance</h1><p class="intro">Compara cierres trimestrales del DR Programme Coverage Auditor. Importa los ficheros <code>programme-summary.json</code> generados por Lab 04 para ver tendencias y hallazgos.</p></div><div class="hero-actions"><button id="exportTimeline" class="quiet" type="button">Exportar evolución CSV</button><button id="exportExecutive" class="primary" type="button">Generar informe para comité (.md)</button></div></section>
+<section class="hero"><div><p class="eyebrow">Portfolio visibility · offline dashboard</p><h1>DR Programme Assurance</h1><p class="intro">Compara cierres trimestrales del DR Programme Coverage Auditor. Importa los ficheros <code>programme-summary.json</code> generados por Lab 04 para ver tendencias y hallazgos.</p></div><div class="hero-actions"><button id="exportTimeline" class="quiet" type="button">Exportar evolución CSV</button><button id="exportHistory" class="quiet" type="button">Guardar histórico JSON</button><button id="exportExecutive" class="primary" type="button">Generar informe para comité (.md)</button></div></section>
 <div class="banner"><strong>LOCAL ONLY</strong><span>Los JSON se leen y procesan en este navegador. No se envían a Consola Abierta ni a ningún servidor.</span></div>
 <section id="dropzone" class="filedrop" aria-label="Importar cierres trimestrales"><div class="filecopy"><strong>Importa uno o varios cierres</strong><p>Selecciona los JSON de cada trimestre. Para comparar periodos, utiliza la misma ventana de análisis y los mismos criterios de alcance.</p></div><div class="file-actions"><input id="fileInput" class="hidden" type="file" accept=".json,application/json" multiple><button class="primary" id="importButton" type="button">Importar JSON</button><button id="demoButton" type="button">Cargar demo</button><button id="clearButton" type="button" class="quiet">Vaciar</button></div></section>
 <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -58,6 +58,7 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
  </div>
  <div class="change-list"><table><thead><tr><th>Indicador</th><th>Cierre anterior</th><th>Último cierre</th><th>Variación</th><th>Lectura</th></tr></thead><tbody id="changeRows"></tbody></table></div>
  <p class="report-note">Las señales desfavorables se detectan por dirección del cambio, no por un umbral de materialidad. Cuando alcance, metodología o ventana no son comparables, la variación se muestra como observación y no como deterioro confirmado.</p>
+ <div class="note" id="sustainedTrend" role="status">Carga al menos tres cierres para analizar deterioros en dos intervalos consecutivos comparables.</div>
 </div>
 <div class="section-head"><h2>Hallazgos del último cierre</h2><div class="filters"><select id="severityFilter" aria-label="Filtrar severidad"><option value="">Todas las severidades</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="INFO">INFO</option></select><input id="findingSearch" type="search" placeholder="Buscar código, servicio o detalle" aria-label="Buscar hallazgos"></div></div>
 <div class="table-wrap"><table><thead><tr><th>Severidad</th><th>Hallazgo</th><th>Servicio</th><th>Detalle</th></tr></thead><tbody id="findingRows"></tbody></table></div>
@@ -100,6 +101,12 @@ function validateReport(r) {
  for(const f of r.findings) if(!f||!["HIGH","MEDIUM","INFO","LOW"].includes(f.severity)||typeof f.finding!=="string"||typeof f.service_id!=="string"||typeof f.detail!=="string") throw new Error("Hay un finding con campos no válidos.");
  return r;
 }
+function isSyntheticReport(report){
+ return Boolean(report?._demo||(report?.limitations||[]).some(item=>String(item).includes("DEMO DATA ONLY")));
+}
+function allReportsSynthetic(){
+ return reports.length>0&&reports.every(isSyntheticReport);
+}
 function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
 function fmtPct(v){return v===null||v===undefined?"No medido":Number(v).toLocaleString("es-ES",{maximumFractionDigits:1})+" %";}
 function fmtInt(v){return Number(v||0).toLocaleString("es-ES");}
@@ -112,8 +119,8 @@ function compareMetadata(previous,current){
  const methodology=pm&&cm&&pm.qualification_policy_id&&cm.qualification_policy_id
   ?(pm.auditor_version===cm.auditor_version&&pm.dependency_freshness_days===cm.dependency_freshness_days&&pm.qualification_policy_id===cm.qualification_policy_id?"same":"changed")
   :"unknown";
- const rtoCohort=ps?.rto_service_ids_sha256&&cs?.rto_service_ids_sha256?(ps.rto_service_ids_sha256===cs.rto_service_ids_sha256?"same":"changed"):"unknown";
- const rpoCohort=ps?.rpo_service_ids_sha256&&cs?.rpo_service_ids_sha256?(ps.rpo_service_ids_sha256===cs.rpo_service_ids_sha256?"same":"changed"):"unknown";
+ const rtoCohort=ps?.rto_service_ids_sha256&&cs?.rto_service_ids_sha256?(ps.rto_service_ids_sha256===cs.rto_service_ids_sha256&&ps.rto_measured_services===cs.rto_measured_services?"same":"changed"):"unknown";
+ const rpoCohort=ps?.rpo_service_ids_sha256&&cs?.rpo_service_ids_sha256?(ps.rpo_service_ids_sha256===cs.rpo_service_ids_sha256&&ps.rpo_measured_services===cs.rpo_measured_services?"same":"changed"):"unknown";
  const window=Number.isInteger(previous?.reporting_window?.days)&&Number.isInteger(current?.reporting_window?.days)
   ?(previous.reporting_window.days===current.reporting_window.days?"same":"changed")
   :"unknown";
@@ -134,6 +141,31 @@ function comparisonMetrics(previous,current){
   {name:"Acciones cerradas sin verificar",a:previous.actions.closed_without_verification,b:current.actions.closed_without_verification,type:"count",higher:false}
  ];
 }
+
+function sustainedDeteriorationSignals(){
+ const signals=[];
+ for(let i=2;i<reports.length;i++){
+  const first=reports[i-2],middle=reports[i-1],last=reports[i];
+  const firstPair=compareMetadata(first,middle),secondPair=compareMetadata(middle,last);
+  if(!firstPair.comparable||!secondPair.comparable)continue;
+  const a=comparisonMetrics(first,middle),b=comparisonMetrics(middle,last);
+  for(let j=0;j<a.length;j++){
+   const d1=metricDelta(a[j]),d2=metricDelta(b[j]);
+   if(d1.state==="worse"&&d2.state==="worse"){
+    signals.push({name:a[j].name,start:first.as_of,end:last.as_of,from:a[j].a,to:b[j].b,type:a[j].type});
+   }
+  }
+ }
+ return signals;
+}
+function renderSustainedTrends(){
+ const host=$("sustainedTrend");
+ if(reports.length<3){host.textContent="Carga al menos tres cierres para analizar deterioros en dos intervalos consecutivos comparables.";return;}
+ const signals=sustainedDeteriorationSignals();
+ if(!signals.length){host.textContent="No se han detectado deterioros en dos intervalos consecutivos con alcance, metodología, ventana y cohortes aplicables comparables. Esto no significa que no existan riesgos puntuales.";return;}
+ host.innerHTML="<strong>Deterioros sostenidos detectados:</strong> "+signals.map(x=>escapeHtml(x.name)+" ("+escapeHtml(x.start)+" → "+escapeHtml(x.end)+": "+(x.type==="pct"?fmtPct(x.from)+" → "+fmtPct(x.to):fmtInt(x.from)+" → "+fmtInt(x.to))+")").join(" · ");
+}
+
 function metricDelta(metric){
  if(metric.a===null||metric.a===undefined||metric.b===null||metric.b===undefined)return {text:"No medido",state:"unknown",direction:"unknown"};
  const d=Math.round((metric.b-metric.a)*10)/10;
@@ -220,6 +252,11 @@ function executiveMarkdown(){
    lines.push("| "+m.name+" | "+a+" | "+b+" | "+d.text+" | "+reading+" |");
   }
  }else lines.push("| — | — | — | — | Se necesita otro cierre para comparar |");
+ lines.push("","## Tendencias negativas sostenidas","");
+ const sustained=sustainedDeteriorationSignals();
+ if(reports.length<3)lines.push("Se necesitan al menos tres cierres.");
+ else if(!sustained.length)lines.push("No se han detectado deterioros en dos intervalos consecutivos comparables. Esto no significa que no existan riesgos puntuales.");
+ else sustained.forEach(x=>lines.push("- "+x.name+": "+x.start+" a "+x.end+" ("+(x.type==="pct"?fmtPct(x.from)+" → "+fmtPct(x.to):fmtInt(x.from)+" → "+fmtInt(x.to))+")."));
  lines.push("","## Hallazgos del último cierre","","| Severidad | Código | Servicio | Detalle |","|---|---|---|---|");
  for(const f of (latest.findings||[])) lines.push("| "+f.severity+" | "+markdownSafe(f.finding)+" | "+markdownSafe(f.service_id)+" | "+markdownSafe(f.detail)+" |");
  if(!latest.findings?.length)lines.push("| — | — | — | Sin hallazgos registrados |");
@@ -233,7 +270,7 @@ function executiveMarkdown(){
   "",
   "Generado por DR Programme Assurance Dashboard · Consola Abierta · Procesamiento local."
  );
- if(usingDemo)lines.splice(3,0,"> **DATOS SINTÉTICOS:** esta vista usa valores de demostración y no corresponde a ningún entorno real.","");
+ if(isSyntheticReport(latest))lines.splice(3,0,"> **DATOS SINTÉTICOS:** este cierre usa valores de demostración y no corresponde a ningún entorno real.","");
  return lines.filter(line=>line!==undefined).join("\n");
 }
 function downloadText(filename,content,mime){
@@ -246,7 +283,8 @@ function render() {
  $("dashboard").classList.toggle("hidden",reports.length===0);
  $("exportTimeline").disabled=reports.length===0;
  $("exportExecutive").disabled=reports.length===0;
- $("reportCount").textContent=reports.length+" cierre(s) cargado(s)"+(usingDemo?" · DEMO SINTÉTICA":"");
+ $("exportHistory").disabled=reports.length===0;
+ $("reportCount").textContent=reports.length+" cierre(s) cargado(s)"+(allReportsSynthetic()?" · DEMO SINTÉTICA":"");
  if(!reports.length){$("status").textContent="No hay datos. Importa uno o varios programme-summary.json o carga la demo.";return;}
  const latest=reports[reports.length-1], previous=reports.length>1 ? reports[reports.length-2]:null;
  const s=latest.services,t=latest.rto,p=latest.rpo,a=latest.actions;
@@ -266,7 +304,8 @@ function render() {
  $("timelineRows").innerHTML=reports.map(r=>'<tr><td class="num">'+escapeHtml(r.as_of)+'</td><td class="num">'+fmtInt(r.services.covered_by_qualifying_exercise)+' / '+fmtInt(r.services.in_scope)+'</td><td class="num">'+fmtPct(r.services.coverage_percent)+'</td><td class="num">'+fmtPct(r.rto.pass_percent)+' ('+fmtInt(r.rto.measured_services)+')</td><td class="num">'+fmtPct(r.rpo.pass_percent)+' ('+fmtInt(r.rpo.measured_services)+')</td><td class="num">'+fmtInt(r.services.overdue_by_target_cadence)+'</td><td class="num">'+fmtInt(r.services.valid_approved_exceptions)+'</td><td class="num">'+fmtInt(r.actions.overdue_unverified)+'</td></tr>').join("");
  renderFindings();
  renderComparison();
- $("status").textContent=(usingDemo?"Mostrando datos sintéticos de demostración.":"Datos importados y procesados localmente.")+" "+reports.length+" cortes disponibles.";
+ renderSustainedTrends();
+ $("status").textContent=(allReportsSynthetic()?"Mostrando datos sintéticos de demostración.":"Datos importados y procesados localmente.")+" "+reports.length+" cortes disponibles.";
 }
 function chartSvg(target,series) {
  const host=$(target), valid=reports.length;
@@ -297,12 +336,27 @@ function renderFindings(){
 }
 function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
 function downloadCsv(filename,rows){const csv=rows.map(row=>row.map(csvCell).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+function unpackImportedPayload(payload){
+ if(payload&&typeof payload==="object"&&(Object.prototype.hasOwnProperty.call(payload,"format")||Array.isArray(payload.reports))){
+  if(payload.format!=="dr-programme-history-v1"||!Array.isArray(payload.reports)||payload.reports.length<1||payload.reports.length>500)throw new Error("Archivo histórico no válido o versión no compatible.");
+  return payload.reports;
+ }
+ return [payload];
+}
 async function importFiles(fileList){
  const files=Array.from(fileList||[]);if(!files.length)return;
  const added=[],errors=[];
  for(const file of files){
   if(file.size>5*1024*1024){errors.push(file.name+": supera 5 MB");continue;}
-  try{const parsed=validateReport(JSON.parse(await file.text()));added.push({...parsed,_source:file.name,_demo:false});}
+  try{
+   const payload=JSON.parse(await file.text()),batch=unpackImportedPayload(payload);
+   let valid=0;
+   for(const item of batch){
+    try{const parsed=validateReport(item);added.push({...parsed,_source:file.name,_demo:isSyntheticReport(parsed)});valid++;}
+    catch(err){errors.push(file.name+(batch.length>1?" ("+(item?.as_of||"sin fecha")+")":"")+": "+err.message);}
+   }
+   if(valid===0&&batch.length===0)errors.push(file.name+": el histórico no contiene informes.");
+  }
   catch(err){errors.push(file.name+": "+err.message);}
  }
  if(added.length){
@@ -321,6 +375,13 @@ $("demoButton").addEventListener("click",()=>{reports=DEMO_SNAPSHOTS.map(r=>({..
 $("clearButton").addEventListener("click",()=>{reports=[];usingDemo=false;render();});
 $("severityFilter").addEventListener("change",renderFindings);
 $("findingSearch").addEventListener("input",renderFindings);
+$("exportHistory").addEventListener("click",()=>{
+ if(!reports.length)return;
+ const archive={format:"dr-programme-history-v1",exported_at:new Date().toISOString(),contains_synthetic_data:reports.some(isSyntheticReport),reports:reports.map(r=>{
+  const {_source,_demo,...report}=r;return report;
+ })};
+ downloadText("dr-programme-history-"+reports[reports.length-1].as_of+".json",JSON.stringify(archive,null,2)+"\n","application/json;charset=utf-8");
+});
 $("exportExecutive").addEventListener("click",()=>{
  if(!reports.length)return;
  const latest=reports[reports.length-1];

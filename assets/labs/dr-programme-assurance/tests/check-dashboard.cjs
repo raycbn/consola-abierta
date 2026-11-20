@@ -21,7 +21,7 @@ assert.ok(demo.every(report => report.services.covered_by_qualifying_exercise <=
 assert.ok(demo.every(report => report.rto.pass_percent === null || report.rto.measured_services > 0), "unmeasured RTO must not show a pass percentage");
 assert.ok(demo.every(report => report.rpo.pass_percent === null || report.rpo.measured_services > 0), "unmeasured RPO must not show a pass percentage");
 
-for (const required of ["programme-summary.json", "localmente", "coverage_percent", "valid_approved_exceptions", "overdue_unverified", "renderFindings", "downloadCsv", "service_ids_sha256", "qualification_policy_id", "compareMetadata", "renderComparison", "executiveMarkdown", "exportExecutive"]) {
+for (const required of ["programme-summary.json", "localmente", "coverage_percent", "valid_approved_exceptions", "overdue_unverified", "renderFindings", "downloadCsv", "service_ids_sha256", "qualification_policy_id", "compareMetadata", "renderComparison", "executiveMarkdown", "exportExecutive", "exportHistory", "dr-programme-history-v1", "unpackImportedPayload", "sustainedDeteriorationSignals", "sustainedTrend"]) {
   assert.ok(html.includes(required), "dashboard is missing expected capability: " + required);
 }
 
@@ -67,4 +67,54 @@ assert.ok(String(downloadedBlob.parts[0]).includes("Comparabilidad con el cierre
 assert.ok(String(downloadedBlob.parts[0]).includes("Cohorte RTO: Cambio detectado"), "executive report should disclose measured-cohort changes");
 assert.ok(String(downloadedBlob.parts[0]).includes("DATOS SINTÉTICOS"), "demo executive report must be labelled synthetic");
 
-console.log("DR Programme Assurance dashboard checks passed (offline mode, syntax, four synthetic periods).");
+
+async function importTestArchive(name, archive) {
+  const content = JSON.stringify(archive);
+  element("fileInput").listeners.change({
+    target: { files: [{ name, size: content.length, text: async () => content }], value: "" }
+  });
+  await new Promise(resolve => setImmediate(resolve));
+}
+
+(async () => {
+  element("exportHistory").listeners.click();
+  const historyText = String(downloadedBlob.parts[0]);
+  const exportedHistory = JSON.parse(historyText);
+  assert.equal(exportedHistory.format, "dr-programme-history-v1", "history export must declare its format");
+  assert.equal(exportedHistory.reports.length, 4, "history export must retain all four snapshots");
+  assert.equal(exportedHistory.contains_synthetic_data, true, "history export must preserve the synthetic-data marker");
+  await importTestArchive("dr-programme-history.json", exportedHistory);
+  assert.ok(element("reportCount").textContent.includes("4 cierre(s) cargado(s)"), "history archive should restore every snapshot");
+  assert.ok(element("reportCount").textContent.includes("DEMO SINTÉTICA"), "history import must preserve synthetic labelling");
+
+  const sustained = demo.slice(0, 3).map(report => JSON.parse(JSON.stringify(report)));
+  sustained.forEach((report, index) => {
+    report.services.in_scope = 24;
+    report.services.uncovered = 24 - report.services.covered_by_qualifying_exercise;
+    report.services.coverage_percent = Math.round(report.services.covered_by_qualifying_exercise / 24 * 1000) / 10;
+    report.scope.in_scope_services = 24;
+    report.scope.service_ids_sha256 = "a".repeat(64);
+    report.rto.measured_services = 8;
+    report.rto.met = 5;
+    report.rto.pass_percent = 62.5;
+    report.scope.rto_measured_services = 8;
+    report.scope.rto_service_ids_sha256 = "c".repeat(64);
+    report.rpo.measured_services = 7;
+    report.rpo.met = 4;
+    report.rpo.pass_percent = 57.1;
+    report.scope.rpo_measured_services = 7;
+    report.scope.rpo_service_ids_sha256 = "d".repeat(64);
+    report.actions.overdue_unverified = index + 1;
+  });
+  await importTestArchive("sustained-trend-test.json", {
+    format: "dr-programme-history-v1",
+    reports: sustained
+  });
+  assert.ok(element("sustainedTrend").innerHTML.includes("Deterioros sostenidos detectados"), "dashboard should detect deterioration over two comparable intervals");
+  assert.ok(element("sustainedTrend").innerHTML.includes("Acciones vencidas sin verificar"), "sustained deterioration signal should identify the metric");
+  console.log("DR Programme Assurance dashboard checks passed (offline, scope/cohort comparability, history round-trip, sustained deterioration, executive report).");
+})().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});
+
