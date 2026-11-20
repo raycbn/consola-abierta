@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Runbook de Test Failover y Failback: aislamiento, validación y retorno controlado | Consola Abierta</title>
+<meta name="description" content="Runbook empresarial para planificar un test failover y un failback: aprobaciones, aislamiento, dependencias, condiciones de aborto, conciliación de datos, cleanup y evidencias."><meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/es/analisis/runbook-test-failover-failback-recuperacion-controlada/">
+<link rel="alternate" hreflang="es" href="/es/analisis/runbook-test-failover-failback-recuperacion-controlada/"><link rel="alternate" hreflang="en" href="/en/analysis/disaster-recovery-test-failover-failback-runbook/"><link rel="alternate" hreflang="x-default" href="/es/analisis/runbook-test-failover-failback-recuperacion-controlada/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article"><meta property="og:title" content="Runbook de Test Failover y Failback: aislamiento, validación y retorno controlado | Consola Abierta"><meta property="og:description" content="Runbook empresarial para planificar un test failover y un failback: aprobaciones, aislamiento, dependencias, condiciones de aborto, conciliación de datos, cleanup y evidencias."><meta property="og:url" content="https://consolaabierta.com/es/analisis/runbook-test-failover-failback-recuperacion-controlada/"><meta property="og:site_name" content="Consola Abierta">
+<meta property="og:image" content="https://consolaabierta.com/assets/og/og-default.png"><meta property="og:image:type" content="image/png"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta RSS" href="/feed.xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Runbook de Test Failover y Failback: aislamiento, validación y retorno controlado",
+  "description": "Runbook empresarial para planificar un test failover y un failback: aprobaciones, aislamiento, dependencias, condiciones de aborto, conciliación de datos, cleanup y evidencias.",
+  "datePublished": "2026-11-20",
+  "dateModified": "2026-11-20",
+  "inLanguage": "es",
+  "author": {
+    "@type": "Person",
+    "@id": "https://consolaabierta.com/#ray-vega",
+    "name": "Ray Vega",
+    "url": "https://consolaabierta.com/es/sobre/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://consolaabierta.com/#organization",
+    "name": "Consola Abierta",
+    "url": "https://consolaabierta.com/"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://consolaabierta.com/es/analisis/runbook-test-failover-failback-recuperacion-controlada/"
+  },
+  "@id": "https://consolaabierta.com/es/analisis/runbook-test-failover-failback-recuperacion-controlada/#article",
+  "image": [
+    "https://consolaabierta.com/assets/og/og-default.png"
+  ],
+  "articleSection": "Resilience & Recovery"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/es/analisis/runbook-test-failover-failback-recuperacion-controlada/#breadcrumb",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://consolaabierta.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Resilience & Recovery",
+      "item": "https://consolaabierta.com/es/rutas/#resilience"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Runbook DR"
+    }
+  ]
+}
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Saltar al contenido</a>
+<header class="masthead"><div class="site-shell">
+<div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Publicación técnica independiente</span><a href="/en/analysis/disaster-recovery-test-failover-failback-runbook/">EN</a></div></div>
+<nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/" aria-current="page">Artículos</a><a data-catalog-nav href="/es/laboratorios/">Laboratorios</a><a data-path-nav href="/es/rutas/">Rutas</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto</a></div><div class="nav-tools"><form class="search-form" data-search-form data-search-lang="es"><input data-search-input type="search" placeholder="Buscar en todos los artículos" aria-label="Buscar en todos los artículos"><button>Buscar ↗</button></form></div></nav>
+</div></header>
+<main class="site-shell" id="content">
+<header class="article-header"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/es/rutas/#resilience">Resilience &amp; Recovery</a> / Runbook DR</div><div class="kicker">Resilience &amp; Recovery · Runbook operativo · Guía práctica</div>
+<h1>Runbook de Test Failover y Failback: aislamiento, validación y retorno controlado</h1><p class="article-deck">Runbook empresarial para planificar un test failover y un failback: aprobaciones, aislamiento, dependencias, condiciones de aborto, conciliación de datos, cleanup y evidencias.</p>
+<div class="article-meta"><span>Por Ray Vega</span><span>Publicado 20 noviembre 2026</span><span>14–18 min de lectura</span><span>Mid-senior · Senior · IT Continuity</span></div>
+<div class="status-line">DOCUMENTACIÓN CONTRASTADA · MICROSOFT · AWS · NIST · CISA · LAB OFFLINE VERIFICADO · 12 TESTS · SIN OPERACIONES REALES</div></header>
+<div class="article-layout">
+<nav class="toc" aria-label="Contenido del artículo"><div class="toc-title">En esta investigación</div><ol><li><a href="#distinction">Tres operaciones distintas</a></li><li><a href="#roles">Responsabilidades</a></li><li><a href="#preflight">Preflight</a></li><li><a href="#isolation">Aislamiento</a></li><li><a href="#sequence">Orden de dependencias</a></li><li><a href="#test-execution">Ejecución del test</a></li><li><a href="#failback">Failback</a></li><li><a href="#abort">Aborto y rollback</a></li><li><a href="#cleanup">Cleanup</a></li><li><a href="#evidence">Evidencias</a></li><li><a href="#lab">Laboratorio</a></li><li><a href="#sources">Fuentes</a></li></ol></nav>
+<article class="article-body">
+
+<div class="callout"><strong>Regla de seguridad</strong><p>Un test failover, un failover real y un failback son operaciones distintas. No se deben ejecutar con el mismo alcance ni con la misma autorización. Este runbook describe un método de trabajo; no es una instrucción para lanzar una conmutación en producción.</p></div>
+<p>Esta es la segunda etapa de la ruta Resilience &amp; Recovery. La primera investigación explica <a href="/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">cómo diseñar una prueba de Disaster Recovery y medir RTO/RPO</a>. Aquí el foco es convertir el diseño en una secuencia operativa controlada: quién autoriza, qué se aísla, qué dependencia debe arrancar antes, cuándo abortar y cómo volver al sitio primario sin perder los cambios escritos durante la contingencia.</p>
+
+<h2 id="distinction">1. No mezcles test failover, failover y failback</h2>
+<p>El nombre de los botones cambia según la plataforma, pero conviene separar tres objetivos:</p>
+<div class="table-wrap"><table><thead><tr><th>Operación</th><th>Propósito</th><th>Impacto esperado</th><th>Autorización</th></tr></thead><tbody>
+<tr><td><strong>Test failover</strong></td><td>Ensayar la recuperación en un entorno de prueba controlado.</td><td>El origen sigue prestando servicio; la red de prueba permanece aislada y no recibe tráfico real.</td><td>Cambio de ejercicio, alcance y controles de aislamiento aprobados.</td></tr>
+<tr><td><strong>Failover real</strong></td><td>Trasladar la prestación del servicio al entorno de recuperación.</td><td>El entorno de recuperación puede convertirse en el sistema activo y asumir escrituras y tráfico de usuarios.</td><td>Declaración de contingencia y autorización de recuperación según el plan de crisis.</td></tr>
+<tr><td><strong>Failback</strong></td><td>Devolver el servicio a un sitio recuperado o a una ubicación alternativa acordada.</td><td>Requiere definir dónde están los datos autoritativos, sincronizar cambios y realizar un corte controlado.</td><td>Cambio independiente, conciliación de datos aprobada y ventana de retorno.</td></tr>
+</tbody></table></div>
+<p>Un test failover no demuestra por sí solo que el failover real sea seguro: el tráfico, las rutas, los permisos, las dependencias externas y la carga pueden ser diferentes. Del mismo modo, recuperar el centro primario no significa que ya pueda recibir escrituras. Primero hay que decidir qué copia contiene los cambios válidos y cómo se sincronizan.</p>
+
+<h2 id="roles">2. Define responsabilidades antes de abrir la ventana</h2>
+<p>El responsable del ejercicio debe tener autoridad para detenerlo. Cada paso técnico necesita un dueño identificable y una evidencia verificable. Evita que una misma persona autorice, ejecute y dé por aceptado todo el ejercicio sin revisión.</p>
+<div class="table-wrap"><table><thead><tr><th>Rol</th><th>Responsabilidad principal</th></tr></thead><tbody>
+<tr><td>Exercise lead / coordinador DR</td><td>Control de alcance, tiempos, comunicaciones, decisiones de continuar o abortar y registro de hitos.</td></tr>
+<tr><td>Service owner / negocio</td><td>Prioridades, criterios de aceptación, impacto tolerable y aceptación funcional del servicio.</td></tr>
+<tr><td>DR / plataforma</td><td>Estado de replicación, selección del punto de recuperación, orquestación técnica y cleanup.</td></tr>
+<tr><td>Redes y seguridad</td><td>Aislamiento, rutas, DNS, firewalls, balanceadores, certificados y revisión de exposición.</td></tr>
+<tr><td>Identidad y middleware</td><td>Directorio, autenticación, DNS, NTP, PKI, secretos y servicios compartidos.</td></tr>
+<tr><td>Datos / DBA</td><td>Consistencia, integridad, punto de recuperación, escrituras autorizadas y conciliación.</td></tr>
+<tr><td>Observadores / evidencias</td><td>Capturas, timestamps, logs, incidencias, desviaciones y acciones correctivas.</td></tr>
+</tbody></table></div>
+<p>La matriz RACI definitiva depende del modelo de gobierno de la organización. Como mínimo, deja por escrito un único responsable de la decisión operativa y otro de la aceptación del servicio, aunque puedan pertenecer al mismo equipo.</p>
+
+<h2 id="preflight">3. Preflight: condiciones que deben estar cerradas</h2>
+<p>No empieces el ejercicio si alguna condición crítica depende de una suposición o de una aprobación pendiente.</p>
+<ul>
+<li><strong>Alcance y cambio:</strong> servicio, componentes, sitios, dependencias, ventana, responsables, comunicaciones, criterios PASS/FAIL y exclusiones aprobados.</li>
+<li><strong>Replicación:</strong> estado saludable, última sincronización, lag observado, errores, punto de recuperación elegido y RPO esperado registrados.</li>
+<li><strong>Capacidad:</strong> cuotas, CPU, memoria, almacenamiento, direcciones IP, licencias, límites de IOPS y capacidad de red suficientes en el entorno de recuperación.</li>
+<li><strong>Acceso:</strong> cuentas de emergencia, MFA, certificados, secretos, bastion/jump host y permisos temporales probados y limitados.</li>
+<li><strong>Dependencias:</strong> identidad, DNS, DHCP cuando aplique, NTP, PKI, almacenamiento, bases de datos, middleware, colas y servicios externos inventariados.</li>
+<li><strong>Seguridad:</strong> segmentación, reglas de entrada/salida, rutas, peering, túneles, NAT, balanceadores y exposición pública revisados.</li>
+<li><strong>Validación:</strong> transacciones sintéticas aprobadas, datos de prueba, usuario de negocio disponible y pruebas que no generen efectos reales definidos.</li>
+<li><strong>Salida:</strong> criterios de aborto, rollback, cleanup, preservación de evidencias y confirmación de que la producción continúa bajo el control esperado.</li>
+</ul>
+<p>Una prueba marcada como «no disruptiva» por el fabricante no sustituye el análisis del entorno completo. El aislamiento debe comprobarse desde las rutas, firewalls y servicios compartidos que realmente existan en tu arquitectura.</p>
+
+<h2 id="isolation">4. Aislamiento: evita identidades y rutas duplicadas</h2>
+<p>La red de prueba debe estar separada de la red de producción y del plano de recuperación que atiende tráfico real. La separación debe ser efectiva en ambos sentidos: no basta con crear una subred con otro nombre si sigue existiendo una ruta, peering, VPN, resolver DNS o regla de firewall que conecte los entornos.</p>
+<ul>
+<li>Usa una red de test dedicada, sin anunciar rutas a producción y sin conexiones site-to-site salvo que estén diseñadas, aprobadas y controladas para el ejercicio.</li>
+<li>Comprueba que no se publican registros DNS, VIP, rutas BGP ni entradas de balanceador que dirijan usuarios reales al entorno de ensayo.</li>
+<li>Evita ejecutar copias de controladores de dominio o sistemas con la misma identidad en una red compartida. La recuperación de AD/DNS requiere un diseño específico de aislamiento y dependencias.</li>
+<li>Define cómo se resuelven nombres, certificados, secretos, endpoints y llamadas a terceros dentro del entorno de test. Un DNS que resuelve hacia producción rompe el aislamiento lógico.</li>
+<li>Usa transacciones sintéticas y cuentas de prueba; bloquea envíos, pagos, notificaciones y escrituras sobre sistemas externos reales.</li>
+</ul>
+<p>Microsoft documenta el uso de una red aislada para test failover y recomienda recuperar primero la dependencia de Active Directory/DNS que necesite la aplicación. En una prueba, no copies instrucciones específicas de AD sin revisar la topología: los controladores de dominio tienen salvaguardas y requisitos propios.</p>
+
+<h2 id="sequence">5. Ordena por dependencias, no por costumbre</h2>
+<p>La secuencia habitual de una aplicación de varias capas puede servir como punto de partida, pero el grafo de dependencias debe salir del servicio real:</p>
+<ol>
+<li><strong>Plano de recuperación y red:</strong> conectividad de administración, segmentación aislada, reglas de seguridad, direccionamiento y rutas de test.</li>
+<li><strong>Identidad y servicios base:</strong> directorio, DNS, NTP, PKI, secretos y servicios que permiten autenticar o localizar el resto de componentes.</li>
+<li><strong>Datos:</strong> volúmenes, almacenamiento, bases de datos, colas y validación de consistencia del punto recuperado.</li>
+<li><strong>Middleware y aplicación:</strong> runtimes, servicios, APIs, workers, schedulers y dependencias internas.</li>
+<li><strong>Entrada y aceptación:</strong> balanceador de prueba, certificados, resolución prevista, transacciones sintéticas y aceptación de negocio.</li>
+<li><strong>Cierre:</strong> métricas, evidencias, limpieza de recursos temporales y comprobación de la salud de la replicación original.</li>
+</ol>
+<p>No es una secuencia universal. Por ejemplo, un servicio puede necesitar un almacén de secretos antes de arrancar la base de datos o un broker antes que determinados workers. Refleja las dependencias con orden explícito, responsables y condiciones de salida; no des por hecho que el orden de arranque de máquinas equivale al orden de recuperación del servicio.</p>
+
+<h2 id="test-execution">6. Ejecución del test failover</h2>
+<ol>
+<li><strong>Briefing:</strong> confirma alcance, ventana, punto de recuperación, responsables, canal de coordinación y hora de inicio. Registra el estado de producción antes de tocar el entorno de test.</li>
+<li><strong>Gate de aislamiento:</strong> verifica rutas, reglas, DNS, acceso administrativo y bloqueo de tráfico productivo. Un segundo operador revisa la evidencia antes de continuar.</li>
+<li><strong>Recuperación controlada:</strong> usa la opción de test failover de la plataforma y el punto de recuperación aprobado. No sustituyas el test por un failover normal ni por una restauración improvisada.</li>
+<li><strong>Dependencias:</strong> recupera identidad, DNS y servicios base antes de los componentes que dependen de ellos. Registra fallos, reintentos y tiempos.</li>
+<li><strong>Validación técnica:</strong> comprueba arranque, montajes, servicios, resolución, autenticación, certificados, firewall, conexiones, consistencia de datos y telemetría.</li>
+<li><strong>Validación de servicio:</strong> ejecuta transacciones sintéticas, comprueba las funciones acordadas y solicita aceptación del responsable funcional. «VM encendida» no es un criterio de aceptación.</li>
+<li><strong>Cierre del ensayo:</strong> registra RTO/RPO observados, desviaciones, incidencias, decisiones y evidencias antes de limpiar los recursos de prueba.</li>
+</ol>
+<p>Si el entorno de prueba usa la misma configuración que producción, documenta qué valores han sido sustituidos: IP, hostname, DNS, URLs, certificados, cuentas, secretos, endpoints, reglas y datos. Esa diferencia forma parte del resultado del ejercicio.</p>
+
+<h2 id="failback">7. Failback: el problema crítico es la autoridad de los datos</h2>
+<p>El failback no es «encender lo que estaba apagado». Durante una contingencia puede haber nuevas escrituras en el sitio de recuperación. Si el origen vuelve a arrancar sin fencing ni conciliación, aparecen dos posibles fuentes de verdad y riesgo de split-brain o pérdida de transacciones.</p>
+<ol>
+<li><strong>Restablece el objetivo:</strong> confirma que el sitio de retorno está recuperado, parcheado en el estado acordado, protegido y con capacidad suficiente. Identifica origen y destino actuales; sus roles pueden haberse invertido.</li>
+<li><strong>Protege la autoridad:</strong> determina qué entorno acepta escrituras. Define ventana de congelación, fencing, modo solo lectura o mecanismo de quiesce para impedir cambios simultáneos.</li>
+<li><strong>Reprotege / replica en sentido inverso:</strong> configura el sentido de replicación adecuado para enviar los datos válidos desde el entorno activo al destino de retorno. No asumas que el motor de replicación cambia de dirección automáticamente.</li>
+<li><strong>Comprueba convergencia:</strong> verifica estado de replicación, lag, punto consistente, errores, orden de logs y criterios de integridad. El umbral de corte debe estar definido antes de la ventana.</li>
+<li><strong>Conciliación:</strong> resuelve las escrituras realizadas durante la contingencia con el procedimiento de datos aprobado. La sincronización técnica no sustituye la conciliación funcional.</li>
+<li><strong>Corte planificado:</strong> detén o drena escrituras según el diseño, confirma el último punto válido, conmuta rutas/DNS/balanceadores y dirige el tráfico solo después de la autorización de negocio y operación.</li>
+<li><strong>Validación posterior:</strong> verifica login, funciones críticas, transacciones, datos, monitorización, rendimiento y aceptación de negocio. Mantén un criterio explícito de volver al entorno anterior si falla.</li>
+<li><strong>Protección continua:</strong> restablece la replicación en la dirección que corresponda al nuevo primario y confirma que vuelve a estar saludable antes de cerrar el cambio.</li>
+</ol>
+<p>Los pasos concretos dependen del producto. En Azure Site Recovery, el retorno puede requerir reprotect para invertir la dirección de replicación antes del failback. En AWS Elastic Disaster Recovery, la replicación de vuelta y la redirección del tráfico son responsabilidades diferenciadas. No extrapoles el flujo de un fabricante a otro.</p>
+
+<h2 id="abort">8. Condiciones de aborto y rollback</h2>
+<p>Define los umbrales antes del ejercicio. Detén el avance y escala cuando ocurra cualquiera de estos casos:</p>
+<ul>
+<li>Se detecta conectividad no prevista con producción, publicación de rutas o tráfico de usuarios hacia el entorno de prueba.</li>
+<li>Se detectan identidades duplicadas, escrituras en el sistema incorrecto o un origen autoritativo no identificado.</li>
+<li>El punto de recuperación no cumple el RPO aprobado, falla la consistencia o la aplicación no supera una prueba crítica.</li>
+<li>La replicación se degrada, el entorno primario pierde salud o el ejercicio introduce impacto fuera de la ventana y los límites acordados.</li>
+<li>No está disponible la persona autorizada para decidir o se pierde la evidencia necesaria para justificar la continuación.</li>
+</ul>
+<p>El rollback no puede quedar en «apagar las VMs». Especifica qué recursos se revierten, quién los controla, cómo se restablece el tráfico, qué datos se conservan, cómo se comprueba que el primario sigue sano y bajo qué condición se reanuda la replicación. Si el escenario es un failback real, el procedimiento de retorno puede exigir una nueva sincronización; no improvises una inversión de sentido.</p>
+
+<h2 id="cleanup">9. Cleanup y cierre del ejercicio</h2>
+<p>Cuando termina un test failover, usa el procedimiento de limpieza del producto y verifica el resultado. Revisa VMs, discos, NIC, IPs, snapshots, reglas temporales, balanceadores, registros DNS, cuentas, secretos, rutas y recursos de monitorización creados para el test. Elimina solo recursos identificados como temporales del ejercicio, nunca por coincidencia de nombre.</p>
+<p>Después confirma que la replicación de producción sigue en el estado esperado, que no quedan endpoints de prueba publicados y que los recursos temporales no generan costes o alertas falsas. Conserva las evidencias aprobadas, no copias de datos ni secretos innecesarios. El paquete de evidencias debe permitir reconstruir qué se hizo, cuándo, quién lo autorizó, qué resultado obtuvo y qué se limpió.</p>
+
+<h2 id="evidence">10. Evidencias y acciones de mejora</h2>
+<p>Como mínimo, conserva:</p>
+<ul>
+<li>Versión del runbook, alcance, cambio, participantes, autorizaciones y escenario.</li>
+<li>Estado de replicación y punto de recuperación antes y después del ejercicio.</li>
+<li>Diagrama o evidencia del aislamiento, rutas, firewall, DNS y servicios de identidad.</li>
+<li>Hitos con marcas temporales, responsables, referencias de logs y resultado de cada criterio de aceptación.</li>
+<li>RTO y RPO observados, errores, desviaciones, incidencias y decisiones de abortar o continuar.</li>
+<li>Relación de recursos temporales, evidencia del cleanup y confirmación de que la protección volvió a un estado saludable.</li>
+<li>Acciones correctivas con prioridad, propietario, fecha objetivo y método para verificar su cierre.</li>
+</ul>
+<p>Convierte las observaciones en un After-Action Report / Improvement Plan. Una lista de problemas sin dueño ni fecha no es una mejora gestionable. CISA recomienda documentar resultados, áreas de mejora, responsables y plazos dentro del ciclo posterior al ejercicio.</p>
+
+<h2 id="lab">11. Laboratorio offline: Recovery Runbook Preflight</h2>
+<p>El laboratorio asociado valida la estructura de un plan JSON de test failover o failback. Comprueba controles declarados, fases obligatorias, condiciones de parada, responsables, referencias de evidencia, dependencias, ciclos y coherencia del orden. Devuelve PASS/FAIL y el orden de ejecución derivado del grafo.</p>
+<pre><code>python runbook_preflight.py samples/test-failover.json
+python runbook_preflight.py samples/failback.json --json-out report.json --markdown-out report.md
+python -m unittest discover -s tests -v</code></pre>
+<div class="article-note"><strong>Límite funcional:</strong> es un linter offline de planes. No comprueba físicamente el aislamiento, no consulta la replicación, no valida los controles declarados, no ejecuta VMs, restores, failover, failback, tráfico ni conciliación de datos. Un PASS no autoriza un cambio ni demuestra que la recuperación funcione. Los ejemplos son sintéticos.</div>
+<p><a class="text-link" href="/assets/labs/recovery-runbook-preflight/recovery-runbook-preflight-02-lab.zip" download>Descargar Recovery Runbook Preflight — Lab 02 ↗</a> · <a class="text-link" href="/assets/labs/recovery-runbook-preflight/README.md">Leer README ↗</a></p>
+
+<h2 id="sources">12. Fuentes primarias y documentación</h2>
+<ul class="reference-list">
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/recovery-plan-overview" target="_blank" rel="noopener">Microsoft Learn — About recovery plans in Azure Site Recovery</a>. Dependencias, secuenciación y buenas prácticas para test failover.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-test-failover-to-azure" target="_blank" rel="noopener">Microsoft Learn — Run a test failover to Azure</a>. Red de prueba, validación y cleanup de los recursos creados.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-active-directory" target="_blank" rel="noopener">Microsoft Learn — Active Directory/DNS disaster recovery with Azure Site Recovery</a>. Aislamiento y recuperación previa de identidad/DNS.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/azure-to-azure-powershell" target="_blank" rel="noopener">Microsoft Learn — Disaster recovery for Azure VMs using Azure PowerShell and Azure Site Recovery</a>. Reprotect, replicación inversa y failback en Azure Site Recovery.</li>
+<li><a href="https://docs.aws.amazon.com/drs/latest/userguide/failback.html" target="_blank" rel="noopener">AWS Elastic Disaster Recovery — Recovery and failback</a>. Diferencia entre drill, failover y failback, y responsabilidades de redirección de tráfico.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final" target="_blank" rel="noopener">NIST SP 800-34 Rev. 1 — Contingency Planning Guide</a>. Procedimientos de recuperación, equipos responsables y secuencia de ejecución. Publicada en 2010.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/84/final" target="_blank" rel="noopener">NIST SP 800-84 — Guide to Test, Training, and Exercise Programs</a>. Diseño, ejecución y evaluación de ejercicios. Publicada en 2006.</li>
+<li><a href="https://www.cisa.gov/sites/default/files/publications/3%20-%20CTEP%20Facilitator%20Evaluator%20Handbook%20%282020%29%20FINAL_508.pdf" target="_blank" rel="noopener">CISA — Tabletop Exercise Package: Facilitator / Evaluator Handbook</a>. Observaciones, After-Action Report e Improvement Plan.</li>
+</ul>
+
+<section class="article-continuity" aria-label="Continúa tu recorrido" data-learning-route="resilience" data-learning-step="2">
+<div class="article-continuity-head"><span class="article-continuity-kicker">SIGUIENTE PASO DE APRENDIZAJE</span><h2>Continúa tu recorrido</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Práctica asociada</p><h3>Recovery Runbook Preflight · Lab 02</h3><p>Valida gates, responsables, evidencias y dependencias de planes de test failover y failback en local.</p><a class="article-continuity-link" href="/assets/labs/recovery-runbook-preflight/recovery-runbook-preflight-02-lab.zip">Descargar laboratorio ↗</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Lectura anterior</p><h3><a href="/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">Diseñar una prueba de Disaster Recovery</a></h3><p>Define el alcance, RTO/RPO, hitos y criterios de aceptación antes de ejecutar el runbook.</p><a class="article-continuity-link" href="/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">Leer investigación ↗</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Tu ruta</p><h3><a href="/es/rutas/#resilience-02">Resilience &amp; Recovery · etapa 2</a></h3><p>Ejecutar ejercicios con aislamiento, gates, dependencias, cleanup y retorno controlado.</p><a class="article-continuity-link" href="/es/rutas/#resilience-02">Ver etapa en la ruta ↗</a></div>
+</div></section>
+</article>
+<aside class="article-aside"><div class="toc-title">Ficha técnica</div><p><strong>Tema</strong><br>Resilience &amp; Recovery</p><p><strong>Enfoque</strong><br>Test failover, failback y operación segura</p><p><strong>Laboratorio</strong><br>Python 3.10+ · stdlib · 12 tests</p><p><strong>Límite</strong><br>Sin conexión ni operaciones sobre infraestructura</p><p><a class="text-link" href="/es/laboratorios/">Ver catálogo de laboratorios ↗</a></p><p><a class="text-link" href="/es/rutas/">Ver ruta Resilience &amp; Recovery ↗</a></p></aside>
+</div></main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><p>Publicación técnica independiente.</p></div><div class="footer-links"><a href="/es/articulos/">Artículos</a><a href="/es/laboratorios/">Laboratorios</a><a href="/es/rutas/">Rutas</a><a href="/es/sobre/">Sobre</a><a href="/es/contacto/">Contacto</a><a href="/es/aviso-legal/">Aviso legal</a><a href="/es/privacidad/">Privacidad</a><a href="/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta · Contenido técnico con fuentes y contexto.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>

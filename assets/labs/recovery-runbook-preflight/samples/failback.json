@@ -1,0 +1,29 @@
+{
+  "plan_name": "Sample controlled failback to recovered primary site",
+  "exercise_type": "failback",
+  "controls": {
+    "change_approved": true,
+    "source_target_roles_confirmed": true,
+    "reverse_replication_healthy": true,
+    "data_reconciliation_plan_approved": true,
+    "traffic_cutover_plan_approved": true,
+    "rollback_and_stop_conditions_defined": true,
+    "monitoring_and_evidence_ready": true,
+    "business_owner_available": true
+  },
+  "stop_conditions": [
+    "Reverse replication is unhealthy or its lag exceeds the approved threshold.",
+    "The authoritative write location or reconciliation outcome is unclear.",
+    "The target site fails application or data validation before traffic cutover.",
+    "The rollback path or business approval is withdrawn."
+  ],
+  "steps": [
+    {"id":"authorize","name":"Confirm source/target roles, change and ownership","phase":"prepare","order":10,"depends_on":[],"owner":"Change manager","evidence_ref":"EV-FB-001"},
+    {"id":"reprotect","name":"Enable reverse protection towards the original site","phase":"reprotect","order":20,"depends_on":["authorize"],"owner":"DR operator","evidence_ref":"EV-FB-002"},
+    {"id":"sync","name":"Verify replication convergence and approved recovery point","phase":"data-sync","order":30,"depends_on":["reprotect"],"owner":"Data lead","evidence_ref":"EV-FB-003"},
+    {"id":"reconcile","name":"Quiesce writes and reconcile data according to the runbook","phase":"data-sync","order":40,"depends_on":["sync"],"owner":"Data owner","evidence_ref":"EV-FB-004"},
+    {"id":"cutover","name":"Execute approved planned cutover and redirect traffic","phase":"cutover","order":50,"depends_on":["reconcile"],"owner":"Network lead","evidence_ref":"EV-FB-005"},
+    {"id":"validate","name":"Validate service health, transactions and business acceptance","phase":"validation","order":60,"depends_on":["cutover"],"owner":"Service owner","evidence_ref":"EV-FB-006"},
+    {"id":"protection","name":"Re-establish protection in the new primary direction","phase":"resume-protection","order":70,"depends_on":["validate"],"owner":"DR operator","evidence_ref":"EV-FB-007"}
+  ]
+}

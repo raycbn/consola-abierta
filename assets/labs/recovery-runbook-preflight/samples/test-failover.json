@@ -1,0 +1,29 @@
+{
+  "plan_name": "Sample isolated test failover - three-tier service",
+  "exercise_type": "test-failover",
+  "controls": {
+    "change_approved": true,
+    "test_network_isolated": true,
+    "production_routes_blocked": true,
+    "primary_workload_remains_authoritative": true,
+    "rollback_and_stop_conditions_defined": true,
+    "monitoring_and_evidence_ready": true,
+    "service_owner_available": true
+  },
+  "stop_conditions": [
+    "Any unexpected route from the test network to production is detected.",
+    "A duplicate identity or production write path is discovered.",
+    "The recovered data point is outside the approved RPO or fails integrity checks.",
+    "Production health degrades or the agreed change window is exceeded."
+  ],
+  "steps": [
+    {"id":"authorize","name":"Confirm change, scope, owners and recovery point","phase":"prepare","order":10,"depends_on":[],"owner":"Exercise lead","evidence_ref":"EV-TF-001"},
+    {"id":"isolate","name":"Verify isolated network and blocked production routes","phase":"isolation","order":20,"depends_on":["authorize"],"owner":"Network lead","evidence_ref":"EV-TF-002"},
+    {"id":"identity-dns","name":"Recover and validate test identity, DNS and time dependencies","phase":"identity","order":30,"depends_on":["isolate"],"owner":"Identity lead","evidence_ref":"EV-TF-003"},
+    {"id":"platform","name":"Validate firewall policy, certificates and platform services","phase":"platform","order":40,"depends_on":["identity-dns"],"owner":"Platform lead","evidence_ref":"EV-TF-004"},
+    {"id":"database","name":"Recover database and validate consistency/read-only boundary","phase":"data","order":50,"depends_on":["platform"],"owner":"Data lead","evidence_ref":"EV-TF-005"},
+    {"id":"application","name":"Start application services in dependency order","phase":"application","order":60,"depends_on":["database"],"owner":"Application lead","evidence_ref":"EV-TF-006"},
+    {"id":"acceptance","name":"Run approved synthetic transactions and business checks","phase":"acceptance","order":70,"depends_on":["application"],"owner":"Service owner","evidence_ref":"EV-TF-007"},
+    {"id":"cleanup","name":"Capture results and clean up test-only resources","phase":"cleanup","order":80,"depends_on":["acceptance"],"owner":"DR operator","evidence_ref":"EV-TF-008"}
+  ]
+}
