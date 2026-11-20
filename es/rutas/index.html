@@ -15,7 +15,7 @@
   "inLanguage": "es",
   "mainEntity": {
     "@type": "ItemList",
-    "numberOfItems": 2,
+    "numberOfItems": 3,
     "itemListElement": [
       {
         "@type": "ListItem",
@@ -28,6 +28,12 @@
         "position": 2,
         "name": "Systems & IT Operations: diagnóstico y operación",
         "url": "https://consolaabierta.com/es/rutas/#systems"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Resilience & Recovery: diseño y evidencia de recuperación de servicios",
+        "url": "/es/rutas/#resilience-01"
       }
     ]
   },
@@ -63,10 +69,10 @@
 </head><body>
 <a class="skip-link" href="#content">Saltar al contenido</a>
 <header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Ingeniería y tecnología</span></span></a><div class="header-meta"><span>Rutas técnicas</span><a href="/en/paths/" lang="en">EN</a></div></div>
-<nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/laboratorios/">Laboratorios</a><a href="/es/rutas/" aria-current="page">Rutas</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">2 ITINERARIOS · 11 INVESTIGACIONES</span></div></nav></div></header>
+<nav class="primary-nav"><div class="nav-links"><a href="/">Inicio</a><a href="/es/articulos/">Artículos</a><a href="/es/laboratorios/">Laboratorios</a><a href="/es/rutas/" aria-current="page">Rutas</a><a href="/es/series/llm-engineering/">LLM Engineering</a><a href="/es/sobre/">Sobre</a></div><div class="nav-tools"><span class="edition">3 ITINERARIOS · 12 INVESTIGACIONES</span></div></nav></div></header>
 <main class="site-shell" id="content">
-<header class="article-header"><nav class="breadcrumbs" aria-label="Ruta de navegación"><a href="/">Inicio</a> / <span aria-current="page">Rutas</span></nav><div class="kicker">Aprendizaje guiado · artículos · laboratorios</div><h1>Rutas de aprendizaje</h1><p class="article-deck">No necesitas saltar de un artículo a otro sin contexto. Estos itinerarios organizan las investigaciones publicadas en un orden recomendado, explican qué aporta cada etapa y te llevan directamente a sus prácticas cuando existe un laboratorio asociado.</p><div class="path-intro-stats"><span class="path-stat"><strong>02</strong>rutas disponibles</span><span class="path-stat"><strong>11</strong>investigaciones enlazadas</span><span class="path-stat"><strong>09</strong>laboratorios descargables</span></div></header>
-<nav class="path-index" aria-label="Índice de rutas"><a href="#llm">01 · LLM Engineering</a><a href="#systems">02 · Systems & IT Operations</a></nav>
+<header class="article-header"><nav class="breadcrumbs" aria-label="Ruta de navegación"><a href="/">Inicio</a> / <span aria-current="page">Rutas</span></nav><div class="kicker">Aprendizaje guiado · artículos · laboratorios</div><h1>Rutas de aprendizaje</h1><p class="article-deck">No necesitas saltar de un artículo a otro sin contexto. Estos itinerarios organizan las investigaciones publicadas en un orden recomendado, explican qué aporta cada etapa y te llevan directamente a sus prácticas cuando existe un laboratorio asociado.</p><div class="path-intro-stats"><span class="path-stat"><strong>03</strong>rutas disponibles</span><span class="path-stat"><strong>12</strong>investigaciones enlazadas</span><span class="path-stat"><strong>10</strong>laboratorios descargables</span></div></header>
+<nav class="path-index" aria-label="Índice de rutas"><a href="#llm">01 · LLM Engineering</a><a href="#systems">02 · Systems & IT Operations</a><a href="#resilience">03 · Resilience & Recovery</a></nav>
 <section id="llm" class="learning-path">
 <header class="learning-path-head"><div class="path-kicker">Ruta 01 · AI / LLMs</div><h2>LLM Engineering — From Internals to Production</h2><p>Una secuencia técnica de ocho investigaciones que empieza en la arquitectura Transformer y termina midiendo un servicio de inferencia bajo carga. Avanza en orden: cada bloque utiliza conceptos introducidos en los anteriores.</p><div class="path-meta"><span>8 investigaciones</span><span>8 laboratorios</span><span>Lectura avanzada</span><span>CPU suficiente para las prácticas publicadas</span></div></header>
 <section class="path-stage"><div class="path-stage-head"><h3>Etapa 1 · Fundamentos y entrenamiento</h3><span>01–03 · Entender el modelo</span></div>
@@ -93,6 +99,12 @@
 <section class="path-stage"><div class="path-stage-head"><h3>Etapa 3 · Diagnosticar una causa concreta</h3><span>03 · SQL Server</span></div>
 <article class="path-step" id="systems-03"><span class="path-step-number">03</span><div><h4>SQL Server tempdb: crecimiento del log por una transacción abierta</h4><p>Establece un baseline, reproduce el escenario en una instancia aislada, identifica ACTIVE_TRANSACTION, cuantifica autogrowth y valida la reutilización del espacio después del rollback.</p><div class="path-step-links"><a href="/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/">Leer investigación ↗</a><a href="/assets/labs/tempdb-log-growth/tempdb-log-growth-lab.zip">Descargar laboratorio SQL Server ↗</a></div></div></article>
 <div class="path-stage-note">Seguridad: el laboratorio de tempdb es exclusivamente para una instancia desechable y aislada. No ejecutes sus scripts en producción ni en una instancia compartida.</div></section>
+</section>
+<section id="resilience" class="learning-path">
+<header class="learning-path-head"><div class="path-kicker">Ruta 03 · Resilience &amp; Recovery</div><h2>Resilience &amp; Recovery — Diseñar, probar y demostrar la recuperación</h2><p>Una ruta de ingeniería para definir objetivos de recuperación, probar dependencias, medir resultados y cerrar ejercicios con evidencia trazable. Empieza por la metodología y amplíala con las pruebas propias de cada servicio.</p><div class="path-meta"><span>1 investigación publicada</span><span>1 laboratorio offline</span><span>RTO · RPO · pruebas · evidencias</span></div></header>
+<section class="path-stage"><div class="path-stage-head"><h3>Etapa 1 · Diseñar y medir un ejercicio DR</h3><span>01 · Test engineering</span></div>
+<article class="path-step" id="resilience-01"><span class="path-step-number">01</span><div><h4>Diseñar una prueba de Disaster Recovery y medir la recuperación del servicio</h4><p>Define alcance, RTO/RPO, dependencias, hitos, pruebas funcionales, criterios de aceptación, cleanup y mejora continua. Incluye un scorecard offline para analizar marcas temporales y evidencias.</p><div class="path-step-links"><a href="/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">Leer investigación ↗</a><a href="/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip">Descargar Recovery Test Scorecard ↗</a></div></div></article>
+<div class="path-stage-note">El scorecard analiza datos introducidos manualmente; no ejecuta restauraciones, failover ni valida por sí solo la integridad de los datos recuperados.</div></section>
 </section>
 <section class="path-choose"><article><h2>¿Quieres empezar por las prácticas?</h2><p>Abre el catálogo para comparar requisitos, saber qué funciona con Python estándar y descargar directamente los paquetes.</p><p style="margin-top:12px"><a class="text-link" href="/es/laboratorios/">Explorar laboratorios ↗</a></p></article><article><h2>¿Prefieres explorar por tema?</h2><p>El archivo permite filtrar las investigaciones por especialidad y buscar conceptos en las versiones española e inglesa.</p><p style="margin-top:12px"><a class="text-link" href="/es/articulos/">Explorar artículos ↗</a></p></article></section>
 <div class="path-end"><strong>Cómo usar estas rutas</strong><p>El orden es una recomendación editorial basada en los contenidos publicados. Puedes saltar directamente a una investigación si ya dominas sus fundamentos. Las prácticas indican expresamente si son implementaciones PyTorch, simuladores numéricos, analizadores de trazas o reproducciones sobre software real.</p></div>
