@@ -1,0 +1,2 @@
+exception_id,service_id,risk_owner,rationale,compensating_controls,approver,approval_date,expiry_date,status
+EXC-HR-001,HR-SAAS,HR technology risk owner,Provider release window prevents full recovery exercise this quarter,Contractual recovery report and monthly export validation,Technology risk committee,2026-10-15,2026-12-15,APPROVED

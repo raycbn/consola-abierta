@@ -28,10 +28,13 @@ const labByArticle = {
   "/es/analisis/runbook-test-failover-failback-recuperacion-controlada/": "/assets/labs/recovery-runbook-preflight/recovery-runbook-preflight-02-lab.zip",
   "/en/analysis/disaster-recovery-test-failover-failback-runbook/": "/assets/labs/recovery-runbook-preflight/recovery-runbook-preflight-02-lab.zip",
   "/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/": "/assets/labs/recovery-evidence-pack/recovery-evidence-pack-03-lab.zip",
-  "/en/analysis/recovery-evidence-pack-after-action-report/": "/assets/labs/recovery-evidence-pack/recovery-evidence-pack-03-lab.zip"
+  "/en/analysis/recovery-evidence-pack-after-action-report/": "/assets/labs/recovery-evidence-pack/recovery-evidence-pack-03-lab.zip",
+  "/es/analisis/aseguramiento-programa-anual-disaster-recovery/": "/assets/labs/dr-programme-assurance/dr-programme-coverage-auditor-04-lab.zip",
+  "/en/analysis/dr-programme-assurance-annual-exercise-coverage/": "/assets/labs/dr-programme-assurance/dr-programme-coverage-auditor-04-lab.zip"
 };
 
 function routeStageFor(articlePath) {
+  if (articlePath.includes("aseguramiento-programa-anual-disaster-recovery") || articlePath.includes("dr-programme-assurance-annual-exercise-coverage")) return "resilience-04";
   if (articlePath.includes("expediente-evidencias-disaster-recovery") || articlePath.includes("recovery-evidence-pack-after-action-report")) return "resilience-03";
   if (articlePath.includes("runbook-test-failover-failback") || articlePath.includes("disaster-recovery-test-failover-failback")) return "resilience-02";
   if (articlePath.includes("disenar-prueba-disaster-recovery") || articlePath.includes("disaster-recovery-test-design")) return "resilience-01";
@@ -137,7 +140,7 @@ for (const locale of ["es", "en"]) {
   const labFile = locale === "es" ? "es/laboratorios/index.html" : "en/labs/index.html";
   const labs = fs.readFileSync(path.join(root, labFile), "utf8");
   const labCards = extractCards(labs, "lab-card");
-  expect(labCards.length === 12, labFile + ": expected 12 lab cards, got " + labCards.length);
+  expect(labCards.length === 13, labFile + ": expected 13 lab cards, got " + labCards.length);
   let pathCount = 0;
   for (const card of labCards) {
     const links = anchors(card);
@@ -148,7 +151,7 @@ for (const locale of ["es", "en"]) {
     expect(links.some(a => a.href === expected), labFile + ": lab for " + article.href + " does not link to " + expected);
     if (links.some(a => a.href === expected)) pathCount++;
   }
-  expect(pathCount === 12, labFile + ": expected 12 lab-to-path links, got " + pathCount);
+  expect(pathCount === 13, labFile + ": expected 13 lab-to-path links, got " + pathCount);
   stats.labPathLinks += pathCount;
 
   const pathFile = locale === "es" ? "es/rutas/index.html" : "en/paths/index.html";
@@ -165,6 +168,8 @@ for (const locale of ["es", "en"]) {
   expect(/id=["']resilience-02["']/.test(paths), pathFile + ": missing resilience-02");
   stats.pathSteps++;
   expect(/id=["']resilience-03["']/.test(paths), pathFile + ": missing resilience-03");
+  stats.pathSteps++;
+  expect(/id=["']resilience-04["']/.test(paths), pathFile + ": missing resilience-04");
   stats.pathSteps++;
 }
 

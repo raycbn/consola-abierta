@@ -9,6 +9,7 @@
     <generator>Consola Abierta</generator>
     <lastBuildDate>Fri, 20 Nov 2026 10:45:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <item><title>DR Programme Assurance: cómo gobernar un programa anual de pruebas de recuperación</title><link>https://consolaabierta.com/es/analisis/aseguramiento-programa-anual-disaster-recovery/</link><guid isPermaLink="true">https://consolaabierta.com/es/analisis/aseguramiento-programa-anual-disaster-recovery/</guid><pubDate>Fri, 20 Nov 2026 10:45:00 +0100</pubDate><description>Inventario de servicios, cobertura, cadencia basada en riesgo, métricas RTO/RPO, excepciones y gobierno del programa DR.</description><category>Resilience &amp; Recovery</category></item>
     <item>
       <title>Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas</title>
       <link>https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/</link>

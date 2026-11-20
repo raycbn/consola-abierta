@@ -1,0 +1,5 @@
+action_id,service_id,finding_id,owner,due_date,status,verification_date,verification_evidence
+ACT-DB-001,DB-PROD,F-DB-01,Database platform owner,2026-11-30,IN_PROGRESS,,
+ACT-PAY-001,PAYMENTS,F-PAY-01,Payments service owner,2026-10-30,OPEN,,
+ACT-ID-001,IDENTITY,F-ID-02,Identity operations lead,2026-10-15,CLOSED,, 
+ACT-NET-001,NETWORK,F-NET-01,Network operations lead,2026-10-01,CLOSED,2026-10-28,EV-NET-CLOSE-01

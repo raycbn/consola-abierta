@@ -66,7 +66,7 @@ function expect(condition, message) { if (!condition) fail(message); }
 
 const sitemap = fs.readFileSync(path.join(ROOT, "sitemap.xml"), "utf8");
 const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(function(m) { return m[1]; });
-expect(urls.length === 42, "Expected 42 sitemap URLs; got " + urls.length);
+expect(urls.length === 44, "Expected 44 sitemap URLs; got " + urls.length);
 for (const url of urls) {
   const file = pathToFile(url);
   const rel = path.relative(ROOT, file);

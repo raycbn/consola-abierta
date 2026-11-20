@@ -2,6 +2,34 @@
   "generated": "2026-11-20",
   "articles": [
     {
+      "labels": "Resilience & Recovery · Programme Assurance",
+      "lang": "en",
+      "title": "DR Programme Assurance: Service Coverage, Exercise Cadence and Recovery Evidence",
+      "url": "/en/analysis/dr-programme-assurance-annual-exercise-coverage/",
+      "summary": "Govern the DR portfolio through service inventory, risk-based cadence, service and objective coverage, RTO/RPO outcomes, exceptions and corrective actions.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "18–22 min"
+    },
+    {
+      "labels": "Resilience & Recovery · Programme Assurance",
+      "lang": "es",
+      "title": "DR Programme Assurance: cómo gobernar un programa anual de pruebas de recuperación",
+      "url": "/es/analisis/aseguramiento-programa-anual-disaster-recovery/",
+      "summary": "Gobierna el portfolio DR con inventario de servicios, cadencia por riesgo, cobertura, resultados RTO/RPO, excepciones y acciones correctivas.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "18–22 min"
+    },
+    {
       "labels": "Resilience & Recovery · Evidence & Assurance",
       "lang": "en",
       "title": "Recovery Evidence Packs and After-Action Reports: Evidence, Findings and Corrective Actions",

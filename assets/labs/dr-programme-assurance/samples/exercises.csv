@@ -1,0 +1,5 @@
+exercise_id,service_id,exercise_date,exercise_type,scope,qualifying_for_recovery_coverage,objective_result,target_rto_minutes,observed_rto_minutes,target_rpo_minutes,observed_rpo_minutes,evidence_reference
+EX-DB-2026-04,DB-PROD,2026-09-15,isolated-service-recovery,Database restore and application validation,true,met,60,48,15,9,EV-DB-001
+EX-PAY-2026-02,PAYMENTS,2026-07-01,full-service-recovery,Payment service recovery and synthetic transaction,true,partially_met,45,70,5,8,EV-PAY-001
+EX-ID-2026-03,IDENTITY,2026-10-15,tabletop,Decision roles and escalation only,false,partially_met,,,,EV-ID-001
+EX-NET-2026-01,NETWORK,2026-06-15,component-test,Firewall configuration validation,false,met,,,,EV-NET-001

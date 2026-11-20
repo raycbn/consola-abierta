@@ -1,0 +1,7 @@
+service_id,service_name,criticality,in_scope,target_cadence_days,dependency_review_date
+DB-PROD,Core database service,CRITICAL,true,90,2026-09-15
+PAYMENTS,Payment processing service,CRITICAL,true,90,2026-05-15
+IDENTITY,Enterprise identity service,HIGH,true,180,2026-07-01
+HR-SAAS,Human resources SaaS,HIGH,true,180,2026-10-01
+NETWORK,Core network connectivity,HIGH,true,180,2026-08-01
+ARCHIVE,Legacy archive service,LOW,false,365,2025-01-01
