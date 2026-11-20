@@ -21,7 +21,7 @@ assert.ok(demo.every(report => report.services.covered_by_qualifying_exercise <=
 assert.ok(demo.every(report => report.rto.pass_percent === null || report.rto.measured_services > 0), "unmeasured RTO must not show a pass percentage");
 assert.ok(demo.every(report => report.rpo.pass_percent === null || report.rpo.measured_services > 0), "unmeasured RPO must not show a pass percentage");
 
-for (const required of ["programme-summary.json", "localmente", "coverage_percent", "valid_approved_exceptions", "overdue_unverified", "renderFindings", "downloadCsv", "service_ids_sha256", "qualification_policy_id", "compareMetadata", "renderComparison", "executiveMarkdown", "exportExecutive", "exportHistory", "dr-programme-history-v1", "unpackImportedPayload", "sustainedDeteriorationSignals", "sustainedTrend"]) {
+for (const required of ["programme-summary.json", "localmente", "coverage_percent", "valid_approved_exceptions", "overdue_unverified", "renderFindings", "downloadCsv", "service_ids_sha256", "qualification_policy_id", "compareMetadata", "renderComparison", "executiveMarkdown", "exportExecutive", "exportHistory", "dr-programme-history-v1", "unpackImportedPayload", "sustainedDeteriorationSignals", "sustainedTrend", "committeeWorkspace", "addDecision", "addCommitteeAction", "validateCommittee", "restaura también el borrador del comité", "committeeMarkdown", "exportCommitteeMinutes", "exportCommitteeCsv", "evidence", "DECISION_STATUSES", "ACTION_STATUSES", "BORRADOR — PENDIENTE DE VALIDACIÓN"]) {
   assert.ok(html.includes(required), "dashboard is missing expected capability: " + required);
 }
 
@@ -112,7 +112,68 @@ async function importTestArchive(name, archive) {
   });
   assert.ok(element("sustainedTrend").innerHTML.includes("Deterioros sostenidos detectados"), "dashboard should detect deterioration over two comparable intervals");
   assert.ok(element("sustainedTrend").innerHTML.includes("Acciones vencidas sin verificar"), "sustained deterioration signal should identify the metric");
-  console.log("DR Programme Assurance dashboard checks passed (offline, scope/cohort comparability, history round-trip, sustained deterioration, executive report).");
+
+  element("meetingTitle").value = "Comité de continuidad";
+  element("meetingDate").value = "2026-12-10";
+  element("meetingReference").value = "DR-COM-2026-Q4";
+  element("meetingChair").value = "Presidencia de prueba";
+  element("meetingSecretary").value = "Secretaría de prueba";
+  for (const [id, field] of [["meetingTitle","title"],["meetingDate","date"],["meetingReference","reference"],["meetingChair","chair"],["meetingSecretary","secretary"]]) {
+    element("committeeWorkspace").listeners.input({target:{dataset:{meetingField:field},value:element(id).value}});
+  }
+
+  element("decisionTopic").value = "Cobertura Tier 1";
+  element("decisionText").value = "Revisar y aprobar el calendario de ejercicios";
+  element("decisionOwner").value = "Responsable DR";
+  element("decisionDue").value = "2027-01-31";
+  element("decisionStatus").value = "PENDING";
+  element("addDecision").listeners.click();
+  assert.ok(element("decisionRows").innerHTML.includes("DEC-001"), "decision form should add a traceable decision record");
+
+  element("actionDecisionLink").value = "DEC-001";
+  element("committeeActionText").value = "Publicar calendario de ejercicios";
+  element("committeeActionOwner").value = "Equipo DR";
+  element("committeeActionDue").value = "2027-01-15";
+  element("committeeActionPriority").value = "HIGH";
+  element("committeeActionStatus").value = "OPEN";
+  element("addCommitteeAction").listeners.click();
+  assert.ok(element("committeeActionRows").innerHTML.includes("ACT-001"), "action form should add a traceable action record");
+
+  const invalidDueField = {dataset:{actionId:"ACT-001",actionField:"due_date"},value:""};
+  element("committeeWorkspace").listeners.change({target:invalidDueField});
+  assert.equal(invalidDueField.value,"2027-01-15","an empty action deadline must be rejected and the previous date restored");
+
+  element("committeeWorkspace").listeners.change({target:{dataset:{actionId:"ACT-001",actionField:"status"},value:"CLOSED"}});
+  assert.ok(element("committeeAlert").textContent.includes("referencia de evidencia"), "an action cannot close without an evidence reference");
+  element("committeeWorkspace").listeners.input({target:{dataset:{actionId:"ACT-001",actionField:"evidence"},value:"EV-COM-2027-001"}});
+  element("committeeWorkspace").listeners.change({target:{dataset:{actionId:"ACT-001",actionField:"status"},value:"CLOSED"}});
+  assert.ok(element("committeeSummary").innerHTML.includes("Acciones cerradas con evidencia: <strong>1</strong>"), "closed action must be counted only with evidence");
+
+  element("exportCommitteeMinutes").listeners.click();
+  const minutes = String(downloadedBlob.parts[0]);
+  assert.ok(minutes.includes("BORRADOR — PENDIENTE DE VALIDACIÓN"), "committee minutes must clearly be an unapproved draft");
+  assert.ok(minutes.includes("DATOS SINTÉTICOS"), "committee minutes linked to demo data must carry a synthetic-data warning");
+  assert.ok(minutes.includes("DR-COM-2026-Q4") && minutes.includes("DEC-001") && minutes.includes("ACT-001") && minutes.includes("EV-COM-2027-001"), "committee minutes must include session, decision, action and closure evidence");
+
+  element("exportCommitteeCsv").listeners.click();
+  const actionCsv = String(downloadedBlob.parts[0]);
+  assert.ok(actionCsv.includes("action_id") && actionCsv.includes("decision_id") && actionCsv.includes("EV-COM-2027-001"), "committee action CSV must include ownership link and closure evidence");
+
+  element("exportHistory").listeners.click();
+  const committeeArchive = JSON.parse(String(downloadedBlob.parts[0]));
+  assert.equal(committeeArchive.committee.decisions.length, 1, "history archive must preserve committee decisions");
+  assert.equal(committeeArchive.committee.actions.length, 1, "history archive must preserve committee actions");
+  assert.equal(committeeArchive.committee.actions[0].status, "CLOSED", "history archive must preserve action status");
+  await importTestArchive("committee-history.json", committeeArchive);
+  assert.ok(element("decisionRows").innerHTML.includes("DEC-001"), "history import must restore committee decisions");
+  assert.ok(element("committeeActionRows").innerHTML.includes("EV-COM-2027-001"), "history import must restore action evidence");
+
+  const invalidArchive = JSON.parse(JSON.stringify(committeeArchive));
+  invalidArchive.committee.actions[0].evidence = "";
+  await importTestArchive("invalid-committee-history.json", invalidArchive);
+  assert.ok(element("status").textContent.includes("referencia de evidencia"), "invalid committee archives must be rejected when a closed action has no evidence");
+
+  console.log("DR Programme Assurance dashboard checks passed (offline, comparisons, history, trends, committee decisions/actions, evidence-gated closure and minutes).");
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

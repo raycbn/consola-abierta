@@ -16,7 +16,7 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
 - The public sitemap pages include a cookie/privacy preferences link wired to Google's `googlefc.showRevocationMessage` API. The link is shown only when the TCF reports that GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
 - Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
-- 13 downloadable labs, including four offline resilience tools: Recovery Test Scorecard (7 tests), Recovery Runbook Preflight (12 tests), Recovery Evidence Pack Builder (21 tests) and DR Programme Coverage Auditor (16 tests) with a browser-only quarterly dashboard. The tools analyse manually supplied data and file references; they do not run recovery operations, verify infrastructure controls, authenticate evidence sources or provide forensic chain of custody.
+- 13 downloadable labs, including four offline resilience tools: Recovery Test Scorecard (7 tests), Recovery Runbook Preflight (12 tests), Recovery Evidence Pack Builder (21 tests) and DR Programme Coverage Auditor (19 tests) with a browser-only quarterly dashboard, portable history archive, service/cohort comparability checks, committee minutes and evidence-gated action tracking. The tools analyse manually supplied data and file references; they do not run recovery operations, verify infrastructure controls, authenticate evidence sources or provide forensic chain of custody.
 - GitHub Pages runs all four resilience lab test suites and builds their downloadable ZIPs from versioned source before running site validators and deploying on pushes to main, using .github/workflows/pages.yml.
 
 ## Local preview
@@ -29,9 +29,9 @@ Then open http://127.0.0.1:4173/.
 ## Quality checks
 - `python -m unittest discover -s assets/labs/recovery-test-scorecard/tests -v` checks the offline recovery scorecard (7 tests).
 - `python assets/labs/recovery-test-scorecard/build_lab.py` regenerates its downloadable ZIP.
-- `python -m unittest discover -s assets/labs/dr-programme-assurance/tests -v` checks the DR programme coverage auditor (16 tests).
+- `python -m unittest discover -s assets/labs/dr-programme-assurance/tests -v` checks the DR programme coverage auditor (19 tests).
 - `python assets/labs/dr-programme-assurance/build_lab.py` builds the downloadable Lab 04 ZIP, including the offline dashboard.
-- `node assets/labs/dr-programme-assurance/tests/check-dashboard.cjs` checks dashboard syntax, local-only processing and synthetic demo data.
+- `node assets/labs/dr-programme-assurance/tests/check-dashboard.cjs` checks dashboard syntax, local-only processing, history import/export, sustained trend signals, committee minutes, decision/action tracking and evidence-gated closure.
 - `node validate-text-encoding.cjs` checks text sources for common mojibake and known accent-replacement regressions.
 - `node validate-structured-data.cjs` checks sitemap routes, canonicals, JSON-LD and visible breadcrumbs.
 - `node validate-internal-links.cjs` checks contextual article links and article/lab/learning-path relationships.

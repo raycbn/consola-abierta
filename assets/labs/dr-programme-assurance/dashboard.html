@@ -16,9 +16,9 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 .trends{display:grid;grid-template-columns:1fr 1fr;gap:14px}.chart-card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px;min-width:0}.chart-title{font-size:15px;font-weight:700;margin:0}.chart-subtitle{color:var(--muted);font-size:12px;margin:3px 0 10px}.chart{width:100%;height:auto;display:block;overflow:visible}.chart text{font-family:system-ui,sans-serif;fill:#9bb0c0;font-size:11px}.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:7px 0 0}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.chart-empty{height:180px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13px}
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px 13px;text-align:left;border-bottom:1px solid #213549;font-size:13px;white-space:nowrap}th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#142535}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#142b3e}.num{font-variant-numeric:tabular-nums}.pill{display:inline-flex;padding:3px 7px;border:1px solid currentColor;border-radius:99px;font-size:10px;letter-spacing:.05em;font-weight:800}.pill.HIGH{color:var(--red)}.pill.MEDIUM{color:var(--amber)}.pill.LOW,.pill.INFO{color:var(--blue)}
 .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{background:#0c1a27;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 11px}.filters input{min-width:220px}
-.note{border-left:3px solid var(--cyan);padding:12px 15px;background:#102332;color:#c4d6e1;border-radius:0 9px 9px 0;font-size:13px;margin-top:18px}.note strong{color:var(--text)}.comparison{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px}.comparison-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.compare-item{background:#0e1c29;border:1px solid #213549;border-radius:11px;padding:13px;min-width:0}.compare-item strong{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.compare-item b{display:block;margin:5px 0;font-size:15px}.compare-item small{display:block;color:var(--muted);overflow-wrap:anywhere}.status-tag{display:inline-flex;border:1px solid currentColor;border-radius:99px;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:.05em}.status-tag.good{color:var(--green)}.status-tag.warn{color:var(--amber)}.status-tag.bad{color:var(--red)}.change-list{margin-top:14px;overflow-x:auto}.change-list table{min-width:620px}.change-good{color:var(--green);font-weight:700}.change-bad{color:var(--red);font-weight:700}.change-neutral{color:var(--amber);font-weight:700}.report-note{font-size:12px;color:var(--muted);margin:12px 0 0}.footer{color:var(--muted);font-size:12px;margin-top:27px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.hidden{display:none!important}
-@media(max-width:900px){.grid,.subgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.trends{grid-template-columns:1fr}.comparison-grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.top{margin-bottom:22px}}
-@media(max-width:560px){.wrap{padding:20px 14px 44px}.grid,.subgrid{grid-template-columns:1fr 1fr}.metric-value{font-size:29px}.filedrop{align-items:start;flex-direction:column}.file-actions{width:100%}.file-actions button{flex:1}.top{align-items:start}.brand{font-size:10px}.section-head{align-items:start;flex-direction:column}}
+.note{border-left:3px solid var(--cyan);padding:12px 15px;background:#102332;color:#c4d6e1;border-radius:0 9px 9px 0;font-size:13px;margin-top:18px}.note strong{color:var(--text)}.comparison{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px}.comparison-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.compare-item{background:#0e1c29;border:1px solid #213549;border-radius:11px;padding:13px;min-width:0}.compare-item strong{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.compare-item b{display:block;margin:5px 0;font-size:15px}.compare-item small{display:block;color:var(--muted);overflow-wrap:anywhere}.status-tag{display:inline-flex;border:1px solid currentColor;border-radius:99px;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:.05em}.status-tag.good{color:var(--green)}.status-tag.warn{color:var(--amber)}.status-tag.bad{color:var(--red)}.change-list{margin-top:14px;overflow-x:auto}.change-list table{min-width:620px}.change-good{color:var(--green);font-weight:700}.change-bad{color:var(--red);font-weight:700}.change-neutral{color:var(--amber);font-weight:700}.report-note{font-size:12px;color:var(--muted);margin:12px 0 0}.committee-panel{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px}.committee-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}.field input,.field select,.field textarea,.committee-table input,.committee-table select{width:100%;min-width:0;background:#0c1a27;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font:inherit;font-size:13px}.committee-table input,.committee-table select{min-width:100px}.committee-table textarea,.field textarea{resize:vertical;min-height:42px}.committee-subsection{margin-top:19px;padding-top:17px;border-top:1px solid var(--line)}.committee-subsection h3{font-size:15px;margin:0 0 12px}.entry-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}.entry-grid .wide{grid-column:span 2}.entry-grid button{min-height:40px}.committee-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.committee-table{margin-top:12px}.committee-table table{min-width:1160px}.committee-table textarea{min-width:200px}.committee-table .remove{padding:6px 9px;border-color:#68404b;background:#2b1c27}.committee-summary{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.committee-summary span{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#0e1c29}.committee-alert{font-size:12px;color:var(--amber);margin-top:10px;min-height:18px}.committee-help{font-size:12px;color:var(--muted);margin:8px 0 0}.draft-mark{color:var(--amber);font-weight:800}.footer{color:var(--muted);font-size:12px;margin-top:27px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.hidden{display:none!important}
+@media(max-width:900px){.grid,.subgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.trends{grid-template-columns:1fr}.comparison-grid,.committee-grid{grid-template-columns:1fr 1fr}.entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{align-items:start;flex-direction:column}.top{margin-bottom:22px}}
+@media(max-width:560px){.wrap{padding:20px 14px 44px}.grid,.subgrid,.committee-grid{grid-template-columns:1fr 1fr}.entry-grid{grid-template-columns:1fr}.entry-grid .wide{grid-column:span 1}.metric-value{font-size:29px}.filedrop{align-items:start;flex-direction:column}.file-actions{width:100%}.file-actions button{flex:1}.top{align-items:start}.brand{font-size:10px}.section-head{align-items:start;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -26,7 +26,7 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 <div class="top"><div class="brand">Consola Abierta <span style="color:#71899c">/</span> Resilience &amp; Recovery</div><a href="https://consolaabierta.com/es/analisis/aseguramiento-programa-anual-disaster-recovery/" target="_blank" rel="noopener">Guía DR Programme Assurance ↗</a></div>
 <section class="hero"><div><p class="eyebrow">Portfolio visibility · offline dashboard</p><h1>DR Programme Assurance</h1><p class="intro">Compara cierres trimestrales del DR Programme Coverage Auditor. Importa los ficheros <code>programme-summary.json</code> generados por Lab 04 para ver tendencias y hallazgos.</p></div><div class="hero-actions"><button id="exportTimeline" class="quiet" type="button">Exportar evolución CSV</button><button id="exportHistory" class="quiet" type="button">Guardar histórico JSON</button><button id="exportExecutive" class="primary" type="button">Generar informe para comité (.md)</button></div></section>
 <div class="banner"><strong>LOCAL ONLY</strong><span>Los JSON se leen y procesan en este navegador. No se envían a Consola Abierta ni a ningún servidor.</span></div>
-<section id="dropzone" class="filedrop" aria-label="Importar cierres trimestrales"><div class="filecopy"><strong>Importa uno o varios cierres</strong><p>Selecciona los JSON de cada trimestre. Para comparar periodos, utiliza la misma ventana de análisis y los mismos criterios de alcance.</p></div><div class="file-actions"><input id="fileInput" class="hidden" type="file" accept=".json,application/json" multiple><button class="primary" id="importButton" type="button">Importar JSON</button><button id="demoButton" type="button">Cargar demo</button><button id="clearButton" type="button" class="quiet">Vaciar</button></div></section>
+<section id="dropzone" class="filedrop" aria-label="Importar cierres trimestrales"><div class="filecopy"><strong>Importa uno o varios cierres</strong><p>Selecciona los JSON de cada trimestre o importa tu archivo histórico <code>dr-programme-history-v1</code>. El histórico restaura también el borrador del comité y su seguimiento.</p></div><div class="file-actions"><input id="fileInput" class="hidden" type="file" accept=".json,application/json" multiple><button class="primary" id="importButton" type="button">Importar JSON</button><button id="demoButton" type="button">Cargar demo</button><button id="clearButton" type="button" class="quiet">Vaciar</button></div></section>
 <p id="status" class="status" role="status" aria-live="polite"></p>
 <div id="dashboard">
 <div class="section-head"><h2>Último cierre</h2><p id="latestMeta"></p></div>
@@ -62,6 +62,49 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 </div>
 <div class="section-head"><h2>Hallazgos del último cierre</h2><div class="filters"><select id="severityFilter" aria-label="Filtrar severidad"><option value="">Todas las severidades</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="INFO">INFO</option></select><input id="findingSearch" type="search" placeholder="Buscar código, servicio o detalle" aria-label="Buscar hallazgos"></div></div>
 <div class="table-wrap"><table><thead><tr><th>Severidad</th><th>Hallazgo</th><th>Servicio</th><th>Detalle</th></tr></thead><tbody id="findingRows"></tbody></table></div>
+
+<div class="section-head"><h2>Acta y seguimiento del comité</h2><p>Registro editable · borrador local · sin aprobación automática</p></div>
+<section class="committee-panel" id="committeeWorkspace" aria-label="Acta y seguimiento del comité">
+ <div class="committee-grid">
+  <div class="field"><label for="meetingTitle">Comité / sesión</label><input id="meetingTitle" data-meeting-field="title" maxlength="160" placeholder="Comité de continuidad y resiliencia"></div>
+  <div class="field"><label for="meetingDate">Fecha de reunión</label><input id="meetingDate" data-meeting-field="date" type="date"></div>
+  <div class="field"><label for="meetingReference">Referencia / acta</label><input id="meetingReference" data-meeting-field="reference" maxlength="80" placeholder="Ej. DR-COM-2026-Q4"></div>
+  <div class="field"><label for="meetingChair">Presidencia</label><input id="meetingChair" data-meeting-field="chair" maxlength="120" placeholder="Responsable que preside"></div>
+  <div class="field"><label for="meetingSecretary">Secretaría / redactor</label><input id="meetingSecretary" data-meeting-field="secretary" maxlength="120" placeholder="Persona que prepara el acta"></div>
+  <div class="field"><label for="meetingScope">Periodo de auditoría asociado</label><input id="meetingScope" readonly value="Se vincula al último cierre cargado"></div>
+ </div>
+ <div class="note"><strong class="draft-mark">BORRADOR — PENDIENTE DE VALIDACIÓN.</strong> Los registros que añadas aquí son decisiones y acciones del comité, separados de las acciones del auditor. Completa los datos de la reunión, revisa el contenido y valida el acta antes de distribuirla. Todo se procesa localmente.</div>
+ <div class="committee-subsection">
+  <h3>Registrar una decisión</h3>
+  <div class="entry-grid">
+   <div class="field"><label for="decisionTopic">Tema / asunto</label><input id="decisionTopic" maxlength="160" placeholder="Ej. Cobertura de servicios críticos"></div>
+   <div class="field wide"><label for="decisionText">Decisión o acuerdo</label><textarea id="decisionText" rows="2" maxlength="1200" placeholder="Describe la decisión, condición o punto pendiente"></textarea></div>
+   <div class="field"><label for="decisionStatus">Estado</label><select id="decisionStatus"><option value="PENDING">Pendiente de aprobación</option><option value="APPROVED">Aprobada</option><option value="REJECTED">Rechazada</option><option value="DEFERRED">Aplazada</option></select></div>
+   <div class="field"><label for="decisionOwner">Responsable de seguimiento</label><input id="decisionOwner" maxlength="120" placeholder="Responsable"></div>
+   <div class="field"><label for="decisionDue">Fecha objetivo</label><input id="decisionDue" type="date"></div>
+   <div><button id="addDecision" class="primary" type="button">Añadir decisión</button></div>
+  </div>
+  <p class="committee-help">Una decisión en estado «Pendiente de aprobación» no se presenta como acuerdo aprobado en el acta exportada.</p>
+  <div class="committee-table table-wrap"><table><thead><tr><th>ID</th><th>Tema</th><th>Decisión / acuerdo</th><th>Estado</th><th>Responsable</th><th>Fecha objetivo</th><th></th></tr></thead><tbody id="decisionRows"><tr><td colspan="7">No hay decisiones registradas.</td></tr></tbody></table></div>
+ </div>
+ <div class="committee-subsection">
+  <h3>Registrar una acción de seguimiento</h3>
+  <div class="entry-grid">
+   <div class="field"><label for="actionDecisionLink">Decisión relacionada</label><select id="actionDecisionLink"><option value="">Sin vincular</option></select></div>
+   <div class="field wide"><label for="committeeActionText">Acción / entregable esperado</label><textarea id="committeeActionText" rows="2" maxlength="1200" placeholder="Describe el resultado verificable que debe entregarse"></textarea></div>
+   <div class="field"><label for="committeeActionOwner">Responsable</label><input id="committeeActionOwner" maxlength="120" placeholder="Responsable"></div>
+   <div class="field"><label for="committeeActionDue">Fecha objetivo</label><input id="committeeActionDue" type="date"></div>
+   <div class="field"><label for="committeeActionPriority">Prioridad</label><select id="committeeActionPriority"><option value="MEDIUM">Media</option><option value="HIGH">Alta</option><option value="LOW">Baja</option></select></div>
+   <div class="field"><label for="committeeActionStatus">Estado</label><select id="committeeActionStatus"><option value="OPEN">Abierta</option><option value="IN_PROGRESS">En curso</option><option value="PENDING_VALIDATION">Pendiente de validación</option></select></div>
+   <div><button id="addCommitteeAction" class="primary" type="button">Añadir acción</button></div>
+  </div>
+  <p class="committee-help">Para cerrar una acción se exigirá una referencia de evidencia. Las acciones vencidas se calculan con la fecha actual del dispositivo.</p>
+  <div class="committee-table table-wrap"><table><thead><tr><th>ID</th><th>Decisión vinculada</th><th>Acción</th><th>Responsable</th><th>Fecha objetivo</th><th>Prioridad</th><th>Estado</th><th>Evidencia de cierre</th><th></th></tr></thead><tbody id="committeeActionRows"><tr><td colspan="9">No hay acciones de comité registradas.</td></tr></tbody></table></div>
+ </div>
+ <div class="committee-summary" id="committeeSummary"></div>
+ <p class="committee-alert" id="committeeAlert" role="status" aria-live="polite"></p>
+ <div class="committee-toolbar"><button id="exportCommitteeMinutes" class="primary" type="button">Exportar acta de comité (.md)</button><button id="exportCommitteeCsv" type="button">Exportar seguimiento de acciones (.csv)</button></div>
+</section>
 <div class="note"><strong>Interpretación:</strong> las excepciones se presentan aparte y no se restan del denominador de cobertura. Los valores RTO/RPO no medidos aparecen como «No medido», nunca como 0 % ni como éxito. La cualificación del ejercicio proviene del registro del programa y no es validada por este dashboard.</div>
 </div>
 <footer class="footer"><span>DR Programme Coverage Auditor · Dashboard offline · No telemetry</span><span id="reportCount">—</span></footer>
@@ -76,6 +119,15 @@ const DEMO_SNAPSHOTS = [
 ];
 let reports = [];
 let usingDemo = true;
+let committee = {
+ title: "",
+ date: "",
+ reference: "",
+ chair: "",
+ secretary: "",
+ decisions: [],
+ actions: []
+};
 const $ = id => document.getElementById(id);
 const isInt = n => Number.isInteger(n) && n >= 0;
 const isPct = n => n === null || (typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100);
@@ -278,6 +330,251 @@ function downloadText(filename,content,mime){
 }
 
 
+
+const DECISION_STATUSES={PENDING:"Pendiente de aprobación",APPROVED:"Aprobada",REJECTED:"Rechazada",DEFERRED:"Aplazada"};
+const ACTION_STATUSES={OPEN:"Abierta",IN_PROGRESS:"En curso",PENDING_VALIDATION:"Pendiente de validación",CLOSED:"Cerrada"};
+const PRIORITY_LABELS={HIGH:"Alta",MEDIUM:"Media",LOW:"Baja"};
+function localToday(){
+ const d=new Date();
+ return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+}
+function nextRecordId(prefix,items){
+ const max=items.reduce((value,item)=>{
+  const m=String(item.id||"").match(new RegExp("^"+prefix+"-(\\d+)$"));
+  return m ? Math.max(value,Number(m[1])):value;
+ },0);
+ return prefix+"-"+String(max+1).padStart(3,"0");
+}
+function cloneCommittee(value){
+ return JSON.parse(JSON.stringify(value));
+}
+function validateCommittee(value){
+ if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("El bloque committee no es válido.");
+ const textFields=["title","reference","chair","secretary"];
+ for(const key of textFields)if(typeof value[key]!=="string"||value[key].length>200)throw new Error("committee."+key+" no es válido.");
+ if(typeof value.date!=="string"||(value.date!==""&&!dateOk(value.date)))throw new Error("committee.date debe estar vacío o usar YYYY-MM-DD.");
+ if(!Array.isArray(value.decisions)||value.decisions.length>500||!Array.isArray(value.actions)||value.actions.length>500)throw new Error("La lista de decisiones o acciones no es válida.");
+ const decisionIds=new Set();
+ for(const d of value.decisions){
+  if(!d||typeof d.id!=="string"||!/^DEC-\d{3,6}$/.test(d.id)||decisionIds.has(d.id))throw new Error("Hay un ID de decisión inválido o duplicado.");
+  decisionIds.add(d.id);
+  if(["topic","text","owner"].some(k=>typeof d[k]!=="string"||!d[k].trim())||d.topic.length>160||d.text.length>1200||d.owner.length>120)throw new Error("Una decisión tiene campos obligatorios no válidos.");
+  if(!Object.prototype.hasOwnProperty.call(DECISION_STATUSES,d.status))throw new Error("Estado de decisión no válido.");
+  if(typeof d.due_date!=="string"||!dateOk(d.due_date))throw new Error("Cada decisión debe tener fecha objetivo válida.");
+ }
+ const actionIds=new Set();
+ for(const a of value.actions){
+  if(!a||typeof a.id!=="string"||!/^ACT-\d{3,6}$/.test(a.id)||actionIds.has(a.id))throw new Error("Hay un ID de acción inválido o duplicado.");
+  actionIds.add(a.id);
+  if(["text","owner","due_date","evidence"].some(k=>typeof a[k]!=="string")||!a.text.trim()||!a.owner.trim()||a.text.length>1200||a.owner.length>120||!dateOk(a.due_date))throw new Error("Una acción tiene campos obligatorios no válidos.");
+  if(!Object.prototype.hasOwnProperty.call(ACTION_STATUSES,a.status)||!Object.prototype.hasOwnProperty.call(PRIORITY_LABELS,a.priority))throw new Error("Estado o prioridad de acción no válido.");
+  if(a.status==="CLOSED"&&!a.evidence.trim())throw new Error("Una acción cerrada debe tener referencia de evidencia.");
+  if(typeof a.decision_id!=="string"||a.decision_id.length>30||a.evidence.length>240)throw new Error("La vinculación o referencia de evidencia de una acción no es válida.");
+  if(a.decision_id&&!decisionIds.has(a.decision_id))throw new Error("Una acción hace referencia a una decisión inexistente.");
+ }
+ return {
+  title:value.title, date:value.date, reference:value.reference, chair:value.chair, secretary:value.secretary,
+  decisions:value.decisions.map(d=>({...d})), actions:value.actions.map(a=>({...a}))
+ };
+}
+function committeeOption(value,label,current){
+ return '<option value="'+escapeHtml(value)+'"'+(value===current?' selected':'')+'>'+escapeHtml(label)+'</option>';
+}
+function renderCommitteeSummary(){
+ const today=localToday();
+ const pending=committee.decisions.filter(d=>d.status==="PENDING").length;
+ const approved=committee.decisions.filter(d=>d.status==="APPROVED").length;
+ const open=committee.actions.filter(a=>a.status!=="CLOSED").length;
+ const overdue=committee.actions.filter(a=>a.status!=="CLOSED"&&a.due_date<today).length;
+ const closed=committee.actions.filter(a=>a.status==="CLOSED").length;
+ $("committeeSummary").innerHTML=
+  '<span>Decisiones pendientes: <strong>'+pending+'</strong></span>'+
+  '<span>Decisiones aprobadas: <strong>'+approved+'</strong></span>'+
+  '<span>Acciones abiertas: <strong>'+open+'</strong></span>'+
+  '<span>Acciones vencidas: <strong class="'+(overdue?'change-bad':'')+'">'+overdue+'</strong></span>'+
+  '<span>Acciones cerradas con evidencia: <strong>'+closed+'</strong></span>';
+}
+function renderCommittee(){
+ const fields={meetingTitle:"title",meetingDate:"date",meetingReference:"reference",meetingChair:"chair",meetingSecretary:"secretary"};
+ Object.entries(fields).forEach(([id,key])=>{$(id).value=committee[key]||"";});
+ const latest=reports[reports.length-1];
+ $("meetingScope").value=latest ? latest.as_of+" · "+fmtInt(latest.services.in_scope)+" servicios en alcance":"Sin informe de auditoría cargado";
+ const decisionOptions='<option value="">Sin vincular</option>'+committee.decisions.map(d=>committeeOption(d.id,d.id+" · "+d.topic,"")).join("");
+ $("actionDecisionLink").innerHTML=decisionOptions;
+ $("decisionRows").innerHTML=committee.decisions.length ? committee.decisions.map(d=>
+  '<tr><td class="num">'+escapeHtml(d.id)+'</td>'+
+  '<td><input data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="topic" maxlength="160" value="'+escapeHtml(d.topic)+'" aria-label="Tema '+escapeHtml(d.id)+'"></td>'+
+  '<td><textarea data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="text" maxlength="1200" rows="2" aria-label="Decisión '+escapeHtml(d.id)+'">'+escapeHtml(d.text)+'</textarea></td>'+
+  '<td><select data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="status">'+Object.entries(DECISION_STATUSES).map(([v,l])=>committeeOption(v,l,d.status)).join("")+'</select></td>'+
+  '<td><input data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="owner" maxlength="120" value="'+escapeHtml(d.owner)+'" aria-label="Responsable '+escapeHtml(d.id)+'"></td>'+
+  '<td><input data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="due_date" type="date" value="'+escapeHtml(d.due_date)+'" aria-label="Fecha objetivo '+escapeHtml(d.id)+'"></td>'+
+  '<td><button class="remove" type="button" data-remove-decision="'+escapeHtml(d.id)+'" aria-label="Eliminar '+escapeHtml(d.id)+'">Eliminar</button></td></tr>'
+ ).join(""):'<tr><td colspan="7">No hay decisiones registradas.</td></tr>';
+ $("committeeActionRows").innerHTML=committee.actions.length ? committee.actions.map(a=>
+  '<tr><td class="num">'+escapeHtml(a.id)+'</td>'+
+  '<td><select data-action-id="'+escapeHtml(a.id)+'" data-action-field="decision_id">'+decisionOptions.replace('value="'+escapeHtml(a.decision_id||"")+'"','value="'+escapeHtml(a.decision_id||"")+'" selected')+'</select></td>'+
+  '<td><textarea data-action-id="'+escapeHtml(a.id)+'" data-action-field="text" maxlength="1200" rows="2" aria-label="Acción '+escapeHtml(a.id)+'">'+escapeHtml(a.text)+'</textarea></td>'+
+  '<td><input data-action-id="'+escapeHtml(a.id)+'" data-action-field="owner" maxlength="120" value="'+escapeHtml(a.owner)+'" aria-label="Responsable '+escapeHtml(a.id)+'"></td>'+
+  '<td><input data-action-id="'+escapeHtml(a.id)+'" data-action-field="due_date" type="date" value="'+escapeHtml(a.due_date)+'" aria-label="Fecha objetivo '+escapeHtml(a.id)+'"></td>'+
+  '<td><select data-action-id="'+escapeHtml(a.id)+'" data-action-field="priority">'+Object.entries(PRIORITY_LABELS).map(([v,l])=>committeeOption(v,l,a.priority)).join("")+'</select></td>'+
+  '<td><select data-action-id="'+escapeHtml(a.id)+'" data-action-field="status">'+Object.entries(ACTION_STATUSES).map(([v,l])=>committeeOption(v,l,a.status)).join("")+'</select></td>'+
+  '<td><input data-action-id="'+escapeHtml(a.id)+'" data-action-field="evidence" maxlength="240" value="'+escapeHtml(a.evidence)+'" placeholder="Referencia obligatoria para cerrar" aria-label="Evidencia '+escapeHtml(a.id)+'"></td>'+
+  '<td><button class="remove" type="button" data-remove-action="'+escapeHtml(a.id)+'" aria-label="Eliminar '+escapeHtml(a.id)+'">Eliminar</button></td></tr>'
+ ).join(""):'<tr><td colspan="9">No hay acciones de comité registradas.</td></tr>';
+ renderCommitteeSummary();
+}
+function committeeMarkdown(){
+ const latest=reports[reports.length-1];
+ const today=localToday();
+ const decisions=committee.decisions,actions=committee.actions;
+ const overdue=actions.filter(a=>a.status!=="CLOSED"&&a.due_date<today);
+ const lines=[
+  "# Acta de comité — DR Programme Assurance",
+  "",
+  "> **BORRADOR — PENDIENTE DE VALIDACIÓN Y APROBACIÓN.** Este documento no acredita que la reunión se haya celebrado ni que las decisiones estén aprobadas. Comprueba y valida su contenido antes de distribuirlo.",
+  "",
+  "**Comité / sesión:** "+(committee.title||"No especificado"),
+  "**Fecha:** "+(committee.date||"No especificada"),
+  "**Referencia:** "+(committee.reference||"No especificada"),
+  "**Presidencia:** "+(committee.chair||"Pendiente de completar"),
+  "**Secretaría / redactor:** "+(committee.secretary||"Pendiente de completar"),
+  "",
+  "## Contexto de auditoría",
+  "",
+  latest?"- Último cierre asociado: "+latest.as_of:"- No hay ningún cierre de auditoría cargado.",
+  latest?"- Servicios en alcance: "+latest.services.in_scope:"- Indicadores de cartera no disponibles.",
+  latest?"- Cobertura: "+fmtPct(latest.services.coverage_percent):"",
+  latest?"- RTO: "+fmtPct(latest.rto.pass_percent)+" ("+latest.rto.met+"/"+latest.rto.measured_services+" medidos)": "",
+  latest?"- RPO: "+fmtPct(latest.rpo.pass_percent)+" ("+latest.rpo.met+"/"+latest.rpo.measured_services+" medidos)": "",
+  latest?"- Servicios fuera de cadencia: "+latest.services.overdue_by_target_cadence:"",
+  latest?"- Acciones de auditoría vencidas sin verificar: "+latest.actions.overdue_unverified:"",
+  "",
+  "## Decisiones y acuerdos",
+  "",
+  "| ID | Tema | Decisión / acuerdo | Estado | Responsable | Fecha objetivo |",
+  "|---|---|---|---|---|---|"
+ ];
+ if(decisions.length){
+  decisions.forEach(d=>lines.push("| "+d.id+" | "+markdownSafe(d.topic)+" | "+markdownSafe(d.text)+" | "+DECISION_STATUSES[d.status]+" | "+markdownSafe(d.owner)+" | "+d.due_date+" |"));
+ }else lines.push("| — | No registradas | — | — | — | — |");
+ lines.push("","## Plan de acciones","");
+ lines.push("| ID | Decisión vinculada | Acción / entregable | Responsable | Fecha objetivo | Prioridad | Estado | Evidencia de cierre |");
+ lines.push("|---|---|---|---|---|---|---|---|");
+ if(actions.length){
+  actions.forEach(a=>{
+   const decision=decisions.find(d=>d.id===a.decision_id);
+   lines.push("| "+a.id+" | "+(decision ? decision.id+" · "+markdownSafe(decision.topic):"—")+" | "+markdownSafe(a.text)+" | "+markdownSafe(a.owner)+" | "+a.due_date+" | "+PRIORITY_LABELS[a.priority]+" | "+ACTION_STATUSES[a.status]+" | "+markdownSafe(a.evidence||"Pendiente")+" |");
+  });
+ }else lines.push("| — | — | No hay acciones registradas | — | — | — | — | — |");
+ lines.push("","## Seguimiento de plazos","","- Acciones abiertas: "+actions.filter(a=>a.status!=="CLOSED").length,
+  "- Acciones vencidas a fecha de exportación ("+today+"): "+overdue.length,
+  "- Acciones cerradas con referencia de evidencia: "+actions.filter(a=>a.status==="CLOSED"&&a.evidence.trim()).length);
+ if(overdue.length)overdue.forEach(a=>lines.push("  - **"+a.id+"** · "+markdownSafe(a.owner)+" · vencida el "+a.due_date));
+ lines.push("","## Hallazgos del último cierre");
+ if(latest?.findings?.length){
+  lines.push("| Severidad | Hallazgo | Servicio | Detalle |","|---|---|---|---|");
+  latest.findings.forEach(f=>lines.push("| "+f.severity+" | "+markdownSafe(f.finding)+" | "+markdownSafe(f.service_id)+" | "+markdownSafe(f.detail)+" |"));
+ }else lines.push("No hay hallazgos disponibles en el último cierre.");
+ lines.push("","## Validación del acta","","- Presidencia: pendiente de revisión y aprobación.",
+  "- Secretaría: pendiente de revisión.",
+  "- Próxima revisión: pendiente de fijar.",
+  "- La inclusión de una decisión como aprobada requiere validación expresa del comité; no se ha inferido a partir de los hallazgos.",
+  "",
+  "Generado localmente por DR Programme Assurance Dashboard · Consola Abierta."
+ );
+ if(latest&&isSyntheticReport(latest))lines.splice(3,0,"> **DATOS SINTÉTICOS:** el cierre asociado es una demostración y no representa una auditoría de un entorno real.","");
+ return lines.join("\n");
+}
+function exportCommitteeActionsCsv(){
+ const rows=[["action_id","decision_id","decision_topic","action","owner","due_date","priority","status","evidence_reference","overdue_at_export"]];
+ const today=localToday();
+ committee.actions.forEach(a=>{
+  const decision=committee.decisions.find(d=>d.id===a.decision_id);
+  rows.push([a.id,a.decision_id,decision?.topic||"",a.text,a.owner,a.due_date,a.priority,a.status,a.evidence,a.status!=="CLOSED"&&a.due_date<today?"true":"false"]);
+ });
+ downloadCsv("dr-committee-actions-"+(committee.date||today)+".csv",rows);
+}
+function handleCommitteeFieldChange(target,finalize=false){
+ const meetingField=target.dataset.meetingField;
+ if(meetingField){committee[meetingField]=target.value;return;}
+ const decisionId=target.dataset.decisionId,decisionField=target.dataset.decisionField;
+ if(decisionId&&decisionField){
+  const item=committee.decisions.find(d=>d.id===decisionId);
+  if(!item||!Object.prototype.hasOwnProperty.call(item,decisionField))return;
+  const value=target.value;
+  const invalid=(["topic","text","owner"].includes(decisionField)&&!value.trim())||(decisionField==="due_date"&&!dateOk(value))||(decisionField==="status"&&!Object.prototype.hasOwnProperty.call(DECISION_STATUSES,value));
+  if(invalid){
+   if(finalize){target.value=item[decisionField];$("committeeAlert").textContent="No se puede dejar vacío el tema, el acuerdo, el responsable ni la fecha objetivo de una decisión.";renderCommittee();}
+   return;
+  }
+  item[decisionField]=value;
+  renderCommitteeSummary();
+  if(finalize)renderCommittee();
+  return;
+ }
+ const actionId=target.dataset.actionId,actionField=target.dataset.actionField;
+ if(actionId&&actionField){
+  const item=committee.actions.find(a=>a.id===actionId);
+  if(!item||!Object.prototype.hasOwnProperty.call(item,actionField))return;
+  const value=target.value;
+  const invalid=(["text","owner"].includes(actionField)&&!value.trim())||(actionField==="due_date"&&!dateOk(value))||(actionField==="decision_id"&&value&&!committee.decisions.some(d=>d.id===value))||(actionField==="priority"&&!Object.prototype.hasOwnProperty.call(PRIORITY_LABELS,value))||(actionField==="status"&&!Object.prototype.hasOwnProperty.call(ACTION_STATUSES,value));
+  if(invalid){
+   if(finalize){target.value=item[actionField];$("committeeAlert").textContent="No se puede dejar vacía la acción, el responsable o la fecha objetivo.";renderCommittee();}
+   return;
+  }
+  if(actionField==="status"&&value==="CLOSED"&&!item.evidence.trim()){
+   item.status="PENDING_VALIDATION";
+   $("committeeAlert").textContent="No se puede cerrar "+item.id+": añade antes una referencia de evidencia.";
+   renderCommittee();return;
+  }
+  item[actionField]=value;
+  renderCommitteeSummary();
+  if(finalize)renderCommittee();
+ }
+}
+function bindCommitteeEvents(){
+ const host=$("committeeWorkspace");
+ host.addEventListener("input",event=>handleCommitteeFieldChange(event.target,false));
+ host.addEventListener("change",event=>handleCommitteeFieldChange(event.target,true));
+ host.addEventListener("click",event=>{
+  const removeDecision=event.target.closest("[data-remove-decision]");
+  const removeAction=event.target.closest("[data-remove-action]");
+  if(removeDecision){
+   const id=removeDecision.dataset.removeDecision;
+   committee.decisions=committee.decisions.filter(d=>d.id!==id);
+   committee.actions.forEach(a=>{if(a.decision_id===id)a.decision_id="";});
+   $("committeeAlert").textContent="Decisión eliminada. Las acciones relacionadas se han mantenido sin vincular.";
+   renderCommittee();return;
+  }
+  if(removeAction){
+   const id=removeAction.dataset.removeAction;
+   committee.actions=committee.actions.filter(a=>a.id!==id);
+   $("committeeAlert").textContent="Acción eliminada del borrador.";
+   renderCommittee();
+  }
+ });
+ $("addDecision").addEventListener("click",()=>{
+  const topic=$("decisionTopic").value.trim(),textValue=$("decisionText").value.trim(),owner=$("decisionOwner").value.trim(),due=$("decisionDue").value;
+  if(!topic||!textValue||!owner||!due){$("committeeAlert").textContent="Completa tema, decisión, responsable y fecha objetivo.";return;}
+  committee.decisions.push({id:nextRecordId("DEC",committee.decisions),topic,text:textValue,status:$("decisionStatus").value,owner,due_date:due});
+  $("decisionTopic").value="";$("decisionText").value="";$("decisionOwner").value="";$("decisionDue").value="";$("decisionStatus").value="PENDING";
+  $("committeeAlert").textContent="Decisión añadida al borrador. No supone aprobación.";
+  renderCommittee();
+ });
+ $("addCommitteeAction").addEventListener("click",()=>{
+  const textValue=$("committeeActionText").value.trim(),owner=$("committeeActionOwner").value.trim(),due=$("committeeActionDue").value;
+  if(!textValue||!owner||!due){$("committeeAlert").textContent="Completa acción, responsable y fecha objetivo.";return;}
+  committee.actions.push({id:nextRecordId("ACT",committee.actions),decision_id:$("actionDecisionLink").value,text:textValue,owner,due_date:due,priority:$("committeeActionPriority").value,status:$("committeeActionStatus").value,evidence:""});
+  $("committeeActionText").value="";$("committeeActionOwner").value="";$("committeeActionDue").value="";$("committeeActionStatus").value="OPEN";
+  $("committeeAlert").textContent="Acción añadida al plan de seguimiento.";
+  renderCommittee();
+ });
+ $("exportCommitteeMinutes").addEventListener("click",()=>{
+  downloadText("dr-committee-minutes-"+(committee.date||localToday())+".md",committeeMarkdown(),"text/markdown;charset=utf-8");
+ });
+ $("exportCommitteeCsv").addEventListener("click",exportCommitteeActionsCsv);
+}
+
 function render() {
  reports.sort((x,y)=>x.as_of.localeCompare(y.as_of));
  $("dashboard").classList.toggle("hidden",reports.length===0);
@@ -285,6 +582,7 @@ function render() {
  $("exportExecutive").disabled=reports.length===0;
  $("exportHistory").disabled=reports.length===0;
  $("reportCount").textContent=reports.length+" cierre(s) cargado(s)"+(allReportsSynthetic()?" · DEMO SINTÉTICA":"");
+ renderCommittee();
  if(!reports.length){$("status").textContent="No hay datos. Importa uno o varios programme-summary.json o carga la demo.";return;}
  const latest=reports[reports.length-1], previous=reports.length>1 ? reports[reports.length-2]:null;
  const s=latest.services,t=latest.rto,p=latest.rpo,a=latest.actions;
@@ -339,9 +637,9 @@ function downloadCsv(filename,rows){const csv=rows.map(row=>row.map(csvCell).joi
 function unpackImportedPayload(payload){
  if(payload&&typeof payload==="object"&&(Object.prototype.hasOwnProperty.call(payload,"format")||Array.isArray(payload.reports))){
   if(payload.format!=="dr-programme-history-v1"||!Array.isArray(payload.reports)||payload.reports.length<1||payload.reports.length>500)throw new Error("Archivo histórico no válido o versión no compatible.");
-  return payload.reports;
+  return {reports:payload.reports,committee:Object.prototype.hasOwnProperty.call(payload,"committee")?validateCommittee(payload.committee):null,hasCommittee:Object.prototype.hasOwnProperty.call(payload,"committee")};
  }
- return [payload];
+ return {reports:[payload],committee:null,hasCommittee:false};
 }
 async function importFiles(fileList){
  const files=Array.from(fileList||[]);if(!files.length)return;
@@ -349,12 +647,13 @@ async function importFiles(fileList){
  for(const file of files){
   if(file.size>5*1024*1024){errors.push(file.name+": supera 5 MB");continue;}
   try{
-   const payload=JSON.parse(await file.text()),batch=unpackImportedPayload(payload);
+   const payload=JSON.parse(await file.text()),unpacked=unpackImportedPayload(payload),batch=unpacked.reports;
    let valid=0;
    for(const item of batch){
     try{const parsed=validateReport(item);added.push({...parsed,_source:file.name,_demo:isSyntheticReport(parsed)});valid++;}
     catch(err){errors.push(file.name+(batch.length>1?" ("+(item?.as_of||"sin fecha")+")":"")+": "+err.message);}
    }
+   if(valid>0&&unpacked.hasCommittee)committee=unpacked.committee;
    if(valid===0&&batch.length===0)errors.push(file.name+": el histórico no contiene informes.");
   }
   catch(err){errors.push(file.name+": "+err.message);}
@@ -366,8 +665,10 @@ async function importFiles(fileList){
   added.forEach(r=>byDate.set(r.as_of,r));
   reports=Array.from(byDate.values());
  }
- $("status").textContent=(added.length ? added.length+" fichero(s) válido(s). ":"")+(errors.length ? "Rechazados: "+errors.join(" · ") : "");
+ const importMessage=(added.length ? added.length+" fichero(s) válido(s). ":"")+(errors.length ? "Rechazados: "+errors.join(" · ") : "");
+ renderCommittee();
  render();
+ if(importMessage)$("status").textContent=importMessage;
 }
 $("importButton").addEventListener("click",()=>$("fileInput").click());
 $("fileInput").addEventListener("change",e=>{importFiles(e.target.files);e.target.value="";});
@@ -377,7 +678,7 @@ $("severityFilter").addEventListener("change",renderFindings);
 $("findingSearch").addEventListener("input",renderFindings);
 $("exportHistory").addEventListener("click",()=>{
  if(!reports.length)return;
- const archive={format:"dr-programme-history-v1",exported_at:new Date().toISOString(),contains_synthetic_data:reports.some(isSyntheticReport),reports:reports.map(r=>{
+ const archive={format:"dr-programme-history-v1",exported_at:new Date().toISOString(),contains_synthetic_data:reports.some(isSyntheticReport),committee:cloneCommittee(committee),reports:reports.map(r=>{
   const {_source,_demo,...report}=r;return report;
  })};
  downloadText("dr-programme-history-"+reports[reports.length-1].as_of+".json",JSON.stringify(archive,null,2)+"\n","application/json;charset=utf-8");
@@ -396,6 +697,7 @@ const dz=$("dropzone");
 dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag");});
 dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
 dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("drag");importFiles(e.dataTransfer.files);});
+bindCommitteeEvents();
 reports=DEMO_SNAPSHOTS.map(r=>({...r,_demo:true,_source:"Demo sintética"}));
 render();
 </script>

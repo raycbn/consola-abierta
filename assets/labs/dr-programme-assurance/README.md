@@ -38,15 +38,18 @@ Open \`dashboard.html\` directly in a modern browser. It does not need a local w
 3. Use **Exportar evolución CSV** to download the trend table for further analysis.
 4. Use **Guardar histórico JSON** to export all loaded snapshots into one portable `dr-programme-history-v1` file. Import that file in a later browser session to restore the full history. The dashboard does not persist reports automatically in browser storage.
 5. Use **Generar informe para comité (.md)** to download an executive Markdown report for the latest cut-off, its comparison with the preceding one and any sustained deterioration found across two consecutive comparable intervals. It includes metric movements, scope/methodology/cohort checks and current findings.
+6. Complete **Acta y seguimiento del comité** to register the session, decisions, responsible owners, target dates and follow-up actions. Export the draft minutes as Markdown and the action register as CSV. The minutes are always labelled as a draft pending validation; the dashboard does not infer or approve decisions.
+7. To mark a committee action as closed, provide an evidence reference first. The action tracker is separate from the auditor's source action register; update the source CSV and re-run Lab 04 when the underlying audit data changes.
 
-The initial four-quarter view is synthetic demonstration data. It is not derived from any real company or production service. Importing real report files replaces the demo data. The dashboard processes files in the browser only: it makes no network requests, stores no reports and sends no telemetry.
+The initial four-quarter view is synthetic demonstration data. It is not derived from any real company or production service. Importing real report files replaces the demo data. The dashboard processes files in the browser only: it makes no network requests, stores no reports and sends no telemetry. Committee records remain in the current page session until exported; save the JSON history archive to retain and restore them.
 
 For fair comparisons, use the same service population, qualification criteria, reporting-window length and calculation rules in each quarterly snapshot. A changed denominator or methodology can make a percentage trend misleading; disclose scope and methodology changes alongside the result.
 
 Newer reports include:
 - A SHA-256 checksum of the sorted in-scope service IDs and the corresponding service count. This detects population changes even when the count remains the same.
 - Separate SHA-256 checksums and counts for the service cohorts with measured RTO and RPO. The dashboard will not call an RTO/RPO rate movement a like-for-like improvement or deterioration unless the measured service IDs also match.
-- A portable JSON history archive export/import, so multiple quarter-end snapshots can be retained and restored together without browser storage or server uploads.
+- A portable JSON history archive export/import, so multiple quarter-end snapshots and the committee's minutes metadata, decisions and follow-up actions can be retained and restored together without browser storage or server uploads.
+- A committee workspace to capture session metadata, decisions (pending, approved, rejected or deferred), owners, deadlines, action priorities, status and closure evidence. It creates a draft record only; it is not a source of truth until reviewed and approved by the committee.
 - Auditor version, dependency-review freshness setting and an optional `--qualification-policy-id` value. Keep this policy ID stable only while the documented qualifying-exercise criteria remain unchanged; increment it when those criteria change.
 - The reporting-window length, already shown in the summary.
 
@@ -54,7 +57,7 @@ The dashboard calls portfolio snapshots comparable only when the in-scope checks
 
 The sustained-deterioration signal requires two consecutive worsening movements across three reports, with portfolio comparability confirmed for each interval. RTO/RPO movements additionally require the corresponding measured-cohort checksum to match. It does not assign materiality or severity thresholds.
 
-**Security note:** a SHA-256 checksum is a change-detection mechanism, not anonymisation. IDs with a predictable or small namespace may be guessed and hashed. Treat the JSON summaries, checksums, findings and executive report as operational information; share them only through approved channels.
+**Security note:** a SHA-256 checksum is a change-detection mechanism, not anonymisation. IDs with a predictable or small namespace may be guessed and hashed. Treat the JSON summaries, checksums, findings, committee decisions, action owners, evidence references and exported reports as operational information; share them only through approved channels.
 
 ## Interpret the output carefully
 - The coverage denominator is every in-scope service. Valid exceptions are shown separately and do **not** silently remove services from the denominator.
