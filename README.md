@@ -6,7 +6,7 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - Static HTML/CSS/JavaScript; no framework, build step or application server.
 - Spanish edition at / and English edition at /en/.
 - Article archives at /es/articulos/ and /en/articles/.
-- Eight article URLs (four editorial topics translated into Spanish and English).
+- 22 article URLs: 11 Spanish articles and their 11 English editions.
 - Language-aware catalogue search powered by /search-index.json and assets/site.js.
 - Seven specialty filters on the archives, including the LLM Engineering series. Empty specialties show an explicit empty state, not placeholder links.
 - RSS feeds: /feed.xml (Spanish) and /en/feed.xml (English), with an XSLT browser view and Atom self links.
@@ -14,7 +14,7 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - Public corrections: /es/contacto/ and /en/contact/ via GitHub Issues (public); private contact: contacto@consolaabierta.com (published).
 - Privacy routes now disclose Google AdSense, advertising technologies, cookies, consent management, providers and user rights in Spanish and English. They remain noindex until the owner confirms legal identity and address.
 - ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
-- Sixteen public pages expose a cookie/privacy preferences link wired to Google's googlefc.showRevocationMessage API; the link appears for visitors where the TCF reports GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
+- The public sitemap pages include a cookie/privacy preferences link wired to Google's `googlefc.showRevocationMessage` API. The link is shown only when the TCF reports that GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
 - Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
 - GitHub Pages deploys the repository root on pushes to main, using .github/workflows/pages.yml.
 
@@ -25,8 +25,13 @@ npx http-server . -p 4173
 Then open http://127.0.0.1:4173/.
 
 ## Quality checks
-- node validate-site.cjs checks core routes, metadata, internal links, sitemap and feeds.
-- node mobile-check.cjs checks responsive layout (Chromium/Playwright dependencies required locally).
+- `node validate-text-encoding.cjs` checks text sources for common mojibake and known accent-replacement regressions.
+- `node validate-structured-data.cjs` checks sitemap routes, canonicals, JSON-LD and visible breadcrumbs.
+- `node validate-internal-links.cjs` checks contextual article links and article/lab/learning-path relationships.
+- `node validate-privacy-implementation.cjs` checks AdSense identifiers, legal-page publication gates and consent-preference wiring.
+- `node --check assets/site.js` checks client-side JavaScript syntax.
+- Responsive/mobile QA is currently a manual check; there is no `mobile-check.cjs` in the repository.
+- `git diff --check` before committing.
 - node --check assets/site.js checks client-side JavaScript syntax.
 - git diff --check before committing.
 - After pushing, verify the Actions run and the public canonical URLs, feeds and OG image assets.
