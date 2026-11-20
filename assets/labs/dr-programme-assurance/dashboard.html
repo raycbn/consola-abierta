@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>DR Programme Assurance Dashboard · Offline</title>
+<style>
+:root{color-scheme:dark;--bg:#09131e;--panel:#111f2d;--panel2:#142637;--line:#294155;--text:#edf5fb;--muted:#9bb0c0;--cyan:#58d6ec;--blue:#70aef8;--green:#69d6ae;--amber:#f0c36d;--red:#ff8585;--shadow:0 18px 44px #0004}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 82% -10%,#15364c 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:#183148;color:var(--text);padding:10px 14px;font-weight:650}button:hover{border-color:var(--cyan);background:#1c3b53}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.wrap{max-width:1240px;margin:auto;padding:28px 22px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:30px}.brand{font-size:12px;letter-spacing:.16em;color:var(--cyan);font-weight:800;text-transform:uppercase}.eyebrow{color:var(--muted);font-size:12px;letter-spacing:.13em;text-transform:uppercase;margin:0 0 7px}h1{font-size:clamp(30px,4vw,46px);line-height:1.08;letter-spacing:-.035em;margin:0 0 12px}.intro{max-width:780px;color:var(--muted);margin:0}.hero{display:flex;justify-content:space-between;align-items:end;gap:25px;margin-bottom:24px}.hero-actions{display:flex;gap:9px;flex-wrap:wrap}.primary{background:var(--cyan);color:#08202b;border-color:var(--cyan)}.primary:hover{background:#9ceafa;color:#081b24}.quiet{background:transparent}
+.banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border:1px solid #38637a;background:#10283a;border-radius:12px;margin:20px 0 22px;color:#d8edf6}.banner strong{color:var(--cyan);font-size:12px;letter-spacing:.09em}.banner span{font-size:13px}.filedrop{border:1px dashed #46667c;background:#0e1c29;border-radius:12px;padding:17px 18px;margin:0 0 23px;display:flex;justify-content:space-between;align-items:center;gap:16px}.filedrop.drag{border-color:var(--cyan);background:#123047}.filecopy{min-width:0}.filecopy strong{display:block}.filecopy p{color:var(--muted);margin:3px 0 0;font-size:13px}.file-actions{display:flex;gap:8px;flex-wrap:wrap}.status{font-size:12px;color:var(--muted);margin:10px 0 22px;min-height:18px}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:28px 0 13px}.section-head h2{margin:0;font-size:19px;letter-spacing:-.015em}.section-head p{color:var(--muted);font-size:12px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card{background:linear-gradient(145deg,#142637,#101c29);border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:var(--shadow);min-width:0}.metric-label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-height:34px}.metric-value{font-size:34px;font-weight:760;letter-spacing:-.04em;line-height:1.2;margin:4px 0 6px;font-variant-numeric:tabular-nums}.metric-foot{font-size:12px;color:var(--muted)}.delta{font-weight:700;margin-left:5px}.positive{color:var(--green)}.negative{color:var(--red)}.neutral{color:var(--muted)}.subgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}.small-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:#0e1c29}.small-card .metric-label{min-height:0}.small-card .metric-value{font-size:26px;margin-top:7px}
+.trends{display:grid;grid-template-columns:1fr 1fr;gap:14px}.chart-card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px;min-width:0}.chart-title{font-size:15px;font-weight:700;margin:0}.chart-subtitle{color:var(--muted);font-size:12px;margin:3px 0 10px}.chart{width:100%;height:auto;display:block;overflow:visible}.chart text{font-family:system-ui,sans-serif;fill:#9bb0c0;font-size:11px}.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:7px 0 0}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.chart-empty{height:180px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px 13px;text-align:left;border-bottom:1px solid #213549;font-size:13px;white-space:nowrap}th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#142535}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#142b3e}.num{font-variant-numeric:tabular-nums}.pill{display:inline-flex;padding:3px 7px;border:1px solid currentColor;border-radius:99px;font-size:10px;letter-spacing:.05em;font-weight:800}.pill.HIGH{color:var(--red)}.pill.MEDIUM{color:var(--amber)}.pill.LOW,.pill.INFO{color:var(--blue)}
+.filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{background:#0c1a27;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 11px}.filters input{min-width:220px}
+.note{border-left:3px solid var(--cyan);padding:12px 15px;background:#102332;color:#c4d6e1;border-radius:0 9px 9px 0;font-size:13px;margin-top:18px}.note strong{color:var(--text)}.footer{color:var(--muted);font-size:12px;margin-top:27px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.hidden{display:none!important}
+@media(max-width:900px){.grid,.subgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.trends{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.top{margin-bottom:22px}}
+@media(max-width:560px){.wrap{padding:20px 14px 44px}.grid,.subgrid{grid-template-columns:1fr 1fr}.metric-value{font-size:29px}.filedrop{align-items:start;flex-direction:column}.file-actions{width:100%}.file-actions button{flex:1}.top{align-items:start}.brand{font-size:10px}.section-head{align-items:start;flex-direction:column}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="top"><div class="brand">Consola Abierta <span style="color:#71899c">/</span> Resilience &amp; Recovery</div><a href="https://consolaabierta.com/es/analisis/aseguramiento-programa-anual-disaster-recovery/" target="_blank" rel="noopener">Guía DR Programme Assurance ↗</a></div>
+<section class="hero"><div><p class="eyebrow">Portfolio visibility · offline dashboard</p><h1>DR Programme Assurance</h1><p class="intro">Compara cierres trimestrales del DR Programme Coverage Auditor. Importa los ficheros <code>programme-summary.json</code> generados por Lab 04 para ver tendencias y hallazgos.</p></div><div class="hero-actions"><button id="exportTimeline" class="quiet" type="button">Exportar evolución CSV</button></div></section>
+<div class="banner"><strong>LOCAL ONLY</strong><span>Los JSON se leen y procesan en este navegador. No se envían a Consola Abierta ni a ningún servidor.</span></div>
+<section id="dropzone" class="filedrop" aria-label="Importar cierres trimestrales"><div class="filecopy"><strong>Importa uno o varios cierres</strong><p>Selecciona los JSON de cada trimestre. Para comparar periodos, utiliza la misma ventana de análisis y los mismos criterios de alcance.</p></div><div class="file-actions"><input id="fileInput" class="hidden" type="file" accept=".json,application/json" multiple><button class="primary" id="importButton" type="button">Importar JSON</button><button id="demoButton" type="button">Cargar demo</button><button id="clearButton" type="button" class="quiet">Vaciar</button></div></section>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+<div id="dashboard">
+<div class="section-head"><h2>Último cierre</h2><p id="latestMeta"></p></div>
+<div class="grid">
+ <article class="card"><div class="metric-label">Cobertura de servicios</div><div class="metric-value" id="coverageValue">—</div><div class="metric-foot" id="coverageFoot">—</div></article>
+ <article class="card"><div class="metric-label">RTO dentro del objetivo</div><div class="metric-value" id="rtoValue">—</div><div class="metric-foot" id="rtoFoot">—</div></article>
+ <article class="card"><div class="metric-label">RPO dentro del objetivo</div><div class="metric-value" id="rpoValue">—</div><div class="metric-foot" id="rpoFoot">—</div></article>
+ <article class="card"><div class="metric-label">Acciones cerradas verificadas</div><div class="metric-value" id="actionsValue">—</div><div class="metric-foot" id="actionsFoot">—</div></article>
+</div>
+<div class="subgrid">
+ <article class="small-card"><div class="metric-label">Servicios fuera de cadencia</div><div class="metric-value" id="overdueServices">—</div></article>
+ <article class="small-card"><div class="metric-label">Servicios con excepción vigente</div><div class="metric-value" id="exceptionsValue">—</div></article>
+ <article class="small-card"><div class="metric-label">Acciones vencidas sin verificar</div><div class="metric-value" id="overdueActions">—</div></article>
+ <article class="small-card"><div class="metric-label">Revisiones de dependencias antiguas</div><div class="metric-value" id="staleDependencies">—</div></article>
+</div>
+<div class="section-head"><h2>Evolución entre cierres</h2><p id="trendMeta"></p></div>
+<div class="trends">
+ <article class="chart-card"><h3 class="chart-title">Cobertura de servicios</h3><p class="chart-subtitle">% de servicios en alcance con ejercicio cualificado</p><div id="coverageChart"></div><div class="legend"><span><i style="background:#58d6ec"></i>Cobertura</span></div></article>
+ <article class="chart-card"><h3 class="chart-title">Resultados medidos</h3><p class="chart-subtitle">% de servicios medidos que alcanzan su objetivo</p><div id="recoveryChart"></div><div class="legend"><span><i style="background:#70aef8"></i>RTO</span><span><i style="background:#69d6ae"></i>RPO</span></div></article>
+</div>
+<div class="section-head"><h2>Histórico de cierres</h2><p>Los porcentajes RTO/RPO se calculan solo sobre servicios medidos.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Fecha de corte</th><th>Servicios en alcance</th><th>Cobertura</th><th>RTO</th><th>RPO</th><th>Fuera de cadencia</th><th>Excepciones vigentes</th><th>Acciones vencidas</th></tr></thead><tbody id="timelineRows"></tbody></table></div>
+<div class="section-head"><h2>Hallazgos del último cierre</h2><div class="filters"><select id="severityFilter" aria-label="Filtrar severidad"><option value="">Todas las severidades</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="INFO">INFO</option></select><input id="findingSearch" type="search" placeholder="Buscar código, servicio o detalle" aria-label="Buscar hallazgos"></div></div>
+<div class="table-wrap"><table><thead><tr><th>Severidad</th><th>Hallazgo</th><th>Servicio</th><th>Detalle</th></tr></thead><tbody id="findingRows"></tbody></table></div>
+<div class="note"><strong>Interpretación:</strong> las excepciones se presentan aparte y no se restan del denominador de cobertura. Los valores RTO/RPO no medidos aparecen como «No medido», nunca como 0 % ni como éxito. La cualificación del ejercicio proviene del registro del programa y no es validada por este dashboard.</div>
+</div>
+<footer class="footer"><span>DR Programme Coverage Auditor · Dashboard offline · No telemetry</span><span id="reportCount">—</span></footer>
+</main>
+<script>
+"use strict";
+const DEMO_SNAPSHOTS = [
+ {"as_of":"2025-12-31","reporting_window":{"start":"2025-01-01","end":"2025-12-31","days":365},"services":{"in_scope":24,"covered_by_qualifying_exercise":14,"coverage_percent":58.3,"uncovered":10,"overdue_by_target_cadence":15,"valid_approved_exceptions":3,"stale_or_missing_dependency_reviews":8},"latest_qualifying_objective_results":{"met":8,"partially_met":4,"not_met":2},"rto":{"measured_services":11,"met":7,"pass_percent":63.6},"rpo":{"measured_services":10,"met":6,"pass_percent":60},"actions":{"total":46,"verified_closed":21,"verified_closure_percent_of_all_actions":45.7,"overdue_unverified":12,"closed_without_verification":3},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"EXERCISE_OVERDUE","service_id":"PAYMENTS","detail":"No qualifying technical recovery exercise in the reporting window."},{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"DB-PROD","detail":"Corrective action passed its due date and has no verified closure."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"IDENTITY","detail":"Dependency review is older than the configured freshness threshold."}]},
+ {"as_of":"2026-03-31","reporting_window":{"start":"2025-04-01","end":"2026-03-31","days":365},"services":{"in_scope":24,"covered_by_qualifying_exercise":16,"coverage_percent":66.7,"uncovered":8,"overdue_by_target_cadence":12,"valid_approved_exceptions":4,"stale_or_missing_dependency_reviews":7},"latest_qualifying_objective_results":{"met":9,"partially_met":5,"not_met":2},"rto":{"measured_services":13,"met":9,"pass_percent":69.2},"rpo":{"measured_services":12,"met":8,"pass_percent":66.7},"actions":{"total":52,"verified_closed":27,"verified_closure_percent_of_all_actions":51.9,"overdue_unverified":10,"closed_without_verification":2},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"PAYMENTS","detail":"Payment recovery improvement action remains overdue."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"NETWORK","detail":"Core network dependency review requires an update."}]},
+ {"as_of":"2026-06-30","reporting_window":{"start":"2025-07-01","end":"2026-06-30","days":365},"services":{"in_scope":25,"covered_by_qualifying_exercise":18,"coverage_percent":72,"uncovered":7,"overdue_by_target_cadence":10,"valid_approved_exceptions":3,"stale_or_missing_dependency_reviews":6},"latest_qualifying_objective_results":{"met":11,"partially_met":5,"not_met":2},"rto":{"measured_services":15,"met":11,"pass_percent":73.3},"rpo":{"measured_services":14,"met":10,"pass_percent":71.4},"actions":{"total":55,"verified_closed":34,"verified_closure_percent_of_all_actions":61.8,"overdue_unverified":8,"closed_without_verification":2},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"PAYMENTS","detail":"The same payment recovery finding remains open across reporting periods."},{"severity":"MEDIUM","finding":"EXERCISE_OVERDUE","service_id":"IDENTITY","detail":"No qualifying recovery exercise in the current window."}]},
+ {"as_of":"2026-09-30","reporting_window":{"start":"2025-10-01","end":"2026-09-30","days":365},"services":{"in_scope":25,"covered_by_qualifying_exercise":20,"coverage_percent":80,"uncovered":5,"overdue_by_target_cadence":7,"valid_approved_exceptions":2,"stale_or_missing_dependency_reviews":4},"latest_qualifying_objective_results":{"met":13,"partially_met":5,"not_met":2},"rto":{"measured_services":17,"met":13,"pass_percent":76.5},"rpo":{"measured_services":16,"met":12,"pass_percent":75},"actions":{"total":59,"verified_closed":42,"verified_closure_percent_of_all_actions":71.2,"overdue_unverified":5,"closed_without_verification":1},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"EXERCISE_OVERDUE","service_id":"HR-SAAS","detail":"No qualifying recovery exercise; an approved temporary exception is recorded."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"DB-PROD","detail":"Database recovery dependency review is approaching its target age."}]}
+];
+let reports = [];
+let usingDemo = true;
+const $ = id => document.getElementById(id);
+const isInt = n => Number.isInteger(n) && n >= 0;
+const isPct = n => n === null || (typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100);
+const dateOk = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s + "T00:00:00Z"));
+function validateReport(r) {
+ if (!r || typeof r !== "object" || !dateOk(r.as_of)) throw new Error("Falta as_of con formato YYYY-MM-DD.");
+ const groups = ["services","rto","rpo","actions"];
+ for (const key of groups) if (!r[key] || typeof r[key] !== "object") throw new Error("Falta el bloque " + key + ".");
+ const s=r.services, t=r.rto, p=r.rpo, a=r.actions;
+ for(const k of ["in_scope","covered_by_qualifying_exercise","uncovered","overdue_by_target_cadence","valid_approved_exceptions","stale_or_missing_dependency_reviews"]) if(!isInt(s[k])) throw new Error("services." + k + " debe ser un entero no negativo.");
+ if(s.covered_by_qualifying_exercise>s.in_scope || s.uncovered!==s.in_scope-s.covered_by_qualifying_exercise) throw new Error("Los totales de cobertura no son coherentes.");
+ if(!isPct(s.coverage_percent)) throw new Error("coverage_percent debe estar entre 0 y 100 o ser null.");
+ for(const [obj,prefix] of [[t,"rto"],[p,"rpo"]]) {
+  if(!isInt(obj.measured_services)||!isInt(obj.met)||obj.met>obj.measured_services||!isPct(obj.pass_percent)) throw new Error(prefix + " contiene contadores o porcentaje no válidos.");
+  if(obj.measured_services===0 && obj.pass_percent!==null) throw new Error(prefix + " sin mediciones debe tener pass_percent null.");
+ }
+ for(const k of ["total","verified_closed","overdue_unverified","closed_without_verification"]) if(!isInt(a[k])) throw new Error("actions." + k + " debe ser entero no negativo.");
+ if(a.verified_closed>a.total||!isPct(a.verified_closure_percent_of_all_actions)) throw new Error("El bloque actions no es coherente.");
+ if(!Array.isArray(r.findings)) throw new Error("findings debe ser una lista.");
+ if(r.reporting_window && (!dateOk(r.reporting_window.start)||!dateOk(r.reporting_window.end)||!isInt(r.reporting_window.days)||r.reporting_window.days<1)) throw new Error("reporting_window no es válido.");
+ for(const f of r.findings) if(!f||!["HIGH","MEDIUM","INFO","LOW"].includes(f.severity)||typeof f.finding!=="string"||typeof f.service_id!=="string"||typeof f.detail!=="string") throw new Error("Hay un finding con campos no válidos.");
+ return r;
+}
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+function fmtPct(v){return v===null||v===undefined?"No medido":Number(v).toLocaleString("es-ES",{maximumFractionDigits:1})+" %";}
+function fmtInt(v){return Number(v||0).toLocaleString("es-ES");}
+function dateLabel(s){const d=new Date(s+"T00:00:00Z");const q=Math.floor(d.getUTCMonth()/3)+1;return "T"+q+" '"+String(d.getUTCFullYear()).slice(-2);}
+function signedDelta(current,previous){if(current===null||current===undefined||previous===null||previous===undefined)return '<span class="delta neutral">sin comparativa</span>';const d=Math.round((current-previous)*10)/10;const sign=d>0?"+":"";return '<span class="delta '+(d>0?"positive":d<0?"negative":"neutral")+'">'+sign+d.toLocaleString("es-ES",{maximumFractionDigits:1})+' pp</span>';}
+function metric(id,footId,value,foot,delta){$(id).textContent=value;$(footId).innerHTML=foot+(delta||"");}
+function render() {
+ reports.sort((x,y)=>x.as_of.localeCompare(y.as_of));
+ $("dashboard").classList.toggle("hidden",reports.length===0);
+ $("exportTimeline").disabled=reports.length===0;
+ $("reportCount").textContent=reports.length+" cierre(s) cargado(s)"+(usingDemo?" · DEMO SINTÉTICA":"");
+ if(!reports.length){$("status").textContent="No hay datos. Importa uno o varios programme-summary.json o carga la demo.";return;}
+ const latest=reports[reports.length-1], previous=reports.length>1?reports[reports.length-2]:null;
+ const s=latest.services,t=latest.rto,p=latest.rpo,a=latest.actions;
+ $("latestMeta").textContent="Corte "+latest.as_of+(latest.reporting_window?" · ventana "+latest.reporting_window.days+" días":"");
+ const coverage=s.coverage_percent;
+ metric("coverageValue","coverageFoot",fmtPct(coverage),fmtInt(s.covered_by_qualifying_exercise)+" / "+fmtInt(s.in_scope)+" servicios en alcance",signedDelta(coverage,previous?.services.coverage_percent));
+ metric("rtoValue","rtoFoot",fmtPct(t.pass_percent),fmtInt(t.met)+" / "+fmtInt(t.measured_services)+" servicios medidos",signedDelta(t.pass_percent,previous?.rto.pass_percent));
+ metric("rpoValue","rpoFoot",fmtPct(p.pass_percent),fmtInt(p.met)+" / "+fmtInt(p.measured_services)+" servicios medidos",signedDelta(p.pass_percent,previous?.rpo.pass_percent));
+ metric("actionsValue","actionsFoot",fmtPct(a.verified_closure_percent_of_all_actions),fmtInt(a.verified_closed)+" / "+fmtInt(a.total)+" acciones registradas",signedDelta(a.verified_closure_percent_of_all_actions,previous?.actions.verified_closure_percent_of_all_actions));
+ $("overdueServices").textContent=fmtInt(s.overdue_by_target_cadence);
+ $("exceptionsValue").textContent=fmtInt(s.valid_approved_exceptions);
+ $("overdueActions").textContent=fmtInt(a.overdue_unverified);
+ $("staleDependencies").textContent=fmtInt(s.stale_or_missing_dependency_reviews);
+ const windows=new Set(reports.map(r=>r.reporting_window?.days??"n/a"));
+ $("trendMeta").textContent=reports.length+" cierres · "+(windows.size===1?"ventana coherente: "+[...windows][0]+" días":"ATENCIÓN: ventanas de distinta duración");
+ renderCharts();
+ $("timelineRows").innerHTML=reports.map(r=>'<tr><td class="num">'+escapeHtml(r.as_of)+'</td><td class="num">'+fmtInt(r.services.covered_by_qualifying_exercise)+' / '+fmtInt(r.services.in_scope)+'</td><td class="num">'+fmtPct(r.services.coverage_percent)+'</td><td class="num">'+fmtPct(r.rto.pass_percent)+' ('+fmtInt(r.rto.measured_services)+')</td><td class="num">'+fmtPct(r.rpo.pass_percent)+' ('+fmtInt(r.rpo.measured_services)+')</td><td class="num">'+fmtInt(r.services.overdue_by_target_cadence)+'</td><td class="num">'+fmtInt(r.services.valid_approved_exceptions)+'</td><td class="num">'+fmtInt(r.actions.overdue_unverified)+'</td></tr>').join("");
+ renderFindings();
+ $("status").textContent=(usingDemo?"Mostrando datos sintéticos de demostración.":"Datos importados y procesados localmente.")+" "+reports.length+" cortes disponibles.";
+}
+function chartSvg(target,series) {
+ const host=$(target), valid=reports.length;
+ if(valid<2){host.innerHTML='<div class="chart-empty">Importa al menos dos cierres para visualizar la evolución.</div>';return;}
+ const W=620,H=225,L=42,R=18,T=14,B=42,plotW=W-L-R,plotH=H-T-B;
+ const x=i=>L+(valid===1?plotW/2:(i/(valid-1))*plotW), y=v=>T+plotH-(v/100)*plotH;
+ let svg='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Evolución porcentual por cierre">';
+ [0,25,50,75,100].forEach(v=>{const yy=y(v);svg+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#294155" stroke-width="1"/><text x="'+(L-8)+'" y="'+(yy+4)+'" text-anchor="end">'+v+'%</text>';});
+ reports.forEach((r,i)=>{svg+='<text x="'+x(i)+'" y="'+(H-13)+'" text-anchor="middle">'+dateLabel(r.as_of)+'</text>';});
+ series.forEach(s=>{
+  let segment=[];
+  const flush=()=>{if(segment.length>1)svg+='<polyline fill="none" stroke="'+s.color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="'+segment.map(p=>p[0]+","+p[1]).join(" ")+'"/>';segment=[];};
+  reports.forEach((r,i)=>{const v=s.value(r);if(v===null||v===undefined){flush();return;}segment.push([x(i),y(v)]);svg+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4.5" fill="'+s.color+'" stroke="#0d1c29" stroke-width="2"><title>'+escapeHtml(r.as_of)+': '+fmtPct(v)+'</title></circle>';});
+  flush();
+ });
+ svg+='</svg>';host.innerHTML=svg;
+}
+function renderCharts(){
+ chartSvg("coverageChart",[{color:"#58d6ec",value:r=>r.services.coverage_percent}]);
+ chartSvg("recoveryChart",[{color:"#70aef8",value:r=>r.rto.pass_percent},{color:"#69d6ae",value:r=>r.rpo.pass_percent}]);
+}
+function renderFindings(){
+ if(!reports.length)return;
+ const findings=reports[reports.length-1].findings||[];
+ const severity=$("severityFilter").value, term=$("findingSearch").value.trim().toLowerCase();
+ const visible=findings.filter(f=>(!severity||f.severity===severity)&&(!term||[f.finding,f.service_id,f.detail].join(" ").toLowerCase().includes(term)));
+ $("findingRows").innerHTML=visible.length?visible.map(f=>'<tr><td><span class="pill '+escapeHtml(f.severity)+'">'+escapeHtml(f.severity)+'</span></td><td>'+escapeHtml(f.finding)+'</td><td class="num">'+escapeHtml(f.service_id)+'</td><td style="white-space:normal;min-width:300px">'+escapeHtml(f.detail)+'</td></tr>').join(""):'<tr><td colspan="4">No hay hallazgos para este filtro en el último cierre.</td></tr>';
+}
+function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
+function downloadCsv(filename,rows){const csv=rows.map(row=>row.map(csvCell).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+async function importFiles(fileList){
+ const files=Array.from(fileList||[]);if(!files.length)return;
+ const added=[],errors=[];
+ for(const file of files){
+  if(file.size>5*1024*1024){errors.push(file.name+": supera 5 MB");continue;}
+  try{const parsed=validateReport(JSON.parse(await file.text()));added.push({...parsed,_source:file.name,_demo:false});}
+  catch(err){errors.push(file.name+": "+err.message);}
+ }
+ if(added.length){
+  if(usingDemo)reports=[];
+  usingDemo=false;
+  const byDate=new Map(reports.map(r=>[r.as_of,r]));
+  added.forEach(r=>byDate.set(r.as_of,r));
+  reports=Array.from(byDate.values());
+ }
+ $("status").textContent=(added.length?added.length+" fichero(s) válido(s). ":"")+(errors.length?"Rechazados: "+errors.join(" · "):"");
+ render();
+}
+$("importButton").addEventListener("click",()=>$("fileInput").click());
+$("fileInput").addEventListener("change",e=>{importFiles(e.target.files);e.target.value="";});
+$("demoButton").addEventListener("click",()=>{reports=DEMO_SNAPSHOTS.map(r=>({...r,_demo:true,_source:"Demo sintética"}));usingDemo=true;render();});
+$("clearButton").addEventListener("click",()=>{reports=[];usingDemo=false;render();});
+$("severityFilter").addEventListener("change",renderFindings);
+$("findingSearch").addEventListener("input",renderFindings);
+$("exportTimeline").addEventListener("click",()=>{
+ const rows=[["as_of","in_scope","covered","coverage_percent","rto_measured","rto_met","rto_pass_percent","rpo_measured","rpo_met","rpo_pass_percent","overdue_services","services_with_valid_exceptions","overdue_actions","actions_total","verified_closed","verified_closure_percent","stale_dependency_reviews"]];
+ reports.forEach(r=>rows.push([r.as_of,r.services.in_scope,r.services.covered_by_qualifying_exercise,r.services.coverage_percent,r.rto.measured_services,r.rto.met,r.rto.pass_percent,r.rpo.measured_services,r.rpo.met,r.rpo.pass_percent,r.services.overdue_by_target_cadence,r.services.valid_approved_exceptions,r.actions.overdue_unverified,r.actions.total,r.actions.verified_closed,r.actions.verified_closure_percent_of_all_actions,r.services.stale_or_missing_dependency_reviews]));
+ downloadCsv("dr-programme-assurance-trend.csv",rows);
+});
+const dz=$("dropzone");
+dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag");});
+dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
+dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("drag");importFiles(e.dataTransfer.files);});
+reports=DEMO_SNAPSHOTS.map(r=>({...r,_demo:true,_source:"Demo sintética"}));
+render();
+</script>
+</body>
+</html>

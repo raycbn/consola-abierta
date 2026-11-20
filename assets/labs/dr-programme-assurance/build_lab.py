@@ -6,11 +6,13 @@ OUTPUT = ROOT / "dr-programme-coverage-auditor-04-lab.zip"
 INCLUDE = [
     Path("README.md"),
     Path("programme_audit.py"),
+    Path("dashboard.html"),
     Path("samples/services.csv"),
     Path("samples/exercises.csv"),
     Path("samples/actions.csv"),
     Path("samples/exceptions.csv"),
     Path("tests/test_programme_audit.py"),
+    Path("tests/check-dashboard.cjs"),
 ]
 with ZipFile(OUTPUT, "w", compression=ZIP_DEFLATED) as archive:
     for relative in INCLUDE:

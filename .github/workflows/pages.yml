@@ -39,6 +39,8 @@ jobs:
         run: python -m unittest discover -s assets/labs/dr-programme-assurance/tests -v
       - name: Build DR programme assurance ZIP
         run: python assets/labs/dr-programme-assurance/build_lab.py
+      - name: Check DR programme dashboard
+        run: node assets/labs/dr-programme-assurance/tests/check-dashboard.cjs
       - name: Validate text encoding
         run: node validate-text-encoding.cjs
       - name: Validate structured data
