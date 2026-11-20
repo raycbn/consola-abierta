@@ -61,7 +61,7 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
  <div class="note" id="sustainedTrend" role="status">Carga al menos tres cierres para analizar deterioros en dos intervalos consecutivos comparables.</div>
 </div>
 <div class="section-head"><h2>Hallazgos del último cierre</h2><div class="filters"><select id="severityFilter" aria-label="Filtrar severidad"><option value="">Todas las severidades</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="INFO">INFO</option></select><input id="findingSearch" type="search" placeholder="Buscar código, servicio o detalle" aria-label="Buscar hallazgos"></div></div>
-<div class="table-wrap"><table><thead><tr><th>Severidad</th><th>Hallazgo</th><th>Servicio</th><th>Detalle</th></tr></thead><tbody id="findingRows"></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Severidad</th><th>Hallazgo</th><th>Servicio</th><th>Detalle</th><th>Orden del día</th></tr></thead><tbody id="findingRows"></tbody></table></div>
 
 <div class="section-head"><h2>Acta y seguimiento del comité</h2><p>Registro editable · borrador local · sin aprobación automática</p></div>
 <section class="committee-panel" id="committeeWorkspace" aria-label="Acta y seguimiento del comité">
@@ -74,9 +74,22 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
   <div class="field"><label for="meetingScope">Periodo de auditoría asociado</label><input id="meetingScope" readonly value="Se vincula al último cierre cargado"></div>
  </div>
  <div class="note"><strong class="draft-mark">BORRADOR — PENDIENTE DE VALIDACIÓN.</strong> Los registros que añadas aquí son decisiones y acciones del comité, separados de las acciones del auditor. Completa los datos de la reunión, revisa el contenido y valida el acta antes de distribuirla. Todo se procesa localmente.</div>
+
+ <div class="committee-subsection">
+  <h3>Orden del día propuesto</h3>
+  <p class="committee-help">Prepara puntos desde los hallazgos del cierre, deterioros sostenidos y acciones de comité aún abiertas. Son propuestas para debatir, no decisiones automáticas.</p>
+  <div class="committee-toolbar"><button id="prepareAgenda" class="primary" type="button">Preparar orden del día</button><span class="committee-help">Los puntos ya existentes se conservan y no se duplican.</span></div>
+  <div class="entry-grid" style="margin-top:12px">
+   <div class="field"><label for="manualAgendaTitle">Punto adicional</label><input id="manualAgendaTitle" maxlength="160" placeholder="Asunto propuesto"></div>
+   <div class="field wide"><label for="manualAgendaDetail">Contexto / objetivo</label><textarea id="manualAgendaDetail" rows="2" maxlength="1200" placeholder="Qué debe revisarse o decidirse"></textarea></div>
+   <div><button id="addManualAgenda" type="button">Añadir punto manual</button></div>
+  </div>
+  <div class="committee-table table-wrap"><table><thead><tr><th>ID</th><th>Origen</th><th>Referencia</th><th>Punto propuesto</th><th>Estado</th><th></th></tr></thead><tbody id="agendaRows"><tr><td colspan="6">No hay puntos en el orden del día.</td></tr></tbody></table></div>
+ </div>
  <div class="committee-subsection">
   <h3>Registrar una decisión</h3>
   <div class="entry-grid">
+   <div class="field"><label for="decisionAgendaLink">Punto del orden del día</label><select id="decisionAgendaLink"><option value="">Sin vincular</option></select></div>
    <div class="field"><label for="decisionTopic">Tema / asunto</label><input id="decisionTopic" maxlength="160" placeholder="Ej. Cobertura de servicios críticos"></div>
    <div class="field wide"><label for="decisionText">Decisión o acuerdo</label><textarea id="decisionText" rows="2" maxlength="1200" placeholder="Describe la decisión, condición o punto pendiente"></textarea></div>
    <div class="field"><label for="decisionStatus">Estado</label><select id="decisionStatus"><option value="PENDING">Pendiente de aprobación</option><option value="APPROVED">Aprobada</option><option value="REJECTED">Rechazada</option><option value="DEFERRED">Aplazada</option></select></div>
@@ -85,7 +98,7 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
    <div><button id="addDecision" class="primary" type="button">Añadir decisión</button></div>
   </div>
   <p class="committee-help">Una decisión en estado «Pendiente de aprobación» no se presenta como acuerdo aprobado en el acta exportada.</p>
-  <div class="committee-table table-wrap"><table><thead><tr><th>ID</th><th>Tema</th><th>Decisión / acuerdo</th><th>Estado</th><th>Responsable</th><th>Fecha objetivo</th><th></th></tr></thead><tbody id="decisionRows"><tr><td colspan="7">No hay decisiones registradas.</td></tr></tbody></table></div>
+  <div class="committee-table table-wrap"><table><thead><tr><th>ID</th><th>Orden del día</th><th>Tema</th><th>Decisión / acuerdo</th><th>Estado</th><th>Responsable</th><th>Fecha objetivo</th><th></th></tr></thead><tbody id="decisionRows"><tr><td colspan="8">No hay decisiones registradas.</td></tr></tbody></table></div>
  </div>
  <div class="committee-subsection">
   <h3>Registrar una acción de seguimiento</h3>
@@ -126,7 +139,8 @@ let committee = {
  chair: "",
  secretary: "",
  decisions: [],
- actions: []
+ actions: [],
+ agenda: []
 };
 const $ = id => document.getElementById(id);
 const isInt = n => Number.isInteger(n) && n >= 0;
@@ -334,6 +348,8 @@ function downloadText(filename,content,mime){
 const DECISION_STATUSES={PENDING:"Pendiente de aprobación",APPROVED:"Aprobada",REJECTED:"Rechazada",DEFERRED:"Aplazada"};
 const ACTION_STATUSES={OPEN:"Abierta",IN_PROGRESS:"En curso",PENDING_VALIDATION:"Pendiente de validación",CLOSED:"Cerrada"};
 const PRIORITY_LABELS={HIGH:"Alta",MEDIUM:"Media",LOW:"Baja"};
+const AGENDA_STATUSES={PENDING:"Pendiente de tratar",DISCUSSED:"Tratado",DEFERRED:"Aplazado"};
+const AGENDA_TYPES={FINDING:"Hallazgo auditoría",TREND:"Tendencia",CARRY_FORWARD:"Acción abierta",MANUAL:"Punto manual"};
 function localToday(){
  const d=new Date();
  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
@@ -353,7 +369,18 @@ function validateCommittee(value){
  const textFields=["title","reference","chair","secretary"];
  for(const key of textFields)if(typeof value[key]!=="string"||value[key].length>200)throw new Error("committee."+key+" no es válido.");
  if(typeof value.date!=="string"||(value.date!==""&&!dateOk(value.date)))throw new Error("committee.date debe estar vacío o usar YYYY-MM-DD.");
- if(!Array.isArray(value.decisions)||value.decisions.length>500||!Array.isArray(value.actions)||value.actions.length>500)throw new Error("La lista de decisiones o acciones no es válida.");
+ const agenda=Array.isArray(value.agenda)?value.agenda:[];
+ if(agenda.length>500||!Array.isArray(value.decisions)||value.decisions.length>500||!Array.isArray(value.actions)||value.actions.length>500)throw new Error("La lista del orden del día, decisiones o acciones no es válida.");
+ const agendaIds=new Set(),agendaKeys=new Set();
+ for(const item of agenda){
+  if(!item||typeof item.id!=="string"||!/^AGD-\d{3,6}$/.test(item.id)||agendaIds.has(item.id))throw new Error("Hay un ID de orden del día inválido o duplicado.");
+  agendaIds.add(item.id);
+  if(!["FINDING","TREND","CARRY_FORWARD","MANUAL"].includes(item.type))throw new Error("Origen de punto del orden del día no válido.");
+  if(["source_key","reference","title","detail","source_date"].some(k=>typeof item[k]!=="string"))throw new Error("Un punto del orden del día contiene campos no válidos.");
+  if(!item.source_key.trim()||item.source_key.length>240||agendaKeys.has(item.source_key)||item.reference.length>120||!item.title.trim()||item.title.length>160||item.detail.length>1200||(item.source_date!==""&&!dateOk(item.source_date)))throw new Error("Un punto del orden del día contiene referencias o textos duplicados/no válidos.");
+  agendaKeys.add(item.source_key);
+  if(!["PENDING","DISCUSSED","DEFERRED"].includes(item.status))throw new Error("Estado de punto del orden del día no válido.");
+ }
  const decisionIds=new Set();
  for(const d of value.decisions){
   if(!d||typeof d.id!=="string"||!/^DEC-\d{3,6}$/.test(d.id)||decisionIds.has(d.id))throw new Error("Hay un ID de decisión inválido o duplicado.");
@@ -361,6 +388,7 @@ function validateCommittee(value){
   if(["topic","text","owner"].some(k=>typeof d[k]!=="string"||!d[k].trim())||d.topic.length>160||d.text.length>1200||d.owner.length>120)throw new Error("Una decisión tiene campos obligatorios no válidos.");
   if(!Object.prototype.hasOwnProperty.call(DECISION_STATUSES,d.status))throw new Error("Estado de decisión no válido.");
   if(typeof d.due_date!=="string"||!dateOk(d.due_date))throw new Error("Cada decisión debe tener fecha objetivo válida.");
+  if(typeof (d.agenda_id||"")!=="string"||(d.agenda_id||"").length>30||(d.agenda_id&&!agendaIds.has(d.agenda_id)))throw new Error("Una decisión hace referencia a un punto del orden del día inexistente.");
  }
  const actionIds=new Set();
  for(const a of value.actions){
@@ -373,13 +401,69 @@ function validateCommittee(value){
   if(a.decision_id&&!decisionIds.has(a.decision_id))throw new Error("Una acción hace referencia a una decisión inexistente.");
  }
  return {
-  title:value.title, date:value.date, reference:value.reference, chair:value.chair, secretary:value.secretary,
-  decisions:value.decisions.map(d=>({...d})), actions:value.actions.map(a=>({...a}))
+  title:value.title,date:value.date,reference:value.reference,chair:value.chair,secretary:value.secretary,
+  agenda:agenda.map(item=>({...item})),
+  decisions:value.decisions.map(d=>({...d,agenda_id:d.agenda_id||""})),
+  actions:value.actions.map(a=>({...a}))
  };
 }
 function committeeOption(value,label,current){
  return '<option value="'+escapeHtml(value)+'"'+(value===current?' selected':'')+'>'+escapeHtml(label)+'</option>';
 }
+
+function addAgendaProposal(item){
+ const existing=committee.agenda.find(x=>x.source_key===item.source_key);
+ if(existing)return {added:false,item:existing};
+ const next={id:nextRecordId("AGD",committee.agenda),type:item.type,source_key:item.source_key,
+  reference:item.reference,title:item.title,detail:item.detail,source_date:item.source_date||"",status:"PENDING"};
+ committee.agenda.push(next);
+ return {added:true,item:next};
+}
+function addFindingToAgenda(finding,asOf){
+ return addAgendaProposal({
+  type:"FINDING",
+  source_key:"FINDING:"+asOf+":"+finding.finding+":"+finding.service_id,
+  reference:finding.finding+" · "+finding.service_id,
+  title:finding.finding+" — "+finding.service_id,
+  detail:finding.detail,
+  source_date:asOf
+ });
+}
+function prepareCommitteeAgenda(){
+ const latest=reports[reports.length-1];
+ if(!latest){$("committeeAlert").textContent="Carga primero un cierre de auditoría para preparar el orden del día.";return;}
+ let added=0,existing=0;
+ for(const finding of latest.findings||[]){
+  const result=addFindingToAgenda(finding,latest.as_of);
+  result.added ? added++:existing++;
+ }
+ for(const trend of sustainedDeteriorationSignals()){
+  const result=addAgendaProposal({
+   type:"TREND",
+   source_key:"TREND:"+trend.name+":"+trend.start+":"+trend.end,
+   reference:"Tendencia · "+trend.start+" a "+trend.end,
+   title:"Deterioro sostenido: "+trend.name,
+   detail:"Variación en dos intervalos comparables: "+(trend.type==="pct"?fmtPct(trend.from)+" → "+fmtPct(trend.to):fmtInt(trend.from)+" → "+fmtInt(trend.to)),
+   source_date:latest.as_of
+  });
+  result.added ? added++:existing++;
+ }
+ for(const action of committee.actions.filter(item=>item.status!=="CLOSED")){
+  const result=addAgendaProposal({
+   type:"CARRY_FORWARD",
+   source_key:"CARRY_FORWARD:"+action.id+":"+(committee.date||latest.as_of),
+   reference:action.id,
+   title:"Seguimiento de acción abierta: "+action.id,
+   detail:action.text+" · Responsable: "+action.owner+" · Fecha objetivo: "+action.due_date+" · Estado: "+ACTION_STATUSES[action.status],
+   source_date:latest.as_of
+  });
+  result.added ? added++:existing++;
+ }
+ renderCommittee();
+ $("committeeAlert").textContent="Orden del día preparado: "+added+" punto(s) nuevo(s) y "+existing+" ya existente(s). Revisa y adapta cada punto antes de la reunión.";
+ renderFindings();
+}
+
 function renderCommitteeSummary(){
  const today=localToday();
  const pending=committee.decisions.filter(d=>d.status==="PENDING").length;
@@ -388,6 +472,7 @@ function renderCommitteeSummary(){
  const overdue=committee.actions.filter(a=>a.status!=="CLOSED"&&a.due_date<today).length;
  const closed=committee.actions.filter(a=>a.status==="CLOSED").length;
  $("committeeSummary").innerHTML=
+  '<span>Puntos pendientes de tratar: <strong>'+committee.agenda.filter(item=>item.status==="PENDING").length+'</strong></span>'+
   '<span>Decisiones pendientes: <strong>'+pending+'</strong></span>'+
   '<span>Decisiones aprobadas: <strong>'+approved+'</strong></span>'+
   '<span>Acciones abiertas: <strong>'+open+'</strong></span>'+
@@ -399,17 +484,28 @@ function renderCommittee(){
  Object.entries(fields).forEach(([id,key])=>{$(id).value=committee[key]||"";});
  const latest=reports[reports.length-1];
  $("meetingScope").value=latest ? latest.as_of+" · "+fmtInt(latest.services.in_scope)+" servicios en alcance":"Sin informe de auditoría cargado";
+ const agendaOptions='<option value="">Sin vincular</option>'+committee.agenda.map(item=>committeeOption(item.id,item.id+" · "+item.title,"")).join("");
  const decisionOptions='<option value="">Sin vincular</option>'+committee.decisions.map(d=>committeeOption(d.id,d.id+" · "+d.topic,"")).join("");
+ $("decisionAgendaLink").innerHTML=agendaOptions;
  $("actionDecisionLink").innerHTML=decisionOptions;
+ $("agendaRows").innerHTML=committee.agenda.length ? committee.agenda.map(item=>
+  '<tr><td class="num">'+escapeHtml(item.id)+'</td>'+
+  '<td>'+escapeHtml(AGENDA_TYPES[item.type])+'</td>'+
+  '<td>'+escapeHtml(item.reference)+'</td>'+
+  '<td style="white-space:normal;min-width:260px"><strong>'+escapeHtml(item.title)+'</strong><div class="committee-help">'+escapeHtml(item.detail)+'</div></td>'+
+  '<td><select data-agenda-id="'+escapeHtml(item.id)+'" data-agenda-field="status">'+Object.entries(AGENDA_STATUSES).map(([v,l])=>committeeOption(v,l,item.status)).join("")+'</select></td>'+
+  '<td><button class="remove" type="button" data-remove-agenda="'+escapeHtml(item.id)+'" aria-label="Eliminar '+escapeHtml(item.id)+'">Eliminar</button></td></tr>'
+ ).join(""):'<tr><td colspan="6">No hay puntos en el orden del día.</td></tr>';
  $("decisionRows").innerHTML=committee.decisions.length ? committee.decisions.map(d=>
   '<tr><td class="num">'+escapeHtml(d.id)+'</td>'+
+  '<td><select data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="agenda_id">'+agendaOptions.replace('value="'+escapeHtml(d.agenda_id||"")+'"','value="'+escapeHtml(d.agenda_id||"")+'" selected')+'</select></td>'+
   '<td><input data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="topic" maxlength="160" value="'+escapeHtml(d.topic)+'" aria-label="Tema '+escapeHtml(d.id)+'"></td>'+
   '<td><textarea data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="text" maxlength="1200" rows="2" aria-label="Decisión '+escapeHtml(d.id)+'">'+escapeHtml(d.text)+'</textarea></td>'+
   '<td><select data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="status">'+Object.entries(DECISION_STATUSES).map(([v,l])=>committeeOption(v,l,d.status)).join("")+'</select></td>'+
   '<td><input data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="owner" maxlength="120" value="'+escapeHtml(d.owner)+'" aria-label="Responsable '+escapeHtml(d.id)+'"></td>'+
   '<td><input data-decision-id="'+escapeHtml(d.id)+'" data-decision-field="due_date" type="date" value="'+escapeHtml(d.due_date)+'" aria-label="Fecha objetivo '+escapeHtml(d.id)+'"></td>'+
   '<td><button class="remove" type="button" data-remove-decision="'+escapeHtml(d.id)+'" aria-label="Eliminar '+escapeHtml(d.id)+'">Eliminar</button></td></tr>'
- ).join(""):'<tr><td colspan="7">No hay decisiones registradas.</td></tr>';
+ ).join(""):'<tr><td colspan="8">No hay decisiones registradas.</td></tr>';
  $("committeeActionRows").innerHTML=committee.actions.length ? committee.actions.map(a=>
   '<tr><td class="num">'+escapeHtml(a.id)+'</td>'+
   '<td><select data-action-id="'+escapeHtml(a.id)+'" data-action-field="decision_id">'+decisionOptions.replace('value="'+escapeHtml(a.decision_id||"")+'"','value="'+escapeHtml(a.decision_id||"")+'" selected')+'</select></td>'+
@@ -449,14 +545,23 @@ function committeeMarkdown(){
   latest?"- Servicios fuera de cadencia: "+latest.services.overdue_by_target_cadence:"",
   latest?"- Acciones de auditoría vencidas sin verificar: "+latest.actions.overdue_unverified:"",
   "",
-  "## Decisiones y acuerdos",
+  "## Orden del día propuesto",
   "",
-  "| ID | Tema | Decisión / acuerdo | Estado | Responsable | Fecha objetivo |",
-  "|---|---|---|---|---|---|"
+  "| ID | Origen | Referencia | Punto / objetivo | Estado |",
+  "|---|---|---|---|---|"
  ];
+ if(committee.agenda.length){
+  committee.agenda.forEach(item=>lines.push("| "+item.id+" | "+AGENDA_TYPES[item.type]+" | "+markdownSafe(item.reference)+" | "+markdownSafe(item.title+": "+item.detail)+" | "+AGENDA_STATUSES[item.status]+" |"));
+ }else lines.push("| — | No preparado | — | No hay puntos registrados | — |");
+ lines.push("","## Decisiones y acuerdos","");
+ lines.push("| ID | Punto del orden del día | Tema | Decisión / acuerdo | Estado | Responsable | Fecha objetivo |");
+ lines.push("|---|---|---|---|---|---|---|");
  if(decisions.length){
-  decisions.forEach(d=>lines.push("| "+d.id+" | "+markdownSafe(d.topic)+" | "+markdownSafe(d.text)+" | "+DECISION_STATUSES[d.status]+" | "+markdownSafe(d.owner)+" | "+d.due_date+" |"));
- }else lines.push("| — | No registradas | — | — | — | — |");
+  decisions.forEach(d=>{
+   const agenda=committee.agenda.find(item=>item.id===d.agenda_id);
+   lines.push("| "+d.id+" | "+(agenda ? agenda.id+" · "+markdownSafe(agenda.title):"—")+" | "+markdownSafe(d.topic)+" | "+markdownSafe(d.text)+" | "+DECISION_STATUSES[d.status]+" | "+markdownSafe(d.owner)+" | "+d.due_date+" |");
+  });
+ }else lines.push("| — | — | No registradas | — | — | — | — |");
  lines.push("","## Plan de acciones","");
  lines.push("| ID | Decisión vinculada | Acción / entregable | Responsable | Fecha objetivo | Prioridad | Estado | Evidencia de cierre |");
  lines.push("|---|---|---|---|---|---|---|---|");
@@ -466,7 +571,8 @@ function committeeMarkdown(){
    lines.push("| "+a.id+" | "+(decision ? decision.id+" · "+markdownSafe(decision.topic):"—")+" | "+markdownSafe(a.text)+" | "+markdownSafe(a.owner)+" | "+a.due_date+" | "+PRIORITY_LABELS[a.priority]+" | "+ACTION_STATUSES[a.status]+" | "+markdownSafe(a.evidence||"Pendiente")+" |");
   });
  }else lines.push("| — | — | No hay acciones registradas | — | — | — | — | — |");
- lines.push("","## Seguimiento de plazos","","- Acciones abiertas: "+actions.filter(a=>a.status!=="CLOSED").length,
+ lines.push("","## Seguimiento de plazos","","- Puntos pendientes de tratar: "+committee.agenda.filter(item=>item.status==="PENDING").length,
+  "- Acciones abiertas: "+actions.filter(a=>a.status!=="CLOSED").length,
   "- Acciones vencidas a fecha de exportación ("+today+"): "+overdue.length,
   "- Acciones cerradas con referencia de evidencia: "+actions.filter(a=>a.status==="CLOSED"&&a.evidence.trim()).length);
  if(overdue.length)overdue.forEach(a=>lines.push("  - **"+a.id+"** · "+markdownSafe(a.owner)+" · vencida el "+a.due_date));
@@ -486,25 +592,39 @@ function committeeMarkdown(){
  return lines.join("\n");
 }
 function exportCommitteeActionsCsv(){
- const rows=[["action_id","decision_id","decision_topic","action","owner","due_date","priority","status","evidence_reference","overdue_at_export"]];
+ const rows=[["action_id","decision_id","decision_agenda_id","decision_agenda_title","decision_topic","action","owner","due_date","priority","status","evidence_reference","overdue_at_export"]];
  const today=localToday();
  committee.actions.forEach(a=>{
   const decision=committee.decisions.find(d=>d.id===a.decision_id);
-  rows.push([a.id,a.decision_id,decision?.topic||"",a.text,a.owner,a.due_date,a.priority,a.status,a.evidence,a.status!=="CLOSED"&&a.due_date<today?"true":"false"]);
+  const agenda=committee.agenda.find(item=>item.id===decision?.agenda_id);
+  rows.push([a.id,a.decision_id,decision?.agenda_id||"",agenda?.title||"",decision?.topic||"",a.text,a.owner,a.due_date,a.priority,a.status,a.evidence,a.status!=="CLOSED"&&a.due_date<today?"true":"false"]);
  });
  downloadCsv("dr-committee-actions-"+(committee.date||today)+".csv",rows);
 }
 function handleCommitteeFieldChange(target,finalize=false){
  const meetingField=target.dataset.meetingField;
  if(meetingField){committee[meetingField]=target.value;return;}
+ const agendaId=target.dataset.agendaId,agendaField=target.dataset.agendaField;
+ if(agendaId&&agendaField){
+  const item=committee.agenda.find(x=>x.id===agendaId);
+  if(!item||agendaField!=="status")return;
+  if(!Object.prototype.hasOwnProperty.call(AGENDA_STATUSES,target.value)){
+   if(finalize){target.value=item.status;$("committeeAlert").textContent="Estado de orden del día no válido.";renderCommittee();}
+   return;
+  }
+  item.status=target.value;
+  renderCommitteeSummary();
+  if(finalize)renderCommittee();
+  return;
+ }
  const decisionId=target.dataset.decisionId,decisionField=target.dataset.decisionField;
  if(decisionId&&decisionField){
   const item=committee.decisions.find(d=>d.id===decisionId);
   if(!item||!Object.prototype.hasOwnProperty.call(item,decisionField))return;
   const value=target.value;
-  const invalid=(["topic","text","owner"].includes(decisionField)&&!value.trim())||(decisionField==="due_date"&&!dateOk(value))||(decisionField==="status"&&!Object.prototype.hasOwnProperty.call(DECISION_STATUSES,value));
+  const invalid=(["topic","text","owner"].includes(decisionField)&&!value.trim())||(decisionField==="due_date"&&!dateOk(value))||(decisionField==="status"&&!Object.prototype.hasOwnProperty.call(DECISION_STATUSES,value))||(decisionField==="agenda_id"&&value&&!committee.agenda.some(x=>x.id===value));
   if(invalid){
-   if(finalize){target.value=item[decisionField];$("committeeAlert").textContent="No se puede dejar vacío el tema, el acuerdo, el responsable ni la fecha objetivo de una decisión.";renderCommittee();}
+   if(finalize){target.value=item[decisionField]||"";$("committeeAlert").textContent="No se puede dejar vacío el tema, el acuerdo, el responsable ni la fecha objetivo de una decisión; comprueba también su vínculo al orden del día.";renderCommittee();}
    return;
   }
   item[decisionField]=value;
@@ -537,8 +657,16 @@ function bindCommitteeEvents(){
  host.addEventListener("input",event=>handleCommitteeFieldChange(event.target,false));
  host.addEventListener("change",event=>handleCommitteeFieldChange(event.target,true));
  host.addEventListener("click",event=>{
+  const removeAgenda=event.target.closest("[data-remove-agenda]");
   const removeDecision=event.target.closest("[data-remove-decision]");
   const removeAction=event.target.closest("[data-remove-action]");
+  if(removeAgenda){
+   const id=removeAgenda.dataset.removeAgenda;
+   committee.agenda=committee.agenda.filter(item=>item.id!==id);
+   committee.decisions.forEach(d=>{if(d.agenda_id===id)d.agenda_id="";});
+   $("committeeAlert").textContent="Punto eliminado. Las decisiones relacionadas se han mantenido sin vincular.";
+   renderCommittee();return;
+  }
   if(removeDecision){
    const id=removeDecision.dataset.removeDecision;
    committee.decisions=committee.decisions.filter(d=>d.id!==id);
@@ -553,11 +681,32 @@ function bindCommitteeEvents(){
    renderCommittee();
   }
  });
+
+ $("prepareAgenda").addEventListener("click",prepareCommitteeAgenda);
+ $("addManualAgenda").addEventListener("click",()=>{
+  const title=$("manualAgendaTitle").value.trim(),detail=$("manualAgendaDetail").value.trim();
+  if(!title||!detail){$("committeeAlert").textContent="Completa el título y el contexto del punto manual.";return;}
+  const result=addAgendaProposal({type:"MANUAL",source_key:"MANUAL:"+title.toLowerCase().replace(/\s+/g," ").trim(),reference:"Aportación del comité",title,detail,source_date:reports[reports.length-1]?.as_of||""});
+  $("manualAgendaTitle").value="";$("manualAgendaDetail").value="";
+  $("committeeAlert").textContent=result.added?"Punto manual añadido al orden del día.":"Ya existe un punto con ese título.";
+  renderCommittee();
+  renderFindings();
+ });
+ $("findingRows").addEventListener("click",event=>{
+  const button=event.target.closest("[data-add-finding]");
+  if(!button)return;
+  const index=Number(button.dataset.addFinding),latest=reports[reports.length-1],finding=latest?.findings?.[index];
+  if(!finding||!latest)return;
+  const result=addFindingToAgenda(finding,latest.as_of);
+  $("committeeAlert").textContent=result.added?"Hallazgo añadido al orden del día como propuesta.":"El hallazgo ya estaba en el orden del día.";
+  renderCommittee();
+  renderFindings();
+ });
  $("addDecision").addEventListener("click",()=>{
   const topic=$("decisionTopic").value.trim(),textValue=$("decisionText").value.trim(),owner=$("decisionOwner").value.trim(),due=$("decisionDue").value;
   if(!topic||!textValue||!owner||!due){$("committeeAlert").textContent="Completa tema, decisión, responsable y fecha objetivo.";return;}
-  committee.decisions.push({id:nextRecordId("DEC",committee.decisions),topic,text:textValue,status:$("decisionStatus").value,owner,due_date:due});
-  $("decisionTopic").value="";$("decisionText").value="";$("decisionOwner").value="";$("decisionDue").value="";$("decisionStatus").value="PENDING";
+  committee.decisions.push({id:nextRecordId("DEC",committee.decisions),agenda_id:$("decisionAgendaLink").value,topic,text:textValue,status:$("decisionStatus").value,owner,due_date:due});
+  $("decisionAgendaLink").value="";$("decisionTopic").value="";$("decisionText").value="";$("decisionOwner").value="";$("decisionDue").value="";$("decisionStatus").value="PENDING";
   $("committeeAlert").textContent="Decisión añadida al borrador. No supone aprobación.";
   renderCommittee();
  });
@@ -628,9 +777,13 @@ function renderCharts(){
 function renderFindings(){
  if(!reports.length)return;
  const findings=reports[reports.length-1].findings||[];
- const severity=$("severityFilter").value, term=$("findingSearch").value.trim().toLowerCase();
- const visible=findings.filter(f=>(!severity||f.severity===severity)&&(!term||[f.finding,f.service_id,f.detail].join(" ").toLowerCase().includes(term)));
- $("findingRows").innerHTML=visible.length ? visible.map(f=>'<tr><td><span class="pill '+escapeHtml(f.severity)+'">'+escapeHtml(f.severity)+'</span></td><td>'+escapeHtml(f.finding)+'</td><td class="num">'+escapeHtml(f.service_id)+'</td><td style="white-space:normal;min-width:300px">'+escapeHtml(f.detail)+'</td></tr>').join(""):'<tr><td colspan="4">No hay hallazgos para este filtro en el último cierre.</td></tr>';
+ const severity=$("severityFilter").value,term=$("findingSearch").value.trim().toLowerCase();
+ const visible=findings.map((f,index)=>({f,index})).filter(({f})=>(!severity||f.severity===severity)&&(!term||[f.finding,f.service_id,f.detail].join(" ").toLowerCase().includes(term)));
+ $("findingRows").innerHTML=visible.length ? visible.map(({f,index})=>{
+  const sourceKey="FINDING:"+reports[reports.length-1].as_of+":"+f.finding+":"+f.service_id;
+  const already=committee.agenda.some(item=>item.source_key===sourceKey);
+  return '<tr><td><span class="pill '+escapeHtml(f.severity)+'">'+escapeHtml(f.severity)+'</span></td><td>'+escapeHtml(f.finding)+'</td><td class="num">'+escapeHtml(f.service_id)+'</td><td style="white-space:normal;min-width:300px">'+escapeHtml(f.detail)+'</td><td><button type="button" data-add-finding="'+index+'" '+(already?'disabled':'')+'>'+ (already?"En agenda":"Pasar a agenda")+'</button></td></tr>';
+ }).join(""):'<tr><td colspan="5">No hay hallazgos para este filtro en el último cierre.</td></tr>';
 }
 function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
 function downloadCsv(filename,rows){const csv=rows.map(row=>row.map(csvCell).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}

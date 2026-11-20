@@ -49,7 +49,7 @@ Newer reports include:
 - A SHA-256 checksum of the sorted in-scope service IDs and the corresponding service count. This detects population changes even when the count remains the same.
 - Separate SHA-256 checksums and counts for the service cohorts with measured RTO and RPO. The dashboard will not call an RTO/RPO rate movement a like-for-like improvement or deterioration unless the measured service IDs also match.
 - A portable JSON history archive export/import, so multiple quarter-end snapshots and the committee's minutes metadata, decisions and follow-up actions can be retained and restored together without browser storage or server uploads.
-- A committee workspace to capture session metadata, decisions (pending, approved, rejected or deferred), owners, deadlines, action priorities, status and closure evidence. It creates a draft record only; it is not a source of truth until reviewed and approved by the committee.
+- A committee workspace to capture session metadata, a proposed agenda from audit findings, sustained deterioration signals and open actions, decisions (pending, approved, rejected or deferred), owners, deadlines, action priorities, status and closure evidence. Agenda items link to decisions, which link to actions. It creates a draft record only; it is not a source of truth until reviewed and approved by the committee.
 - Auditor version, dependency-review freshness setting and an optional `--qualification-policy-id` value. Keep this policy ID stable only while the documented qualifying-exercise criteria remain unchanged; increment it when those criteria change.
 - The reporting-window length, already shown in the summary.
 
