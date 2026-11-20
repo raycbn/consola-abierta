@@ -7,8 +7,17 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Sat, 14 Nov 2026 22:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 20 Nov 2026 09:45:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Designing a Disaster Recovery Test: How to Measure Service Recovery</title>
+      <link>https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/</guid>
+      <pubDate>Fri, 20 Nov 2026 09:45:00 +0100</pubDate>
+      <description>Scope a DR exercise, measure RTO/RPO, validate dependencies and evidence. Includes an offline Python scorecard; it does not run failover.</description>
+      <category>Resilience &amp; Recovery</category>
+    </item>
+
         <item>
       <title>LLM Benchmarking: TTFT, TPOT, Throughput and Reproducible Methodology</title>
       <link>https://consolaabierta.com/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/</link>
