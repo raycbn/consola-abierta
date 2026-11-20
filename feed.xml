@@ -7,8 +7,16 @@
     <description>Ingeniería y tecnología explicadas desde dentro.</description>
     <language>es</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Fri, 20 Nov 2026 10:30:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 20 Nov 2026 10:45:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas</title>
+      <link>https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/</guid>
+      <pubDate>Fri, 20 Nov 2026 10:45:00 +0100</pubDate>
+      <description>Expediente de evidencias DR, cronología, hashes, hallazgos, AAR/IP y acciones correctivas verificables.</description>
+      <category>Resilience &amp; Recovery</category>
+    </item>
     <item>
       <title>Runbook de Test Failover y Failback: aislamiento, validación y retorno controlado</title>
       <link>https://consolaabierta.com/es/analisis/runbook-test-failover-failback-recuperacion-controlada/</link>

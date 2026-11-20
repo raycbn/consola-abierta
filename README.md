@@ -6,7 +6,7 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - Static HTML/CSS/JavaScript; no framework, build step or application server.
 - Spanish edition at / and English edition at /en/.
 - Article archives at /es/articulos/ and /en/articles/.
-- 26 article URLs: 13 Spanish articles and their 13 English editions.
+- 28 article URLs: 14 Spanish articles and their 14 English editions.
 - Language-aware catalogue search powered by /search-index.json and assets/site.js.
 - Seven specialty filters on the archives, including Resilience & Recovery and the LLM Engineering series. Empty specialties show an explicit empty state, not placeholder links.
 - RSS feeds: /feed.xml (Spanish) and /en/feed.xml (English), with an XSLT browser view and Atom self links.
@@ -16,8 +16,8 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
 - The public sitemap pages include a cookie/privacy preferences link wired to Google's `googlefc.showRevocationMessage` API. The link is shown only when the TCF reports that GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
 - Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
-- 11 downloadable labs, including two offline resilience tools: the Recovery Test Scorecard (Python 3.10+, standard library, seven tests) and Recovery Runbook Preflight (Python 3.10+, standard library, 12 tests). They analyse manually supplied timestamps or JSON plans; they do not run recovery operations or verify infrastructure controls.
-- GitHub Pages runs both resilience lab test suites, rebuilds both ZIP packages, then runs the site validators before deployment on pushes to main, using .github/workflows/pages.yml.
+- 12 downloadable labs, including three offline resilience tools: Recovery Test Scorecard (7 tests), Recovery Runbook Preflight (12 tests) and Recovery Evidence Pack Builder (21 tests). The tools analyse manually supplied data and file references; they do not run recovery operations, verify infrastructure controls, authenticate evidence sources or provide forensic chain of custody.
+- GitHub Pages runs the three resilience lab test suites (the third is extracted to the runner temporary directory from its downloadable ZIP), then runs site validators before deployment on pushes to main, using .github/workflows/pages.yml.
 
 ## Local preview
 Run a static server from the repository root:

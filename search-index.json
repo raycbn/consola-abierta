@@ -2,6 +2,34 @@
   "generated": "2026-11-20",
   "articles": [
     {
+      "labels": "Resilience & Recovery · Evidence & Assurance",
+      "lang": "en",
+      "title": "Recovery Evidence Packs and After-Action Reports: Evidence, Findings and Corrective Actions",
+      "url": "/en/analysis/recovery-evidence-pack-after-action-report/",
+      "summary": "Build a traceable DR evidence pack, distinguish observation from impact and recommendation, and track corrective actions with owners, dates and closure evidence.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "16–20 min"
+    },
+    {
+      "labels": "Resilience & Recovery · Evidence & Assurance",
+      "lang": "es",
+      "title": "Recovery Evidence Pack & After-Action Report: evidencias, hallazgos y acciones correctivas",
+      "url": "/es/analisis/expediente-evidencias-disaster-recovery-aar-ip/",
+      "summary": "Construye un expediente DR trazable, separa observaciones, impacto y recomendaciones, y sigue acciones correctivas con responsables, fechas y evidencia de cierre.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "16–20 min"
+    },
+    {
       "labels": "Resilience & Recovery · DR Operations",
       "lang": "en",
       "title": "A Disaster Recovery Test Failover and Failback Runbook: Isolation, Validation and Controlled Return",

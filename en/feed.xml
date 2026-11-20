@@ -7,8 +7,16 @@
     <description>Systems engineering, infrastructure and technical operations explained from the inside.</description>
     <language>en</language>
     <generator>Consola Abierta</generator>
-    <lastBuildDate>Fri, 20 Nov 2026 10:30:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 20 Nov 2026 10:45:00 +0100</lastBuildDate>
     <atom:link href="https://consolaabierta.com/en/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Recovery Evidence Packs and After-Action Reports: Evidence, Findings and Corrective Actions</title>
+      <link>https://consolaabierta.com/en/analysis/recovery-evidence-pack-after-action-report/</link>
+      <guid isPermaLink="true">https://consolaabierta.com/en/analysis/recovery-evidence-pack-after-action-report/</guid>
+      <pubDate>Fri, 20 Nov 2026 10:45:00 +0100</pubDate>
+      <description>DR evidence records, timeline, hashes, findings, AAR/IP and verifiable corrective actions.</description>
+      <category>Resilience &amp; Recovery</category>
+    </item>
     <item>
       <title>A Disaster Recovery Test Failover and Failback Runbook: Isolation, Validation and Controlled Return</title>
       <link>https://consolaabierta.com/en/analysis/disaster-recovery-test-failover-failback-runbook/</link>
