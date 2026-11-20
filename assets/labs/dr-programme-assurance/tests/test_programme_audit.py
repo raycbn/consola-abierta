@@ -113,7 +113,7 @@ class ProgrammeAuditTests(unittest.TestCase):
 
     def test_expired_exception_dates_must_be_ordered(self):
         data = rows()
-        data[3][0]["approval_date"] = "2026-12-01"
+        data[3][0]["approval_date"] = "2026-12-02"
         with self.assertRaises(InputError):
             self.build(data)
 
