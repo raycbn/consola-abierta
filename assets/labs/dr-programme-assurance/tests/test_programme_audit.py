@@ -124,6 +124,32 @@ class ProgrammeAuditTests(unittest.TestCase):
             with self.assertRaises(InputError):
                 read_csv(path, SERVICE_FIELDS, "services")
 
+    def test_scope_fingerprint_is_stable_for_same_population(self):
+        report_a = audit(self.build())
+        data = rows()
+        data[0].reverse()
+        report_b = audit(self.build(data))
+        self.assertEqual(report_a["scope"]["service_ids_sha256"], report_b["scope"]["service_ids_sha256"])
+        self.assertEqual(report_a["scope"]["in_scope_services"], 2)
+        self.assertEqual(report_a["scope"]["rto_measured_services"], 1)
+        self.assertEqual(report_a["scope"]["rpo_measured_services"], 1)
+        self.assertEqual(len(report_a["scope"]["rto_service_ids_sha256"]), 64)
+        self.assertEqual(len(report_a["scope"]["rpo_service_ids_sha256"]), 64)
+
+    def test_scope_fingerprint_changes_when_population_changes(self):
+        report_a = audit(self.build())
+        data = rows()
+        data[0][1]["in_scope"] = "false"
+        report_b = audit(self.build(data))
+        self.assertNotEqual(report_a["scope"]["service_ids_sha256"], report_b["scope"]["service_ids_sha256"])
+        self.assertEqual(report_b["scope"]["in_scope_services"], 1)
+
+    def test_methodology_records_policy_identifier(self):
+        report = audit(self.build(qualification_policy_id="DR-QUAL-v2"))
+        self.assertEqual(report["methodology"]["auditor_version"], "1.1")
+        self.assertEqual(report["methodology"]["qualification_policy_id"], "DR-QUAL-v2")
+        self.assertEqual(report["methodology"]["dependency_freshness_days"], 365)
+
     def test_outputs_include_limits_and_findings(self):
         report = audit(self.build())
         self.assertTrue(report["limitations"])

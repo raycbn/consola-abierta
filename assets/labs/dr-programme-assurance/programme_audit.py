@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -104,6 +105,7 @@ def validate_and_normalise(
     as_of: date,
     window_days: int,
     dependency_freshness_days: int,
+    qualification_policy_id: str | None = None,
 ) -> dict[str, Any]:
     unique(service_rows, "service_id", "services")
     unique(exercise_rows, "exercise_id", "exercises")
@@ -190,6 +192,7 @@ def validate_and_normalise(
         "window_start": start,
         "as_of": as_of,
         "dependency_freshness_days": dependency_freshness_days,
+        "qualification_policy_id": qualification_policy_id.strip() if qualification_policy_id and qualification_policy_id.strip() else None,
     }
 
 
@@ -298,8 +301,33 @@ def audit(data: dict[str, Any]) -> dict[str, Any]:
 
     denominator = len(in_scope)
     actions_total = len(data["actions"])
+    scope_ids = sorted(service["service_id"] for service in in_scope)
+    scope_fingerprint = hashlib.sha256("\n".join(scope_ids).encode("utf-8")).hexdigest()
+    rto_ids = sorted(
+        sid for sid, exercise in latest_qualifying.items()
+        if exercise and exercise["target_rto"] is not None and exercise["observed_rto"] is not None
+    )
+    rpo_ids = sorted(
+        sid for sid, exercise in latest_qualifying.items()
+        if exercise and exercise["target_rpo"] is not None and exercise["observed_rpo"] is not None
+    )
+    rto_scope_fingerprint = hashlib.sha256("\n".join(rto_ids).encode("utf-8")).hexdigest()
+    rpo_scope_fingerprint = hashlib.sha256("\n".join(rpo_ids).encode("utf-8")).hexdigest()
     return {
         "as_of": data["as_of"].isoformat(),
+        "scope": {
+            "in_scope_services": denominator,
+            "service_ids_sha256": scope_fingerprint,
+            "rto_measured_services": rto_measured,
+            "rto_service_ids_sha256": rto_scope_fingerprint,
+            "rpo_measured_services": rpo_measured,
+            "rpo_service_ids_sha256": rpo_scope_fingerprint,
+        },
+        "methodology": {
+            "auditor_version": "1.1",
+            "dependency_freshness_days": data["dependency_freshness_days"],
+            "qualification_policy_id": data["qualification_policy_id"],
+        },
         "reporting_window": {
             "start": data["window_start"].isoformat(),
             "end": data["as_of"].isoformat(),
@@ -357,6 +385,10 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
         "",
         f"**As of:** {report['as_of']}  ",
         f"**Window:** {report['reporting_window']['start']} to {report['reporting_window']['end']} ({report['reporting_window']['days']} days)",
+        f"**Scope checksum (SHA-256):** {report['scope']['service_ids_sha256']} (sorted in-scope service IDs; checksum is not anonymisation)",
+        f"**RTO measured cohort:** {report['scope']['rto_measured_services']} services · SHA-256 {report['scope']['rto_service_ids_sha256']}",
+        f"**RPO measured cohort:** {report['scope']['rpo_measured_services']} services · SHA-256 {report['scope']['rpo_service_ids_sha256']}",
+        f"**Methodology:** {report['methodology']['auditor_version']} · dependency freshness {report['methodology']['dependency_freshness_days']} days · qualification policy {report['methodology']['qualification_policy_id'] or 'UNVERSIONED'}",
         "",
         "## Portfolio coverage",
         "",
@@ -396,7 +428,7 @@ def run_audit(args: argparse.Namespace) -> dict[str, Any]:
         read_csv(Path(args.exercises), EXERCISE_FIELDS, "exercises"),
         read_csv(Path(args.actions), ACTION_FIELDS, "actions"),
         read_csv(Path(args.exceptions), EXCEPTION_FIELDS, "exceptions"),
-        as_of, args.window_days, args.dependency_freshness_days,
+        as_of, args.window_days, args.dependency_freshness_days, args.qualification_policy_id,
     )
     report = audit(raw)
     write_outputs(report, Path(args.out))
@@ -412,6 +444,7 @@ def main() -> int:
     parser.add_argument("--as-of", default=date.today().isoformat(), help="Reporting date (YYYY-MM-DD)")
     parser.add_argument("--window-days", type=int, default=365)
     parser.add_argument("--dependency-freshness-days", type=int, default=365)
+    parser.add_argument("--qualification-policy-id", default=None, help="Stable identifier for the programme owner's qualifying-exercise policy (recommended for period comparison)")
     parser.add_argument("--out", default="programme-audit-out")
     args = parser.parse_args()
     if args.window_days < 1 or args.dependency_freshness_days < 1:

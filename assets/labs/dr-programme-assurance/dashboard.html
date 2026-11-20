@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,7 +8,7 @@
 <style>
 :root{color-scheme:dark;--bg:#09131e;--panel:#111f2d;--panel2:#142637;--line:#294155;--text:#edf5fb;--muted:#9bb0c0;--cyan:#58d6ec;--blue:#70aef8;--green:#69d6ae;--amber:#f0c36d;--red:#ff8585;--shadow:0 18px 44px #0004}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 82% -10%,#15364c 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:#183148;color:var(--text);padding:10px 14px;font-weight:650}button:hover{border-color:var(--cyan);background:#1c3b53}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:#183148;color:var(--text);padding:10px 14px;font-weight:650}button:hover{border-color:var(--cyan);background:#1c3b53}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}
 .wrap{max-width:1240px;margin:auto;padding:28px 22px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:30px}.brand{font-size:12px;letter-spacing:.16em;color:var(--cyan);font-weight:800;text-transform:uppercase}.eyebrow{color:var(--muted);font-size:12px;letter-spacing:.13em;text-transform:uppercase;margin:0 0 7px}h1{font-size:clamp(30px,4vw,46px);line-height:1.08;letter-spacing:-.035em;margin:0 0 12px}.intro{max-width:780px;color:var(--muted);margin:0}.hero{display:flex;justify-content:space-between;align-items:end;gap:25px;margin-bottom:24px}.hero-actions{display:flex;gap:9px;flex-wrap:wrap}.primary{background:var(--cyan);color:#08202b;border-color:var(--cyan)}.primary:hover{background:#9ceafa;color:#081b24}.quiet{background:transparent}
 .banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 15px;border:1px solid #38637a;background:#10283a;border-radius:12px;margin:20px 0 22px;color:#d8edf6}.banner strong{color:var(--cyan);font-size:12px;letter-spacing:.09em}.banner span{font-size:13px}.filedrop{border:1px dashed #46667c;background:#0e1c29;border-radius:12px;padding:17px 18px;margin:0 0 23px;display:flex;justify-content:space-between;align-items:center;gap:16px}.filedrop.drag{border-color:var(--cyan);background:#123047}.filecopy{min-width:0}.filecopy strong{display:block}.filecopy p{color:var(--muted);margin:3px 0 0;font-size:13px}.file-actions{display:flex;gap:8px;flex-wrap:wrap}.status{font-size:12px;color:var(--muted);margin:10px 0 22px;min-height:18px}
 .section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:28px 0 13px}.section-head h2{margin:0;font-size:19px;letter-spacing:-.015em}.section-head p{color:var(--muted);font-size:12px;margin:0}
@@ -16,15 +16,15 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 .trends{display:grid;grid-template-columns:1fr 1fr;gap:14px}.chart-card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px;min-width:0}.chart-title{font-size:15px;font-weight:700;margin:0}.chart-subtitle{color:var(--muted);font-size:12px;margin:3px 0 10px}.chart{width:100%;height:auto;display:block;overflow:visible}.chart text{font-family:system-ui,sans-serif;fill:#9bb0c0;font-size:11px}.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:7px 0 0}.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.chart-empty{height:180px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13px}
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px 13px;text-align:left;border-bottom:1px solid #213549;font-size:13px;white-space:nowrap}th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#142535}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#142b3e}.num{font-variant-numeric:tabular-nums}.pill{display:inline-flex;padding:3px 7px;border:1px solid currentColor;border-radius:99px;font-size:10px;letter-spacing:.05em;font-weight:800}.pill.HIGH{color:var(--red)}.pill.MEDIUM{color:var(--amber)}.pill.LOW,.pill.INFO{color:var(--blue)}
 .filters{display:flex;gap:8px;flex-wrap:wrap}.filters input,.filters select{background:#0c1a27;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 11px}.filters input{min-width:220px}
-.note{border-left:3px solid var(--cyan);padding:12px 15px;background:#102332;color:#c4d6e1;border-radius:0 9px 9px 0;font-size:13px;margin-top:18px}.note strong{color:var(--text)}.footer{color:var(--muted);font-size:12px;margin-top:27px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.hidden{display:none!important}
-@media(max-width:900px){.grid,.subgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.trends{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.top{margin-bottom:22px}}
+.note{border-left:3px solid var(--cyan);padding:12px 15px;background:#102332;color:#c4d6e1;border-radius:0 9px 9px 0;font-size:13px;margin-top:18px}.note strong{color:var(--text)}.comparison{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:17px}.comparison-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.compare-item{background:#0e1c29;border:1px solid #213549;border-radius:11px;padding:13px;min-width:0}.compare-item strong{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.compare-item b{display:block;margin:5px 0;font-size:15px}.compare-item small{display:block;color:var(--muted);overflow-wrap:anywhere}.status-tag{display:inline-flex;border:1px solid currentColor;border-radius:99px;padding:3px 7px;font-size:10px;font-weight:800;letter-spacing:.05em}.status-tag.good{color:var(--green)}.status-tag.warn{color:var(--amber)}.status-tag.bad{color:var(--red)}.change-list{margin-top:14px;overflow-x:auto}.change-list table{min-width:620px}.change-good{color:var(--green);font-weight:700}.change-bad{color:var(--red);font-weight:700}.change-neutral{color:var(--amber);font-weight:700}.report-note{font-size:12px;color:var(--muted);margin:12px 0 0}.footer{color:var(--muted);font-size:12px;margin-top:27px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.hidden{display:none!important}
+@media(max-width:900px){.grid,.subgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.trends{grid-template-columns:1fr}.comparison-grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.top{margin-bottom:22px}}
 @media(max-width:560px){.wrap{padding:20px 14px 44px}.grid,.subgrid{grid-template-columns:1fr 1fr}.metric-value{font-size:29px}.filedrop{align-items:start;flex-direction:column}.file-actions{width:100%}.file-actions button{flex:1}.top{align-items:start}.brand{font-size:10px}.section-head{align-items:start;flex-direction:column}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <div class="top"><div class="brand">Consola Abierta <span style="color:#71899c">/</span> Resilience &amp; Recovery</div><a href="https://consolaabierta.com/es/analisis/aseguramiento-programa-anual-disaster-recovery/" target="_blank" rel="noopener">Guía DR Programme Assurance ↗</a></div>
-<section class="hero"><div><p class="eyebrow">Portfolio visibility · offline dashboard</p><h1>DR Programme Assurance</h1><p class="intro">Compara cierres trimestrales del DR Programme Coverage Auditor. Importa los ficheros <code>programme-summary.json</code> generados por Lab 04 para ver tendencias y hallazgos.</p></div><div class="hero-actions"><button id="exportTimeline" class="quiet" type="button">Exportar evolución CSV</button></div></section>
+<section class="hero"><div><p class="eyebrow">Portfolio visibility · offline dashboard</p><h1>DR Programme Assurance</h1><p class="intro">Compara cierres trimestrales del DR Programme Coverage Auditor. Importa los ficheros <code>programme-summary.json</code> generados por Lab 04 para ver tendencias y hallazgos.</p></div><div class="hero-actions"><button id="exportTimeline" class="quiet" type="button">Exportar evolución CSV</button><button id="exportExecutive" class="primary" type="button">Generar informe para comité (.md)</button></div></section>
 <div class="banner"><strong>LOCAL ONLY</strong><span>Los JSON se leen y procesan en este navegador. No se envían a Consola Abierta ni a ningún servidor.</span></div>
 <section id="dropzone" class="filedrop" aria-label="Importar cierres trimestrales"><div class="filecopy"><strong>Importa uno o varios cierres</strong><p>Selecciona los JSON de cada trimestre. Para comparar periodos, utiliza la misma ventana de análisis y los mismos criterios de alcance.</p></div><div class="file-actions"><input id="fileInput" class="hidden" type="file" accept=".json,application/json" multiple><button class="primary" id="importButton" type="button">Importar JSON</button><button id="demoButton" type="button">Cargar demo</button><button id="clearButton" type="button" class="quiet">Vaciar</button></div></section>
 <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -49,6 +49,16 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 </div>
 <div class="section-head"><h2>Histórico de cierres</h2><p>Los porcentajes RTO/RPO se calculan solo sobre servicios medidos.</p></div>
 <div class="table-wrap"><table><thead><tr><th>Fecha de corte</th><th>Servicios en alcance</th><th>Cobertura</th><th>RTO</th><th>RPO</th><th>Fuera de cadencia</th><th>Excepciones vigentes</th><th>Acciones vencidas</th></tr></thead><tbody id="timelineRows"></tbody></table></div>
+<div class="section-head"><h2>Comparabilidad y señales entre cierres</h2><p id="comparisonMeta"></p></div>
+<div class="comparison" id="comparisonPanel">
+ <div class="comparison-grid">
+  <div class="compare-item"><strong>Alcance de servicios</strong><b id="scopeStatus">—</b><small id="scopeDetail">—</small></div>
+  <div class="compare-item"><strong>Metodología y política</strong><b id="methodStatus">—</b><small id="methodDetail">—</small></div>
+  <div class="compare-item"><strong>Ventana de análisis</strong><b id="windowStatus">—</b><small id="windowDetail">—</small></div>
+ </div>
+ <div class="change-list"><table><thead><tr><th>Indicador</th><th>Cierre anterior</th><th>Último cierre</th><th>Variación</th><th>Lectura</th></tr></thead><tbody id="changeRows"></tbody></table></div>
+ <p class="report-note">Las señales desfavorables se detectan por dirección del cambio, no por un umbral de materialidad. Cuando alcance, metodología o ventana no son comparables, la variación se muestra como observación y no como deterioro confirmado.</p>
+</div>
 <div class="section-head"><h2>Hallazgos del último cierre</h2><div class="filters"><select id="severityFilter" aria-label="Filtrar severidad"><option value="">Todas las severidades</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="INFO">INFO</option></select><input id="findingSearch" type="search" placeholder="Buscar código, servicio o detalle" aria-label="Buscar hallazgos"></div></div>
 <div class="table-wrap"><table><thead><tr><th>Severidad</th><th>Hallazgo</th><th>Servicio</th><th>Detalle</th></tr></thead><tbody id="findingRows"></tbody></table></div>
 <div class="note"><strong>Interpretación:</strong> las excepciones se presentan aparte y no se restan del denominador de cobertura. Los valores RTO/RPO no medidos aparecen como «No medido», nunca como 0 % ni como éxito. La cualificación del ejercicio proviene del registro del programa y no es validada por este dashboard.</div>
@@ -58,10 +68,10 @@ a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer;borde
 <script>
 "use strict";
 const DEMO_SNAPSHOTS = [
- {"as_of":"2025-12-31","reporting_window":{"start":"2025-01-01","end":"2025-12-31","days":365},"services":{"in_scope":24,"covered_by_qualifying_exercise":14,"coverage_percent":58.3,"uncovered":10,"overdue_by_target_cadence":15,"valid_approved_exceptions":3,"stale_or_missing_dependency_reviews":8},"latest_qualifying_objective_results":{"met":8,"partially_met":4,"not_met":2},"rto":{"measured_services":11,"met":7,"pass_percent":63.6},"rpo":{"measured_services":10,"met":6,"pass_percent":60},"actions":{"total":46,"verified_closed":21,"verified_closure_percent_of_all_actions":45.7,"overdue_unverified":12,"closed_without_verification":3},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"EXERCISE_OVERDUE","service_id":"PAYMENTS","detail":"No qualifying technical recovery exercise in the reporting window."},{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"DB-PROD","detail":"Corrective action passed its due date and has no verified closure."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"IDENTITY","detail":"Dependency review is older than the configured freshness threshold."}]},
- {"as_of":"2026-03-31","reporting_window":{"start":"2025-04-01","end":"2026-03-31","days":365},"services":{"in_scope":24,"covered_by_qualifying_exercise":16,"coverage_percent":66.7,"uncovered":8,"overdue_by_target_cadence":12,"valid_approved_exceptions":4,"stale_or_missing_dependency_reviews":7},"latest_qualifying_objective_results":{"met":9,"partially_met":5,"not_met":2},"rto":{"measured_services":13,"met":9,"pass_percent":69.2},"rpo":{"measured_services":12,"met":8,"pass_percent":66.7},"actions":{"total":52,"verified_closed":27,"verified_closure_percent_of_all_actions":51.9,"overdue_unverified":10,"closed_without_verification":2},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"PAYMENTS","detail":"Payment recovery improvement action remains overdue."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"NETWORK","detail":"Core network dependency review requires an update."}]},
- {"as_of":"2026-06-30","reporting_window":{"start":"2025-07-01","end":"2026-06-30","days":365},"services":{"in_scope":25,"covered_by_qualifying_exercise":18,"coverage_percent":72,"uncovered":7,"overdue_by_target_cadence":10,"valid_approved_exceptions":3,"stale_or_missing_dependency_reviews":6},"latest_qualifying_objective_results":{"met":11,"partially_met":5,"not_met":2},"rto":{"measured_services":15,"met":11,"pass_percent":73.3},"rpo":{"measured_services":14,"met":10,"pass_percent":71.4},"actions":{"total":55,"verified_closed":34,"verified_closure_percent_of_all_actions":61.8,"overdue_unverified":8,"closed_without_verification":2},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"PAYMENTS","detail":"The same payment recovery finding remains open across reporting periods."},{"severity":"MEDIUM","finding":"EXERCISE_OVERDUE","service_id":"IDENTITY","detail":"No qualifying recovery exercise in the current window."}]},
- {"as_of":"2026-09-30","reporting_window":{"start":"2025-10-01","end":"2026-09-30","days":365},"services":{"in_scope":25,"covered_by_qualifying_exercise":20,"coverage_percent":80,"uncovered":5,"overdue_by_target_cadence":7,"valid_approved_exceptions":2,"stale_or_missing_dependency_reviews":4},"latest_qualifying_objective_results":{"met":13,"partially_met":5,"not_met":2},"rto":{"measured_services":17,"met":13,"pass_percent":76.5},"rpo":{"measured_services":16,"met":12,"pass_percent":75},"actions":{"total":59,"verified_closed":42,"verified_closure_percent_of_all_actions":71.2,"overdue_unverified":5,"closed_without_verification":1},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"EXERCISE_OVERDUE","service_id":"HR-SAAS","detail":"No qualifying recovery exercise; an approved temporary exception is recorded."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"DB-PROD","detail":"Database recovery dependency review is approaching its target age."}]}
+ {"as_of":"2025-12-31","scope":{"in_scope_services":24,"service_ids_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rto_measured_services":11,"rto_service_ids_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","rpo_measured_services":10,"rpo_service_ids_sha256":"8888888888888888888888888888888888888888888888888888888888888888"},"methodology":{"auditor_version":"1.1","dependency_freshness_days":365,"qualification_policy_id":"DEMO-QUAL-v1"},"reporting_window":{"start":"2025-01-01","end":"2025-12-31","days":365},"services":{"in_scope":24,"covered_by_qualifying_exercise":14,"coverage_percent":58.3,"uncovered":10,"overdue_by_target_cadence":15,"valid_approved_exceptions":3,"stale_or_missing_dependency_reviews":8},"latest_qualifying_objective_results":{"met":8,"partially_met":4,"not_met":2},"rto":{"measured_services":11,"met":7,"pass_percent":63.6},"rpo":{"measured_services":10,"met":6,"pass_percent":60},"actions":{"total":46,"verified_closed":21,"verified_closure_percent_of_all_actions":45.7,"overdue_unverified":12,"closed_without_verification":3},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"EXERCISE_OVERDUE","service_id":"PAYMENTS","detail":"No qualifying technical recovery exercise in the reporting window."},{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"DB-PROD","detail":"Corrective action passed its due date and has no verified closure."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"IDENTITY","detail":"Dependency review is older than the configured freshness threshold."}]},
+ {"as_of":"2026-03-31","scope":{"in_scope_services":24,"service_ids_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rto_measured_services":13,"rto_service_ids_sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd","rpo_measured_services":12,"rpo_service_ids_sha256":"9999999999999999999999999999999999999999999999999999999999999999"},"methodology":{"auditor_version":"1.1","dependency_freshness_days":365,"qualification_policy_id":"DEMO-QUAL-v1"},"reporting_window":{"start":"2025-04-01","end":"2026-03-31","days":365},"services":{"in_scope":24,"covered_by_qualifying_exercise":16,"coverage_percent":66.7,"uncovered":8,"overdue_by_target_cadence":12,"valid_approved_exceptions":4,"stale_or_missing_dependency_reviews":7},"latest_qualifying_objective_results":{"met":9,"partially_met":5,"not_met":2},"rto":{"measured_services":13,"met":9,"pass_percent":69.2},"rpo":{"measured_services":12,"met":8,"pass_percent":66.7},"actions":{"total":52,"verified_closed":27,"verified_closure_percent_of_all_actions":51.9,"overdue_unverified":10,"closed_without_verification":2},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"PAYMENTS","detail":"Payment recovery improvement action remains overdue."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"NETWORK","detail":"Core network dependency review requires an update."}]},
+ {"as_of":"2026-06-30","scope":{"in_scope_services":25,"service_ids_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","rto_measured_services":15,"rto_service_ids_sha256":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","rpo_measured_services":14,"rpo_service_ids_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"methodology":{"auditor_version":"1.1","dependency_freshness_days":365,"qualification_policy_id":"DEMO-QUAL-v1"},"reporting_window":{"start":"2025-07-01","end":"2026-06-30","days":365},"services":{"in_scope":25,"covered_by_qualifying_exercise":18,"coverage_percent":72,"uncovered":7,"overdue_by_target_cadence":10,"valid_approved_exceptions":3,"stale_or_missing_dependency_reviews":6},"latest_qualifying_objective_results":{"met":11,"partially_met":5,"not_met":2},"rto":{"measured_services":15,"met":11,"pass_percent":73.3},"rpo":{"measured_services":14,"met":10,"pass_percent":71.4},"actions":{"total":55,"verified_closed":34,"verified_closure_percent_of_all_actions":61.8,"overdue_unverified":8,"closed_without_verification":2},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"ACTION_OVERDUE","service_id":"PAYMENTS","detail":"The same payment recovery finding remains open across reporting periods."},{"severity":"MEDIUM","finding":"EXERCISE_OVERDUE","service_id":"IDENTITY","detail":"No qualifying recovery exercise in the current window."}]},
+ {"as_of":"2026-09-30","scope":{"in_scope_services":25,"service_ids_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","rto_measured_services":17,"rto_service_ids_sha256":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","rpo_measured_services":16,"rpo_service_ids_sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},"methodology":{"auditor_version":"1.1","dependency_freshness_days":365,"qualification_policy_id":"DEMO-QUAL-v1"},"reporting_window":{"start":"2025-10-01","end":"2026-09-30","days":365},"services":{"in_scope":25,"covered_by_qualifying_exercise":20,"coverage_percent":80,"uncovered":5,"overdue_by_target_cadence":7,"valid_approved_exceptions":2,"stale_or_missing_dependency_reviews":4},"latest_qualifying_objective_results":{"met":13,"partially_met":5,"not_met":2},"rto":{"measured_services":17,"met":13,"pass_percent":76.5},"rpo":{"measured_services":16,"met":12,"pass_percent":75},"actions":{"total":59,"verified_closed":42,"verified_closure_percent_of_all_actions":71.2,"overdue_unverified":5,"closed_without_verification":1},"limitations":["DEMO DATA ONLY — synthetic values; not production measurements."],"findings":[{"severity":"HIGH","finding":"EXERCISE_OVERDUE","service_id":"HR-SAAS","detail":"No qualifying recovery exercise; an approved temporary exception is recorded."},{"severity":"MEDIUM","finding":"DEPENDENCY_REVIEW_STALE","service_id":"DB-PROD","detail":"Database recovery dependency review is approaching its target age."}]}
 ];
 let reports = [];
 let usingDemo = true;
@@ -85,6 +95,8 @@ function validateReport(r) {
  if(a.verified_closed>a.total||!isPct(a.verified_closure_percent_of_all_actions)) throw new Error("El bloque actions no es coherente.");
  if(!Array.isArray(r.findings)) throw new Error("findings debe ser una lista.");
  if(r.reporting_window && (!dateOk(r.reporting_window.start)||!dateOk(r.reporting_window.end)||!isInt(r.reporting_window.days)||r.reporting_window.days<1)) throw new Error("reporting_window no es válido.");
+ if(r.scope && (typeof r.scope!=="object"||!isInt(r.scope.in_scope_services)||r.scope.in_scope_services!==s.in_scope||typeof r.scope.service_ids_sha256!=="string"||! /^[a-f0-9]{64}$/.test(r.scope.service_ids_sha256)||!isInt(r.scope.rto_measured_services)||r.scope.rto_measured_services!==t.measured_services||typeof r.scope.rto_service_ids_sha256!=="string"||! /^[a-f0-9]{64}$/.test(r.scope.rto_service_ids_sha256)||!isInt(r.scope.rpo_measured_services)||r.scope.rpo_measured_services!==p.measured_services||typeof r.scope.rpo_service_ids_sha256!=="string"||! /^[a-f0-9]{64}$/.test(r.scope.rpo_service_ids_sha256))) throw new Error("scope debe incluir recuentos coherentes y huellas SHA-256 válidas para el alcance y las cohortes medidas.");
+ if(r.methodology && (typeof r.methodology!=="object"||typeof r.methodology.auditor_version!=="string"||!r.methodology.auditor_version||!isInt(r.methodology.dependency_freshness_days)||r.methodology.dependency_freshness_days<1||(r.methodology.qualification_policy_id!==null&&typeof r.methodology.qualification_policy_id!=="string"))) throw new Error("methodology contiene metadatos no válidos.");
  for(const f of r.findings) if(!f||!["HIGH","MEDIUM","INFO","LOW"].includes(f.severity)||typeof f.finding!=="string"||typeof f.service_id!=="string"||typeof f.detail!=="string") throw new Error("Hay un finding con campos no válidos.");
  return r;
 }
@@ -94,10 +106,146 @@ function fmtInt(v){return Number(v||0).toLocaleString("es-ES");}
 function dateLabel(s){const d=new Date(s+"T00:00:00Z");const q=Math.floor(d.getUTCMonth()/3)+1;return "T"+q+" '"+String(d.getUTCFullYear()).slice(-2);}
 function signedDelta(current,previous){if(current===null||current===undefined||previous===null||previous===undefined)return '<span class="delta neutral">sin comparativa</span>';const d=Math.round((current-previous)*10)/10;const sign=d>0?"+":"";return '<span class="delta '+(d>0?"positive":d<0?"negative":"neutral")+'">'+sign+d.toLocaleString("es-ES",{maximumFractionDigits:1})+' pp</span>';}
 function metric(id,footId,value,foot,delta){$(id).textContent=value;$(footId).innerHTML=foot+(delta||"");}
+function compareMetadata(previous,current){
+ const ps=previous?.scope,cs=current?.scope,pm=previous?.methodology,cm=current?.methodology;
+ const scope=ps?.service_ids_sha256&&cs?.service_ids_sha256?(ps.service_ids_sha256===cs.service_ids_sha256?"same":"changed"):"unknown";
+ const methodology=pm&&cm&&pm.qualification_policy_id&&cm.qualification_policy_id
+  ?(pm.auditor_version===cm.auditor_version&&pm.dependency_freshness_days===cm.dependency_freshness_days&&pm.qualification_policy_id===cm.qualification_policy_id?"same":"changed")
+  :"unknown";
+ const rtoCohort=ps?.rto_service_ids_sha256&&cs?.rto_service_ids_sha256?(ps.rto_service_ids_sha256===cs.rto_service_ids_sha256?"same":"changed"):"unknown";
+ const rpoCohort=ps?.rpo_service_ids_sha256&&cs?.rpo_service_ids_sha256?(ps.rpo_service_ids_sha256===cs.rpo_service_ids_sha256?"same":"changed"):"unknown";
+ const window=Number.isInteger(previous?.reporting_window?.days)&&Number.isInteger(current?.reporting_window?.days)
+  ?(previous.reporting_window.days===current.reporting_window.days?"same":"changed")
+  :"unknown";
+ return {scope,methodology,window,rtoCohort,rpoCohort,comparable:scope==="same"&&methodology==="same"&&window==="same"};
+}
+function comparisonMetrics(previous,current){
+ return [
+  {name:"Cobertura de servicios",a:previous.services.coverage_percent,b:current.services.coverage_percent,type:"pct",higher:true},
+  {name:"Servicios cubiertos",a:previous.services.covered_by_qualifying_exercise,b:current.services.covered_by_qualifying_exercise,type:"count",higher:true},
+  {name:"Servicios sin cobertura",a:previous.services.uncovered,b:current.services.uncovered,type:"count",higher:false},
+  {name:"Servicios fuera de cadencia",a:previous.services.overdue_by_target_cadence,b:current.services.overdue_by_target_cadence,type:"count",higher:false},
+  {name:"RTO dentro de objetivo",a:previous.rto.pass_percent,b:current.rto.pass_percent,type:"pct",higher:true,denom:[previous.rto.measured_services,current.rto.measured_services],cohortSame:previous.scope?.rto_service_ids_sha256&&current.scope?.rto_service_ids_sha256?(previous.scope.rto_service_ids_sha256===current.scope.rto_service_ids_sha256?"same":"changed"):"unknown"},
+  {name:"RPO dentro de objetivo",a:previous.rpo.pass_percent,b:current.rpo.pass_percent,type:"pct",higher:true,denom:[previous.rpo.measured_services,current.rpo.measured_services],cohortSame:previous.scope?.rpo_service_ids_sha256&&current.scope?.rpo_service_ids_sha256?(previous.scope.rpo_service_ids_sha256===current.scope.rpo_service_ids_sha256?"same":"changed"):"unknown"},
+  {name:"Excepciones aprobadas vigentes",a:previous.services.valid_approved_exceptions,b:current.services.valid_approved_exceptions,type:"count",higher:null},
+  {name:"Acciones vencidas sin verificar",a:previous.actions.overdue_unverified,b:current.actions.overdue_unverified,type:"count",higher:false},
+  {name:"Cierre de acciones verificado",a:previous.actions.verified_closure_percent_of_all_actions,b:current.actions.verified_closure_percent_of_all_actions,type:"pct",higher:true},
+  {name:"Revisiones de dependencias antiguas",a:previous.services.stale_or_missing_dependency_reviews,b:current.services.stale_or_missing_dependency_reviews,type:"count",higher:false},
+  {name:"Acciones cerradas sin verificar",a:previous.actions.closed_without_verification,b:current.actions.closed_without_verification,type:"count",higher:false}
+ ];
+}
+function metricDelta(metric){
+ if(metric.a===null||metric.a===undefined||metric.b===null||metric.b===undefined)return {text:"No medido",state:"unknown",direction:"unknown"};
+ const d=Math.round((metric.b-metric.a)*10)/10;
+ const sign=d>0?"+":"";
+ const text=metric.type==="pct"?sign+d.toLocaleString("es-ES",{maximumFractionDigits:1})+" pp":sign+fmtInt(d);
+ const state=metric.denom&&metric.cohortSame!=="same"?"cohort-unverified":d===0?"same":metric.higher===null?"neutral":((d>0)===metric.higher?"better":"worse");
+ return {text,state,direction:d>0?"up":d<0?"down":"same"};
+}
+function renderComparison(){
+ const previous=reports.length>1?reports[reports.length-2]:null,current=reports.length?reports[reports.length-1]:null;
+ if(!previous||!current){
+  $("comparisonMeta").textContent="Se necesitan al menos dos cierres.";
+  $("scopeStatus").textContent="Sin comparativa";$("scopeDetail").textContent="Carga dos o más informes.";
+  $("methodStatus").textContent="Sin comparativa";$("methodDetail").textContent="—";
+  $("windowStatus").textContent="Sin comparativa";$("windowDetail").textContent="—";
+  $("changeRows").innerHTML='<tr><td colspan="5">No hay dos cierres para comparar.</td></tr>';return;
+ }
+ const assessment=compareMetadata(previous,current);
+ const tag=(status)=>status==="same"?'<span class="status-tag good">COINCIDE</span>':status==="changed"?'<span class="status-tag warn">CAMBIO</span>':'<span class="status-tag warn">NO VERIFICABLE</span>';
+ $("scopeStatus").innerHTML=tag(assessment.scope);
+ $("scopeDetail").textContent="Servicios: "+fmtInt(previous.services.in_scope)+" → "+fmtInt(current.services.in_scope)+(previous.scope&&current.scope?" · SHA-256 "+previous.scope.service_ids_sha256.slice(0,10)+"… → "+current.scope.service_ids_sha256.slice(0,10)+"…":" · Falta huella en uno o ambos informes")+" · Cohorte RTO: "+assessment.rtoCohort+" · Cohorte RPO: "+assessment.rpoCohort;
+ $("methodStatus").innerHTML=tag(assessment.methodology);
+ const pm=previous.methodology,cm=current.methodology;
+ $("methodDetail").textContent=pm&&cm?"Auditor "+pm.auditor_version+" → "+cm.auditor_version+" · frescura "+pm.dependency_freshness_days+" → "+cm.dependency_freshness_days+" días · política "+(pm.qualification_policy_id||"sin versión")+" → "+(cm.qualification_policy_id||"sin versión"):"Metadatos de metodología ausentes en uno o ambos informes";
+ $("windowStatus").innerHTML=tag(assessment.window);
+ $("windowDetail").textContent=(previous.reporting_window?.days??"No indicada")+" → "+(current.reporting_window?.days??"No indicada")+" días";
+ $("comparisonMeta").textContent=!assessment.comparable?"Comparabilidad no confirmada: interpreta los cambios con cautela.":assessment.rtoCohort==="same"&&assessment.rpoCohort==="same"?"Alcance, metodología, ventana y cohortes RTO/RPO coinciden.":"Alcance, metodología y ventana coinciden; cohortes medidas RTO/RPO distintas o no verificables.";
+ const rows=comparisonMetrics(previous,current).map(m=>{
+  const delta=metricDelta(m),state=assessment.comparable?delta.state:"unverified";
+  let reading=state==="better"?"Mejora":state==="worse"?"Empeora":state==="same"?"Sin cambio":state==="neutral"?"Cambio a revisar":state==="cohort-unverified"?"Cohorte medida distinta/no verificable":delta.state==="unknown"?"No medido":"Variación no atribuible";
+  let cls=state==="better"?"change-good":state==="worse"?"change-bad":state==="same"?"":"change-neutral";
+  const before=m.a===null||m.a===undefined?"No medido":m.type==="pct"?fmtPct(m.a):fmtInt(m.a);
+  const after=m.b===null||m.b===undefined?"No medido":m.type==="pct"?fmtPct(m.b):fmtInt(m.b);
+  const denominator=m.denom?"<small>Medidos: "+fmtInt(m.denom[0])+" → "+fmtInt(m.denom[1])+"</small>":"";
+  return '<tr><td>'+escapeHtml(m.name)+'</td><td class="num">'+before+(m.denom?" ("+fmtInt(m.denom[0])+")":"")+'</td><td class="num">'+after+(m.denom?" ("+fmtInt(m.denom[1])+")":"")+'</td><td class="num">'+escapeHtml(delta.text)+'</td><td class="'+cls+'">'+reading+denominator+'</td></tr>';
+ }).join("");
+ $("changeRows").innerHTML=rows;
+}
+function markdownSafe(value){return String(value??"").replace(/[|]/g,"&#124;").replace(/\r?\n/g," ");}
+function executiveMarkdown(){
+ const latest=reports[reports.length-1],previous=reports.length>1?reports[reports.length-2]:null;
+ const meta=compareMetadata(previous,latest);
+ const statusText=v=>v==="same"?"Coincide":v==="changed"?"Cambio detectado":"No verificable";
+ const lines=[
+  "# DR Programme Assurance — Informe ejecutivo",
+  "",
+  "**Fecha de corte:** "+latest.as_of,
+  "**Ventana:** "+(latest.reporting_window?latest.reporting_window.start+" a "+latest.reporting_window.end+" ("+latest.reporting_window.days+" días)":"No indicada"),
+  "",
+  "> Informe generado localmente desde los ficheros programme-summary.json. Es una vista de cartera basada en los datos aportados; no certifica capacidad de recuperación ni sustituye la revisión de evidencias y responsables.",
+  "",
+  "## Resumen del último cierre",
+  "",
+  "- Servicios en alcance: **"+latest.services.in_scope+"**",
+  "- Cobertura por ejercicio cualificado: **"+fmtPct(latest.services.coverage_percent)+"** ("+latest.services.covered_by_qualifying_exercise+"/"+latest.services.in_scope+")",
+  "- RTO dentro del objetivo: **"+fmtPct(latest.rto.pass_percent)+"** ("+latest.rto.met+"/"+latest.rto.measured_services+" medidos)",
+  "- RPO dentro del objetivo: **"+fmtPct(latest.rpo.pass_percent)+"** ("+latest.rpo.met+"/"+latest.rpo.measured_services+" medidos)",
+  "- Servicios fuera de cadencia: **"+latest.services.overdue_by_target_cadence+"**",
+  "- Excepciones aprobadas vigentes: **"+latest.services.valid_approved_exceptions+" servicios**",
+  "- Acciones vencidas sin verificar: **"+latest.actions.overdue_unverified+"**",
+  "- Cierre de acciones verificado: **"+fmtPct(latest.actions.verified_closure_percent_of_all_actions)+"** ("+latest.actions.verified_closed+"/"+latest.actions.total+")",
+  "",
+  "## Comparabilidad con el cierre anterior",
+  "",
+  previous?"- Periodos comparados: "+previous.as_of+" → "+latest.as_of:"- No existe un cierre anterior cargado.",
+  previous?"- Alcance: "+statusText(meta.scope):"",
+  previous?"- Cohorte RTO: "+statusText(meta.rtoCohort)+"; cohorte RPO: "+statusText(meta.rpoCohort):"",
+  previous?"- Metodología/política: "+statusText(meta.methodology):"",
+  previous?"- Ventana: "+statusText(meta.window):"",
+  previous?"- Resultado: **"+(meta.comparable?"Comparación homogénea según los metadatos disponibles":"Comparación no confirmada; no atribuir los cambios a una tendencia")+"**":"",
+  previous&&latest.scope?"- Huella del último alcance (SHA-256): "+latest.scope.service_ids_sha256+" (no es anonimización).":"",
+  previous&&latest.methodology?"- Política de cualificación: "+(latest.methodology.qualification_policy_id||"SIN VERSIONAR")+"; auditor "+latest.methodology.auditor_version+"; frescura de dependencias "+latest.methodology.dependency_freshness_days+" días.":"",
+  "",
+  "## Variación de indicadores",
+  "",
+  "| Indicador | Anterior | Último | Variación | Lectura |",
+  "|---|---:|---:|---:|---|"
+ ];
+ if(previous){
+  for(const m of comparisonMetrics(previous,latest)){
+   const d=metricDelta(m),reading=!meta.comparable?"No atribuible (comparabilidad no confirmada)":d.state==="cohort-unverified"?"Cohorte medida distinta/no verificable":d.state==="better"?"Mejora":d.state==="worse"?"Empeora":d.state==="same"?"Sin cambio":d.state==="neutral"?"Cambio a revisar":"No medido";
+   const a=m.a===null||m.a===undefined?"No medido":m.type==="pct"?fmtPct(m.a):fmtInt(m.a);
+   const b=m.b===null||m.b===undefined?"No medido":m.type==="pct"?fmtPct(m.b):fmtInt(m.b);
+   lines.push("| "+m.name+" | "+a+" | "+b+" | "+d.text+" | "+reading+" |");
+  }
+ }else lines.push("| — | — | — | — | Se necesita otro cierre para comparar |");
+ lines.push("","## Hallazgos del último cierre","","| Severidad | Código | Servicio | Detalle |","|---|---|---|---|");
+ for(const f of (latest.findings||[])) lines.push("| "+f.severity+" | "+markdownSafe(f.finding)+" | "+markdownSafe(f.service_id)+" | "+markdownSafe(f.detail)+" |");
+ if(!latest.findings?.length)lines.push("| — | — | — | Sin hallazgos registrados |");
+ lines.push("","## Notas y limitaciones","","- El denominador de cobertura incluye todos los servicios en alcance; las excepciones no se descuentan.",
+  "- RTO/RPO solo se calculan sobre servicios medidos. Un dato no medido no es un aprobado.",
+  "- El indicador de ejercicio cualificado depende de la clasificación del responsable del programa; el auditor no evalúa por sí solo la calidad del ejercicio.",
+  "- Las huellas de las cohortes RTO/RPO permiten detectar si cambiaron los IDs de los servicios medidos. Una variación de tasa no se etiqueta como mejora/empeoramiento si la cohorte difiere o no puede verificarse.",
+  "- Las huellas SHA-256 detectan cambios en los conjuntos de IDs, pero no anonimizan esos identificadores frente a ataques por diccionario.",
+  "- Sin un ID de política de cualificación estable y mantenido por el programa, no se puede verificar que los criterios no hayan cambiado.",
+  "- Confirma cada variación con inventario, registros de ejercicios, evidencias, excepciones y responsables antes de elevarla al comité.",
+  "",
+  "Generado por DR Programme Assurance Dashboard · Consola Abierta · Procesamiento local."
+ );
+ if(usingDemo)lines.splice(3,0,"> **DATOS SINTÉTICOS:** esta vista usa valores de demostración y no corresponde a ningún entorno real.","");
+ return lines.filter(line=>line!==undefined).join("\n");
+}
+function downloadText(filename,content,mime){
+ const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+
 function render() {
  reports.sort((x,y)=>x.as_of.localeCompare(y.as_of));
  $("dashboard").classList.toggle("hidden",reports.length===0);
  $("exportTimeline").disabled=reports.length===0;
+ $("exportExecutive").disabled=reports.length===0;
  $("reportCount").textContent=reports.length+" cierre(s) cargado(s)"+(usingDemo?" · DEMO SINTÉTICA":"");
  if(!reports.length){$("status").textContent="No hay datos. Importa uno o varios programme-summary.json o carga la demo.";return;}
  const latest=reports[reports.length-1], previous=reports.length>1?reports[reports.length-2]:null;
@@ -117,6 +265,7 @@ function render() {
  renderCharts();
  $("timelineRows").innerHTML=reports.map(r=>'<tr><td class="num">'+escapeHtml(r.as_of)+'</td><td class="num">'+fmtInt(r.services.covered_by_qualifying_exercise)+' / '+fmtInt(r.services.in_scope)+'</td><td class="num">'+fmtPct(r.services.coverage_percent)+'</td><td class="num">'+fmtPct(r.rto.pass_percent)+' ('+fmtInt(r.rto.measured_services)+')</td><td class="num">'+fmtPct(r.rpo.pass_percent)+' ('+fmtInt(r.rpo.measured_services)+')</td><td class="num">'+fmtInt(r.services.overdue_by_target_cadence)+'</td><td class="num">'+fmtInt(r.services.valid_approved_exceptions)+'</td><td class="num">'+fmtInt(r.actions.overdue_unverified)+'</td></tr>').join("");
  renderFindings();
+ renderComparison();
  $("status").textContent=(usingDemo?"Mostrando datos sintéticos de demostración.":"Datos importados y procesados localmente.")+" "+reports.length+" cortes disponibles.";
 }
 function chartSvg(target,series) {
@@ -172,6 +321,11 @@ $("demoButton").addEventListener("click",()=>{reports=DEMO_SNAPSHOTS.map(r=>({..
 $("clearButton").addEventListener("click",()=>{reports=[];usingDemo=false;render();});
 $("severityFilter").addEventListener("change",renderFindings);
 $("findingSearch").addEventListener("input",renderFindings);
+$("exportExecutive").addEventListener("click",()=>{
+ if(!reports.length)return;
+ const latest=reports[reports.length-1];
+ downloadText("dr-programme-assurance-executive-"+latest.as_of+".md",executiveMarkdown(),"text/markdown;charset=utf-8");
+});
 $("exportTimeline").addEventListener("click",()=>{
  const rows=[["as_of","in_scope","covered","coverage_percent","rto_measured","rto_met","rto_pass_percent","rpo_measured","rpo_met","rpo_pass_percent","overdue_services","services_with_valid_exceptions","overdue_actions","actions_total","verified_closed","verified_closure_percent","stale_dependency_reviews"]];
  reports.forEach(r=>rows.push([r.as_of,r.services.in_scope,r.services.covered_by_qualifying_exercise,r.services.coverage_percent,r.rto.measured_services,r.rto.met,r.rto.pass_percent,r.rpo.measured_services,r.rpo.met,r.rpo.pass_percent,r.services.overdue_by_target_cadence,r.services.valid_approved_exceptions,r.actions.overdue_unverified,r.actions.total,r.actions.verified_closed,r.actions.verified_closure_percent_of_all_actions,r.services.stale_or_missing_dependency_reviews]));

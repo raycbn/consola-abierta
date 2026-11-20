@@ -21,7 +21,7 @@ Offline, standard-library Python tool and browser-only dashboard to review a Dis
 From this directory:
 
 \`\`\`bash
-python programme_audit.py --services samples/services.csv --exercises samples/exercises.csv --actions samples/actions.csv --exceptions samples/exceptions.csv --as-of 2026-11-20 --window-days 365 --out programme-audit-out
+python programme_audit.py --services samples/services.csv --exercises samples/exercises.csv --actions samples/actions.csv --exceptions samples/exceptions.csv --as-of 2026-11-20 --window-days 365 --qualification-policy-id DR-QUAL-v1 --out programme-audit-out
 python -m unittest discover -s tests -v
 \`\`\`
 
@@ -35,11 +35,22 @@ Open \`dashboard.html\` directly in a modern browser. It does not need a local w
 
 1. Use **Import JSON** to select one or more \`programme-summary.json\` files exported by separate reporting runs.
 2. Import all the reporting dates together to compare them. If the same cut-off date appears twice, the later selected file replaces the earlier one.
-3. Use **Export evolution CSV** to download the trend table for further analysis.
+3. Use **Exportar evolución CSV** to download the trend table for further analysis.
+4. Use **Generar informe para comité (.md)** to download an executive Markdown report for the latest cut-off and its comparison with the preceding one. It includes the metric movements, comparability checks, and current findings.
 
 The initial four-quarter view is synthetic demonstration data. It is not derived from any real company or production service. Importing real report files replaces the demo data. The dashboard processes files in the browser only: it makes no network requests, stores no reports and sends no telemetry.
 
 For fair comparisons, use the same service population, qualification criteria, reporting-window length and calculation rules in each quarterly snapshot. A changed denominator or methodology can make a percentage trend misleading; disclose scope and methodology changes alongside the result.
+
+Newer reports include:
+- A SHA-256 checksum of the sorted in-scope service IDs and the corresponding service count. This detects population changes even when the count remains the same.
+- Separate SHA-256 checksums and counts for the service cohorts with measured RTO and RPO. The dashboard will not call an RTO/RPO rate movement a like-for-like improvement or deterioration unless the measured service IDs also match.
+- Auditor version, dependency-review freshness setting and an optional `--qualification-policy-id` value. Keep this policy ID stable only while the documented qualifying-exercise criteria remain unchanged; increment it when those criteria change.
+- The reporting-window length, already shown in the summary.
+
+The dashboard calls portfolio snapshots comparable only when the in-scope checksum, methodology metadata (including a non-empty qualification policy ID) and reporting-window length match. RTO/RPO comparisons additionally require identical measured-service cohort checksums. Older JSON files without this metadata remain importable, but their comparisons are labelled **not verifiable**. The dashboard flags directional movements; these signals are not materiality thresholds or an automated risk opinion.
+
+**Security note:** a SHA-256 checksum is a change-detection mechanism, not anonymisation. IDs with a predictable or small namespace may be guessed and hashed. Treat the JSON summaries, checksums, findings and executive report as operational information; share them only through approved channels.
 
 ## Interpret the output carefully
 - The coverage denominator is every in-scope service. Valid exceptions are shown separately and do **not** silently remove services from the denominator.
