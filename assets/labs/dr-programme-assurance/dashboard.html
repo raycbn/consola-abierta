@@ -143,7 +143,7 @@ function metricDelta(metric){
  return {text,state,direction:d>0?"up":d<0?"down":"same"};
 }
 function renderComparison(){
- const previous=reports.length>1?reports[reports.length-2]:null,current=reports.length?reports[reports.length-1]:null;
+ const previous=reports.length>1 ? reports[reports.length-2]:null,current=reports.length ? reports[reports.length-1]:null;
  if(!previous||!current){
   $("comparisonMeta").textContent="Se necesitan al menos dos cierres.";
   $("scopeStatus").textContent="Sin comparativa";$("scopeDetail").textContent="Carga dos o más informes.";
@@ -162,7 +162,7 @@ function renderComparison(){
  $("windowDetail").textContent=(previous.reporting_window?.days??"No indicada")+" → "+(current.reporting_window?.days??"No indicada")+" días";
  $("comparisonMeta").textContent=!assessment.comparable?"Comparabilidad no confirmada: interpreta los cambios con cautela.":assessment.rtoCohort==="same"&&assessment.rpoCohort==="same"?"Alcance, metodología, ventana y cohortes RTO/RPO coinciden.":"Alcance, metodología y ventana coinciden; cohortes medidas RTO/RPO distintas o no verificables.";
  const rows=comparisonMetrics(previous,current).map(m=>{
-  const delta=metricDelta(m),state=assessment.comparable?delta.state:"unverified";
+  const delta=metricDelta(m),state=assessment.comparable ? delta.state:"unverified";
   let reading=state==="better"?"Mejora":state==="worse"?"Empeora":state==="same"?"Sin cambio":state==="neutral"?"Cambio a revisar":state==="cohort-unverified"?"Cohorte medida distinta/no verificable":delta.state==="unknown"?"No medido":"Variación no atribuible";
   let cls=state==="better"?"change-good":state==="worse"?"change-bad":state==="same"?"":"change-neutral";
   const before=m.a===null||m.a===undefined?"No medido":m.type==="pct"?fmtPct(m.a):fmtInt(m.a);
@@ -174,14 +174,14 @@ function renderComparison(){
 }
 function markdownSafe(value){return String(value??"").replace(/[|]/g,"&#124;").replace(/\r?\n/g," ");}
 function executiveMarkdown(){
- const latest=reports[reports.length-1],previous=reports.length>1?reports[reports.length-2]:null;
+ const latest=reports[reports.length-1],previous=reports.length>1 ? reports[reports.length-2]:null;
  const meta=compareMetadata(previous,latest);
  const statusText=v=>v==="same"?"Coincide":v==="changed"?"Cambio detectado":"No verificable";
  const lines=[
   "# DR Programme Assurance — Informe ejecutivo",
   "",
   "**Fecha de corte:** "+latest.as_of,
-  "**Ventana:** "+(latest.reporting_window?latest.reporting_window.start+" a "+latest.reporting_window.end+" ("+latest.reporting_window.days+" días)":"No indicada"),
+  "**Ventana:** "+(latest.reporting_window ? latest.reporting_window.start+" a "+latest.reporting_window.end+" ("+latest.reporting_window.days+" días)":"No indicada"),
   "",
   "> Informe generado localmente desde los ficheros programme-summary.json. Es una vista de cartera basada en los datos aportados; no certifica capacidad de recuperación ni sustituye la revisión de evidencias y responsables.",
   "",
@@ -248,7 +248,7 @@ function render() {
  $("exportExecutive").disabled=reports.length===0;
  $("reportCount").textContent=reports.length+" cierre(s) cargado(s)"+(usingDemo?" · DEMO SINTÉTICA":"");
  if(!reports.length){$("status").textContent="No hay datos. Importa uno o varios programme-summary.json o carga la demo.";return;}
- const latest=reports[reports.length-1], previous=reports.length>1?reports[reports.length-2]:null;
+ const latest=reports[reports.length-1], previous=reports.length>1 ? reports[reports.length-2]:null;
  const s=latest.services,t=latest.rto,p=latest.rpo,a=latest.actions;
  $("latestMeta").textContent="Corte "+latest.as_of+(latest.reporting_window?" · ventana "+latest.reporting_window.days+" días":"");
  const coverage=s.coverage_percent;
@@ -272,7 +272,7 @@ function chartSvg(target,series) {
  const host=$(target), valid=reports.length;
  if(valid<2){host.innerHTML='<div class="chart-empty">Importa al menos dos cierres para visualizar la evolución.</div>';return;}
  const W=620,H=225,L=42,R=18,T=14,B=42,plotW=W-L-R,plotH=H-T-B;
- const x=i=>L+(valid===1?plotW/2:(i/(valid-1))*plotW), y=v=>T+plotH-(v/100)*plotH;
+ const x=i=>L+(valid===1 ? plotW/2:(i/(valid-1))*plotW), y=v=>T+plotH-(v/100)*plotH;
  let svg='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Evolución porcentual por cierre">';
  [0,25,50,75,100].forEach(v=>{const yy=y(v);svg+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#294155" stroke-width="1"/><text x="'+(L-8)+'" y="'+(yy+4)+'" text-anchor="end">'+v+'%</text>';});
  reports.forEach((r,i)=>{svg+='<text x="'+x(i)+'" y="'+(H-13)+'" text-anchor="middle">'+dateLabel(r.as_of)+'</text>';});
