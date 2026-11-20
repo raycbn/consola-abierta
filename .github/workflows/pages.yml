@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate text encoding
+        run: node validate-text-encoding.cjs
       - name: Validate structured data
         run: node validate-structured-data.cjs
       - name: Validate internal links
