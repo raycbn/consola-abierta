@@ -144,7 +144,7 @@ function renderFindings(){
  const findings=reports[reports.length-1].findings||[];
  const severity=$("severityFilter").value, term=$("findingSearch").value.trim().toLowerCase();
  const visible=findings.filter(f=>(!severity||f.severity===severity)&&(!term||[f.finding,f.service_id,f.detail].join(" ").toLowerCase().includes(term)));
- $("findingRows").innerHTML=visible.length?visible.map(f=>'<tr><td><span class="pill '+escapeHtml(f.severity)+'">'+escapeHtml(f.severity)+'</span></td><td>'+escapeHtml(f.finding)+'</td><td class="num">'+escapeHtml(f.service_id)+'</td><td style="white-space:normal;min-width:300px">'+escapeHtml(f.detail)+'</td></tr>').join(""):'<tr><td colspan="4">No hay hallazgos para este filtro en el último cierre.</td></tr>';
+ $("findingRows").innerHTML=visible.length ? visible.map(f=>'<tr><td><span class="pill '+escapeHtml(f.severity)+'">'+escapeHtml(f.severity)+'</span></td><td>'+escapeHtml(f.finding)+'</td><td class="num">'+escapeHtml(f.service_id)+'</td><td style="white-space:normal;min-width:300px">'+escapeHtml(f.detail)+'</td></tr>').join(""):'<tr><td colspan="4">No hay hallazgos para este filtro en el último cierre.</td></tr>';
 }
 function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
 function downloadCsv(filename,rows){const csv=rows.map(row=>row.map(csvCell).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
@@ -163,7 +163,7 @@ async function importFiles(fileList){
   added.forEach(r=>byDate.set(r.as_of,r));
   reports=Array.from(byDate.values());
  }
- $("status").textContent=(added.length?added.length+" fichero(s) válido(s). ":"")+(errors.length?"Rechazados: "+errors.join(" · "):"");
+ $("status").textContent=(added.length ? added.length+" fichero(s) válido(s). ":"")+(errors.length ? "Rechazados: "+errors.join(" · ") : "");
  render();
 }
 $("importButton").addEventListener("click",()=>$("fileInput").click());
