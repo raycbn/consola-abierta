@@ -1,6 +1,34 @@
 {
-  "generated": "2026-11-14",
+  "generated": "2026-11-20",
   "articles": [
+    {
+      "labels": "Resilience & Recovery · DR Test Engineering",
+      "lang": "en",
+      "title": "Designing a Disaster Recovery Test: How to Measure Service Recovery",
+      "url": "/en/analysis/disaster-recovery-test-design-measuring-service-recovery/",
+      "summary": "Scope a DR exercise, measure RTO and RPO separately, validate dependencies, milestones, functional tests and evidence. Includes an offline Python recovery scorecard.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "16–20 min"
+    },
+    {
+      "labels": "Resilience & Recovery · DR Test Engineering",
+      "lang": "es",
+      "title": "Diseñar una prueba de Disaster Recovery: cómo medir la recuperación de un servicio",
+      "url": "/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/",
+      "summary": "Define el alcance, mide RTO y RPO por separado, valida dependencias, hitos, pruebas funcionales y evidencias. Incluye un scorecard offline de recuperación en Python.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "16–20 min"
+    },
     {
       "labels": "AI · LLM Engineering · Performance Engineering",
       "lang": "es",
