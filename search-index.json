@@ -2,6 +2,34 @@
   "generated": "2026-11-20",
   "articles": [
     {
+      "labels": "Resilience & Recovery · DR Operations",
+      "lang": "en",
+      "title": "A Disaster Recovery Test Failover and Failback Runbook: Isolation, Validation and Controlled Return",
+      "url": "/en/analysis/disaster-recovery-test-failover-failback-runbook/",
+      "summary": "Separate test failover, production failover and failback. Plan isolation, dependencies, data reconciliation, abort and cleanup. Includes an offline JSON plan linter.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "14–18 min"
+    },
+    {
+      "labels": "Resilience & Recovery · DR Operations",
+      "lang": "es",
+      "title": "Runbook de Test Failover y Failback: aislamiento, validación y retorno controlado",
+      "url": "/es/analisis/runbook-test-failover-failback-recuperacion-controlada/",
+      "summary": "Separa test failover, failover real y failback. Planifica aislamiento, dependencias, conciliación de datos, aborto y cleanup. Incluye un linter offline de planes JSON.",
+      "topics": [
+        "resilience-recovery",
+        "systems-infrastructure",
+        "it-operations"
+      ],
+      "date": "2026-11-20",
+      "read": "14–18 min"
+    },
+    {
       "labels": "Resilience & Recovery · DR Test Engineering",
       "lang": "en",
       "title": "Designing a Disaster Recovery Test: How to Measure Service Recovery",

@@ -27,6 +27,10 @@ jobs:
         run: python -m unittest discover -s assets/labs/recovery-test-scorecard/tests -v
       - name: Build recovery scorecard ZIP
         run: python assets/labs/recovery-test-scorecard/build_lab.py
+      - name: Test recovery runbook preflight lab
+        run: python -m unittest discover -s assets/labs/recovery-runbook-preflight/tests -v
+      - name: Build recovery runbook preflight ZIP
+        run: python assets/labs/recovery-runbook-preflight/build_lab.py
       - name: Validate text encoding
         run: node validate-text-encoding.cjs
       - name: Validate structured data
