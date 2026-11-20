@@ -49,7 +49,7 @@
       <link>https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/</link>
       <guid isPermaLink="true">https://consolaabierta.com/es/analisis/inferencia-llm-prefill-decode-kv-cache/</guid>
       <pubDate>Sat, 14 Nov 2026 20:05:33 GMT</pubDate>
-      <description>Prefill, Decode y KV Cache: fases de inferencia, reutilizaci?n de K/V y dimensionamiento de memoria. Laboratorio CPU reproducible.</description>
+      <description>Prefill, Decode y KV Cache: fases de inferencia, reutilización de K/V y dimensionamiento de memoria. Laboratorio CPU reproducible.</description>
       <category>LLM Engineering</category>
     </item>
 <item>
