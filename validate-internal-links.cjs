@@ -22,10 +22,13 @@ const labByArticle = {
   "/es/analisis/benchmarking-llm-ttft-tpot-throughput-metodologia/": "/assets/labs/benchmarking/llm-benchmarking-08-lab.zip",
   "/en/analysis/llm-benchmarking-ttft-tpot-throughput-methodology/": "/assets/labs/benchmarking/llm-benchmarking-08-lab.zip",
   "/es/analisis/sql-server-tempdb-crecimiento-log-transaccion-abierta/": "/assets/labs/tempdb-log-growth/tempdb-log-growth-lab.zip",
-  "/en/analysis/sql-server-tempdb-log-growth-open-transaction/": "/assets/labs/tempdb-log-growth/tempdb-log-growth-lab.zip"
+  "/en/analysis/sql-server-tempdb-log-growth-open-transaction/": "/assets/labs/tempdb-log-growth/tempdb-log-growth-lab.zip",
+  "/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/": "/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip",
+  "/en/analysis/disaster-recovery-test-design-measuring-service-recovery/": "/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip"
 };
 
 function routeStageFor(articlePath) {
+  if (articlePath.includes("disenar-prueba-disaster-recovery") || articlePath.includes("disaster-recovery-test-design")) return "resilience-01";
   if (articlePath.includes("tempdb")) return "systems-03";
   if (articlePath.includes("distributed-llm-inference")) return "llm-07";
   if (articlePath.includes("anatomia") || articlePath.includes("inside-transformer")) return "llm-01";
@@ -128,7 +131,7 @@ for (const locale of ["es", "en"]) {
   const labFile = locale === "es" ? "es/laboratorios/index.html" : "en/labs/index.html";
   const labs = fs.readFileSync(path.join(root, labFile), "utf8");
   const labCards = extractCards(labs, "lab-card");
-  expect(labCards.length === 9, labFile + ": expected 9 lab cards, got " + labCards.length);
+  expect(labCards.length === 10, labFile + ": expected 10 lab cards, got " + labCards.length);
   let pathCount = 0;
   for (const card of labCards) {
     const links = anchors(card);
@@ -139,7 +142,7 @@ for (const locale of ["es", "en"]) {
     expect(links.some(a => a.href === expected), labFile + ": lab for " + article.href + " does not link to " + expected);
     if (links.some(a => a.href === expected)) pathCount++;
   }
-  expect(pathCount === 9, labFile + ": expected 9 lab-to-path links, got " + pathCount);
+  expect(pathCount === 10, labFile + ": expected 10 lab-to-path links, got " + pathCount);
   stats.labPathLinks += pathCount;
 
   const pathFile = locale === "es" ? "es/rutas/index.html" : "en/paths/index.html";
@@ -150,6 +153,8 @@ for (const locale of ["es", "en"]) {
     stats.pathSteps++;
   }
   expect(/id=["']systems-03["']/.test(paths), pathFile + ": missing systems-03");
+  stats.pathSteps++;
+  expect(/id=["']resilience-01["']/.test(paths), pathFile + ": missing resilience-01");
   stats.pathSteps++;
 }
 
