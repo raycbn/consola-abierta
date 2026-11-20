@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Design a Disaster Recovery Test and Measure Service Recovery | Consola Abierta</title>
+<meta name="description" content="A practical method to scope a DR exercise, measure RTO and RPO, validate dependencies, test the service and close with traceable evidence.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/">
+<link rel="alternate" hreflang="es" href="https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/"><link rel="alternate" hreflang="en" href="https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/"><link rel="alternate" hreflang="x-default" href="https://consolaabierta.com/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/">
+<link rel="icon" type="image/svg+xml" href="/assets/brand.svg"><link rel="stylesheet" href="/assets/site.css">
+<meta property="og:type" content="article"><meta property="og:title" content="Design a Disaster Recovery Test and Measure Service Recovery | Consola Abierta"><meta property="og:description" content="A practical method to scope a DR exercise, measure RTO and RPO, validate dependencies, test the service and close with traceable evidence."><meta property="og:url" content="https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/"><meta property="og:site_name" content="Consola Abierta">
+<meta property="og:image" content="https://consolaabierta.com/assets/og/og-default.png"><meta property="og:image:type" content="image/png"><meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/rss+xml" title="Consola Abierta — RSS" href="/en/feed.xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Designing a Disaster Recovery Test: How to Measure Service Recovery",
+  "description": "A practical method to scope a DR exercise, measure RTO and RPO, validate dependencies, test the service and close with traceable evidence.",
+  "datePublished": "2026-11-20",
+  "dateModified": "2026-11-20",
+  "inLanguage": "en",
+  "author": {"@type": "Person", "@id": "https://consolaabierta.com/#ray-vega", "name": "Ray Vega", "url": "https://consolaabierta.com/en/about/"},
+  "publisher": {"@type": "Organization", "@id": "https://consolaabierta.com/#organization", "name": "Consola Abierta", "url": "https://consolaabierta.com/"},
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/"},
+  "@id": "https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/#article",
+  "image": ["https://consolaabierta.com/assets/og/og-default.png"],
+  "articleSection": "Resilience & Recovery"
+}
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5250134414402941" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/assets/article-continuity.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://consolaabierta.com/en/analysis/disaster-recovery-test-design-measuring-service-recovery/#breadcrumb",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://consolaabierta.com/en/"},
+    {"@type":"ListItem","position":2,"name":"Resilience & Recovery","item":"https://consolaabierta.com/en/articles/?topic=resilience-recovery},
+    {"@type":"ListItem","position":3,"name":"DR testing"}
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="masthead"><div class="site-shell"><div class="masthead-top"><a class="brand" href="/en/" aria-label="Consola Abierta home"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><div class="header-meta"><span>Independent publication</span><a href="/es/analisis/disenar-prueba-disaster-recovery-medir-recuperacion-servicio/" lang="es">ES</a></div></div>
+<nav class="primary-nav" aria-label="Primary navigation"><div class="nav-links"><a href="/en/">Home</a><a href="/en/articles/">Articles</a><a data-catalog-nav href="/en/labs/">Labs</a><a data-path-nav href="/en/paths/">Learning paths</a><a href="/en/#topics>Topics</a><a href="/en/about/">About</a></div><div class="nav-tools"><span class="edition">RESILIENCE &amp; RECOVERY</span><a class="text-link" href="/en/articles/">Back to articles ↗</a></div></nav></div></header>
+<main id="content" class="site-shell">
+<header class="article-header"><div class="breadcrumbs"><a href="/en/">Home</a> / <a href="/en/articles/?topic=resilience-recovery">Resilience &amp; Recovery</a> / DR testing</div><div class="kicker">Resilience & Recovery · Test Engineering · Practical guide</div>
+<h1>Designing a Disaster Recovery Test: How to Measure Service Recovery</h1>
+<p class="article-deck">A practical method to scope a DR exercise, measure RTO and RPO, validate dependencies, test the service and close with traceable evidence.</p>
+<div class="article-meta"><span>By Ray Vega</span><span>Published 20 November 2026</span><span>16–20 min read</span><span>Mid-senior · Senior · IT continuity</span></div>
+<div class="status-line">DOCUMENTATION REVIEWED · NIST · AWS · MICROSOFT · CISA · SCORECARD LAB VERIFIED · 7 TESTS · NO FAILOVER PERFORMED</div></header>
+<div class="article-layout">
+<nav class="toc" aria-label="Article contents"><div class="toc-title">In this investigation</div><ol>
+<li><a href="#problem">What a test proves</a></li><li><a href="#scope">Define the service</a></li><li><a href="#objectives">RTO y RPO</a></li><li><a href="#exercise-types">Exercise types</a></li><li><a href="#timeline">Measurable milestones</a></li><li><a href="#evidence">Evidence</a></li><li><a href="#example">Worked example</a></li><li><a href="#cleanup">Cleanup / Failback</a></li><li><a href="#improve">Improvement plan</a></li><li><a href="#lab">Lab</a></li><li><a href="#sources">Sources</a></li>
+</ol></nav>
+<article class="article-body">
+
+<div class="callout"><strong>Core idea</strong><p>A Disaster Recovery test does not prove that a service can be recovered merely because a VM boots or a replication job turns green. Within an approved scope and safety boundary, it must demonstrate that the agreed minimum service works again, that the recovered data point is usable, and that the evidence can be compared with business objectives.</p></div>
+
+<h2 id="problem">1. What a DR test proves — and what it does not</h2>
+<p>A recovery plan describes an intended capability. A test provides evidence about that capability for a particular scenario, date and set of conditions. They are not interchangeable. A runbook may be current and still fail because a credential expired, DNS points to the wrong site, an application dependency was never inventoried, or a backup has never been restored successfully.</p>
+<p>Keep four claims separate:</p>
+<ul>
+<li><strong>The copy exists:</strong> a backup or replica job reports completion.</li>
+<li><strong>The infrastructure starts:</strong> resources can boot at the intended destination.</li>
+<li><strong>The application works:</strong> dependencies respond and critical technical functions pass.</li>
+<li><strong>The service is accepted:</strong> the business owner confirms the minimum business process can continue.</li>
+</ul>
+<p>An exercise may validate one layer without validating the next. The report must state exactly how far the test got. Do not label a service recovered after checking only that its virtual machines are powered on.</p>
+<p>NIST's contingency-planning guide describes recovery planning as coordinated plans, procedures and technical measures. Its guide to test, training and exercise programmes addresses the design, conduct and evaluation of those events. These are foundational publications from 2010 and 2006, not substitutes for an organisation's current requirements or applicable regulation.</p>
+
+<h2 id="scope">2. Define the service before choosing the test</h2>
+<p>The scope should not be “recover APP01”. It should identify the service to be restored, the minimum capability it must provide, and the dependencies required for that capability to exist.</p>
+<table class="data-table"><thead><tr><th>Dimension</th><th>Question to answer</th><th>Expected evidence</th></tr></thead><tbody>
+<tr><td>Service</td><td>Which process or function must become available?</td><td>Service catalogue and acceptance criteria</td></tr>
+<tr><td>Data</td><td>Which recovery point is acceptable and consistent?</td><td>Timestamp, source and integrity validation</td></tr>
+<tr><td>Dependencies</td><td>Which identity, DNS, network, storage, database or provider is required?</td><td>Dependency map and startup order</td></tr>
+<tr><td>People</td><td>Who activates, executes, validates and accepts?</td><td>Roles, deputies and escalation contacts</td></tr>
+<tr><td>Environment</td><td>Where is the test run and which connections are allowed?</td><td>Isolated topology and security rules</td></tr>
+<tr><td>Closure</td><td>How will the environment be cleaned up and the starting state restored?</td><td>Cleanup, failback and reconciliation plan</td></tr>
+</tbody></table>
+<p>For a three-tier application, the database may need to be available before middleware, with the web frontend starting last. Microsoft documents this pattern in Azure Site Recovery recovery plans. A real dependency map may also include Active Directory, DNS, certificates, secrets, firewalls, load balancers, queues, storage, external services and monitoring tools.</p>
+<p>A dependency missing from the inventory will also be missing from the runbook. Review the map with the application and platform owners before the exercise.</p>
+
+<h2 id="objectives">3. RTO and RPO: different objectives, different measurements</h2>
+<p><strong>Recovery Time Objective (RTO)</strong> is the maximum outage duration the business considers acceptable for a service. <strong>Recovery Point Objective (RPO)</strong> is the maximum amount of data loss, expressed in time, the business is willing to accept. AWS explains this distinction in its Reliability Pillar: RTO is not an operational average such as MTTR; it is an objective compared with a particular recovery event.</p>
+<table class="data-table"><thead><tr><th>Measure</th><th>What it measures</th><th>Reference measurement</th></tr></thead><tbody>
+<tr><td>Observed RTO</td><td>Time from the agreed start of interruption until the agreed minimum service is restored</td><td><code>service_restored_at − disruption_started_at</code></td></tr>
+<tr><td>Observed RPO</td><td>Age of the latest data point confirmed recoverable when the interruption occurred</td><td><code>disruption_started_at − last_recoverable_point_at</code></td></tr>
+<tr><td>Time to acceptance</td><td>Additional delay between technical availability and business acceptance</td><td><code>business_accepted_at − service_restored_at</code></td></tr>
+</tbody></table>
+<p>Milestone names matter. If one test starts the clock when the disaster is declared and another starts at the first service interruption, the results cannot be compared. Likewise, “service restored” must have a verifiable definition: dependencies available, successful authentication, a synthetic transaction completed, and agreed critical functions accessible, for example.</p>
+<p>Do not calculate RPO from a backup job's completion timestamp alone. The selected recovery point must be identified and demonstrated to be recoverable and consistent. A copy may exist but fail to restore, lack application-consistent data, or remain unusable by the service.</p>
+<p>Set objectives per service and criticality. One RTO for an entire platform often hides applications with different dependencies, tolerances and priorities.</p>
+
+<h2 id="exercise-types">4. Choose the exercise depth based on risk</h2>
+<p>Not every test requires a full failover. The exercise type should answer a specific question, and the report must not overstate what it validated.</p>
+<table class="data-table"><thead><tr><th>Type</th><th>What it can validate</th><th>What it does not prove on its own</th></tr></thead><tbody>
+<tr><td>Tabletop / walkthrough</td><td>Roles, decisions, contacts, escalation, plan comprehension and procedural gaps</td><td>That systems boot or data restores</td></tr>
+<tr><td>Component test</td><td>Database restore, volume recovery, VM restore or replica validation</td><td>That the entire application works with every dependency</td></tr>
+<tr><td>Isolated test failover</td><td>Technical recovery sequence and service behaviour in a separate test network</td><td>That production changes, global DNS or failback are validated</td></tr>
+<tr><td>End-to-end test</td><td>Dependencies, authentication, data, functional transactions, observability and business acceptance</td><td>That every alternative scenario or different disaster will behave identically</td></tr>
+<tr><td>Controlled failover</td><td>The real transition to the alternate location or platform, including its impact and coordination</td><td>That return to primary or data reconciliation is automatically solved</td></tr>
+</tbody></table>
+<p>Microsoft recommends running a test failover before a full failover and validating applications and their dependencies. To avoid interfering with production, its Active Directory and DNS guidance for Azure Site Recovery describes using an isolated network for the exercise and warns that identity and name-resolution services may need to be available first.</p>
+<p>Exercise selection must include stop criteria. Define the condition that forces an abort, who can stop the test, which resources will be created and how they will be removed. If traffic cannot be safely isolated or cross-environment writes cannot be prevented, the test is not ready to run.</p>
+
+<h2 id="timeline">5. Design milestones that can be measured</h2>
+<p>A single “start” and “finish” timestamp cannot explain where the time went. Record milestones with owners and synchronised clocks. This is a working structure, not a mandatory sequence for every service:</p>
+<div class="article-diagram"><div class="diagram-label">Figure 1 · Recovery exercise evidence chain</div><div class="diagram-steps"><div class="diagram-step"><b>01 / IMPACT</b><span>Interruption, scope and agreed T0</span></div><div class="diagram-step"><b>02 / ACTIVATE</b><span>Decision, authority and coordination</span></div><div class="diagram-step"><b>03 / PLATFORM</b><span>Data, network, identity and dependencies</span></div><div class="diagram-step"><b>04 / SERVICE</b><span>Application, validation and acceptance</span></div></div></div>
+<table class="data-table"><thead><tr><th>Milestone</th><th>What to record</th><th>Who confirms it</th></tr></thead><tbody>
+<tr><td>Interruption (T0)</td><td>Start time under the approved definition and affected scope</td><td>Incident manager / service owner</td></tr>
+<tr><td>Activation</td><td>Decision, activated plan, responsible people and communications</td><td>Continuity lead</td></tr>
+<tr><td>Data point</td><td>Selected recovery-point ID and timestamp; consistency check</td><td>Data / database owner</td></tr>
+<tr><td>Dependencies</td><td>Identity, DNS, network, storage, database and middleware ready</td><td>Platform owners</td></tr>
+<tr><td>Service available</td><td>Agreed health checks and critical technical functions complete</td><td>Application owner</td></tr>
+<tr><td>Functional validation</td><td>Synthetic transactions and minimum business flows executed</td><td>Test lead / business representative</td></tr>
+<tr><td>Acceptance and closure</td><td>Acceptance decision, incidents, cleanup and improvement actions</td><td>Service owner / exercise controller</td></tr>
+</tbody></table>
+<p>Store times in UTC or explicitly record the offset. Do not mix timestamps from a provider portal, database server and ticketing system without normalising time zones. Across regions or teams, clock drift can make a recovery appear impossible or produce a negative RPO.</p>
+
+<h2 id="evidence">6. Evidence must let someone reconstruct the exercise</h2>
+<p>An isolated screenshot is not an execution record. The evidence pack should allow another person to understand what was tested, which procedure version was used, under which conditions, what happened and what remained outside scope.</p>
+<ul>
+<li><strong>Identification:</strong> service, scenario, date, scope and plan/runbook version.</li>
+<li><strong>Objectives:</strong> approved RTO/RPO, start condition and restored-service condition.</li>
+<li><strong>Environment:</strong> test topology, isolation, versions, recovery points and changes made.</li>
+<li><strong>Time markers:</strong> activation, dependency restoration, technical availability, tests and acceptance.</li>
+<li><strong>Validation:</strong> data, authentication, transaction and agreed functional checks.</li>
+<li><strong>Deviations:</strong> undocumented manual steps, errors, delays, unexpected dependencies and residual risks.</li>
+<li><strong>Closure:</strong> cleanup, reconciliation, return to starting state, owners and dated actions.</li>
+</ul>
+<p>Reference each piece of evidence by a ticket, log, report, screenshot or approved repository ID. Do not put credentials, customer data or sensitive internal documents in a public package. This article's lab uses fictional references such as <code>EV-003</code>; it contains no data from a real environment.</p>
+
+<h2 id="example">7. Example: meeting RTO does not compensate for missing RPO</h2>
+<p>The practice package includes a fully synthetic case. It checks the arithmetic and report logic; it does not claim that a real recovery has been performed.</p>
+<table class="data-table"><thead><tr><th>Example value</th><th>Result</th><th>Outcome</th></tr></thead><tbody>
+<tr><td>RTO target</td><td>90 minutes</td><td>Fictional approved objective</td></tr>
+<tr><td>Observed RTO</td><td>83 minutes</td><td><strong>PASS</strong> — within target</td></tr>
+<tr><td>RPO target</td><td>15 minutes</td><td>Fictional approved objective</td></tr>
+<tr><td>Observed RPO</td><td>18 minutes</td><td><strong>FAIL</strong> — 3 minutes over target</td></tr>
+<tr><td>Time to business acceptance</td><td>8 additional minutes</td><td>Reported separately; not hidden inside the configured RTO</td></tr>
+</tbody></table>
+<p>The overall result is <strong>FAIL</strong>. The minimum service becomes available within the RTO, but the recoverable data point is older than the RPO allows. The team must investigate replication lag or the selected recovery point, quantify data impact and decide whether the strategy meets business needs. Do not average the two objectives or label the test successful because one passed.</p>
+
+<h2 id="cleanup">8. Cleanup, failback and exercise safety</h2>
+<p>The test does not end when the login page appears. Before execution, document how to return to the starting state and how to confirm that the test environment has been removed or safely isolated.</p>
+<ul>
+<li>Use a separate test network and verify routes, peering, VPNs and firewall rules before starting recovered resources.</li>
+<li>Control DNS, IP addresses, identity, certificates and secrets so that test instances cannot write to production systems.</li>
+<li>Use approved test accounts and data; disable external integrations that could send real email, payments or notifications.</li>
+<li>Record who authorises the start, phase changes and cancellation. Keep the stop procedure available.</li>
+<li>Run cleanup and verify that no VMs, volumes, snapshots, interfaces, temporary rules or billable resources remain.</li>
+<li>If the exercise includes failback, treat it as a separate phase: synchronisation, conflicts, authoritative source, DNS and acceptance must be defined.</li>
+</ul>
+<p>A test failover and a failback are not symmetrical operations. The alternate site may receive new writes during a test; before returning to the source, the team must know which data is authoritative and how it will be reconciled. Deleting temporary machines does not automatically complete the return to the original state.</p>
+
+<h2 id="improve">9. Close with an improvement report, not just a percentage</h2>
+<p>The closeout should separate objectives met, objectives missed, untested areas and exercise limitations. For each finding, record impact, confirmed or pending cause, corrective action, accountable owner, due date and the evidence required to close it.</p>
+<p>CISA's After-Action Report / Improvement Plan model is a useful reference for turning exercise observations into strengths, improvement areas and assigned actions. The value comes from later verifying that the correction was implemented and that a new test demonstrates its effectiveness.</p>
+<p>Do not invent a universal frequency. AWS Well-Architected states that there is no single DR test cycle that applies to every strategy unless an explicit regulatory requirement exists. Set the cadence based on criticality, architecture changes, data growth, dependency changes, previous failures and exercise results. A significant change may warrant an extra test even when the annual calendar is not due.</p>
+
+<h2 id="lab">10. Lab: Recovery Test Scorecard</h2>
+<p>The download contains an offline Python-standard-library analyser, synthetic data, a README and seven unit tests. Enter the agreed timestamps and evidence references; the tool calculates RTO and RPO separately, checks milestone ordering and generates JSON and Markdown reports.</p>
+<div class="article-note"><strong>Lab scope</strong>The scorecard validates the entered data. It does not execute restores, failovers, replication, monitoring queries or functional tests. It cannot prove that a recovery point is valid. Use synthetic data or approved metadata; do not export sensitive information.</div>
+<pre><code>python recovery_scorecard.py sample-test.json \\
+  --json-out report.json \\
+  --markdown-out report.md</code></pre>
+<p>Requirements: Python 3.10 or later, no third-party packages. Exit code <code>0</code> means objectives and evidence checks pass, <code>1</code> means a report was produced with a failure, and <code>2</code> means the input is invalid. The included example deliberately returns FAIL because the observed RPO exceeds the objective.</p>
+<p><a class="text-link" href="/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip" download>Download Recovery Test Scorecard — Lab 01 ↗</a> · <a class="text-link" href="/assets/labs/recovery-test-scorecard/README.md">Read README ↗</a></p>
+
+<h2 id="sources">11. Primary sources and documentation</h2>
+<ul class="reference-list">
+<li><a href="https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final" target="_blank" rel="noopener">NIST SP 800-34 Rev. 1 — Contingency Planning Guide for Federal Information Systems</a>. Contingency planning, priorities, recovery and plan relationships. Published in 2010.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/84/final" target="_blank" rel="noopener">NIST SP 800-84 — Guide to Test, Training, and Exercise Programs for IT Plans and Capabilities</a>. Design, development, conduct and evaluation of tests, training and exercises. Published in 2006.</li>
+<li><a href="https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/disaster-recovery-dr-objectives.html" target="_blank" rel="noopener">AWS Well-Architected Reliability Pillar — Disaster Recovery objectives</a>. RTO/RPO definitions and their relationship to recovery objectives.</li>
+<li><a href="https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/plan-for-disaster-recovery-dr.html" target="_blank" rel="noopener">AWS Well-Architected — Plan for Disaster Recovery</a>. Define objectives, test the implementation and manage drift.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/recovery-plan-overview" target="_blank" rel="noopener">Microsoft Learn — About recovery plans in Azure Site Recovery</a>. Application dependencies, recovery order and test failover.</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/site-recovery/site-recovery-active-directory" target="_blank" rel="noopener">Microsoft Learn — Set up Active Directory/DNS disaster recovery with Azure Site Recovery</a>. Network isolation and prior identity/DNS recovery considerations.</li>
+<li><a href="https://www.cisa.gov/sites/default/files/publications/3%20-%20CTEP%20Facilitator%20Evaluator%20Handbook%20%282020%29%20FINAL_508.pdf" target="_blank" rel="noopener">CISA Tabletop Exercise Package — Facilitator / Evaluator Handbook</a>. After-Action Report / Improvement Plan for recording outcomes and actions.</li>
+</ul>
+<p class="page-end">Documentation reviewed 20 November 2026. The scorecard was run locally with seven automated tests. No infrastructure failover or restore was performed or claimed. All numeric example data is synthetic.</p>
+
+<div class="author-card"><span class="avatar">RV</span><div><strong>Ray Vega</strong><p>Founder and editor of Consola Abierta. Writes about systems, IT operations, technology continuity, automation and engineering.</p></div></div>
+<section class="references"><h3>Related reading</h3><ol><li><a href="/en/analysis/windows-server-performance-diagnostics/">Advanced Windows Server Performance Diagnostics</a>: correlate technical signals and timestamps before setting a service baseline.</li><li><a href="/en/analysis/sql-server-tempdb-log-growth-open-transaction/">SQL Server tempdb: log growth caused by an open transaction</a>: reproduce, diagnose and validate a data-component recovery.</li></ol></section>
+<section class="article-continuity" aria-label="Keep learning" data-learning-route="resilience" data-learning-step="1">
+<div class="article-continuity-head"><span class="article-continuity-kicker">CONTINUE YOUR LEARNING</span><h2>Keep learning</h2></div>
+<div class="article-continuity-grid">
+<div class="article-continuity-card"><p class="article-continuity-label">Hands-on practice</p><h3>Recovery Test Scorecard · Lab 01</h3><p>Calculate RTO and RPO separately, validate chronology and generate a local evidence report.</p><a class="article-continuity-link" href="/assets/labs/recovery-test-scorecard/recovery-test-scorecard-01-lab.zip">Download lab ↗</a></div>
+<div class="article-continuity-card"><p class="article-continuity-label">Related reading</p><h3><a href="/en/analysis/windows-server-performance-diagnostics/">Windows Server diagnostics</a></h3><p>Practise correlating technical signals and timestamps before establishing a service baseline.</p><a class="article-continuity-link" href="/en/analysis/windows-server-performance-diagnostics/">Read investigation ↗</a></div>
+<div class="article-continuity-card is-complete"><p class="article-continuity-label">Your path</p><h3><a href="/en/paths/#resilience-01">Resilience &amp; Recovery · stage 1</a></h3><p>Define objectives, design exercises and demonstrate recovery with criteria and evidence.</p><a class="article-continuity-link" href="/en/paths/#resilience-01">View this stage ↗</a></div>
+</div></section>
+
+</article>
+<aside class="article-aside"><div class="toc-title">Technical brief</div><p><strong>Topic</strong><br>Resilience &amp; Recovery</p><p><strong>Focus</strong><br>DR exercise design and measurement</p><p><strong>RTO / RPO</strong><br>Target vs observed result</p><p><strong>Lab</strong><br>Python 3.10+ · stdlib · 7 tests</p><p><strong>Boundary</strong><br>No failover or production access</p><p><a class="text-link" href="/en/labs/">Browse technical labs ↗</a></p></aside>
+</div>
+</main>
+<footer class="site-footer"><div class="site-shell footer-inner"><div class="footer-brand"><a class="brand" href="/en/"><img class="brand-mark" src="/assets/brand.svg" alt=""><span><span class="brand-name">Consola Abierta</span><span class="brand-subtitle">Engineering & technology</span></span></a><p>Independent technical publication.</p></div><div class="footer-links"><a href="/en/articles/">Articles</a><a href="/en/labs/">Labs</a><a href="/en/paths/">Learning paths</a><a href="/en/about/">About</a><a href="/en/contact/">Editorial contact</a><a href="/en/legal-notice/">Legal notice</a><a href="/en/privacy/">Privacy</a><a href="#privacy-settings" id="privacy-settings-link" data-privacy-settings hidden>Cookie &amp; privacy settings</a><a href="/en/feed.xml">RSS</a></div></div><div class="site-shell footer-bottom">© 2026 Consola Abierta.</div></footer>
+<script src="/assets/site.js" defer></script>
+</body></html>
