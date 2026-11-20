@@ -1,13 +1,18 @@
 import copy
 import json
+import sys
 import unittest
 from pathlib import Path
-from runbook_preflight import validate_plan
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from runbook_preflight import validate_plan
+
 
 def load_sample(name):
     return json.loads((ROOT / "samples" / name).read_text(encoding="utf-8"))
+
 
 class RunbookPreflightTests(unittest.TestCase):
     def test_valid_test_failover_passes(self):
@@ -76,6 +81,7 @@ class RunbookPreflightTests(unittest.TestCase):
     def test_invalid_root_and_type_fail(self):
         self.assertEqual(validate_plan([])["status"], "FAIL")
         self.assertEqual(validate_plan({"exercise_type":"real-failover"})["status"], "FAIL")
+
 
 if __name__ == "__main__":
     unittest.main()
