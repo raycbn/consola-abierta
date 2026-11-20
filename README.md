@@ -16,24 +16,26 @@ Independent technical publication about systems engineering, infrastructure, IT 
 - ads.txt authorises Google as a direct seller using the verified publisher ID. Keep the file at the repository root and update it only from account-provided seller records.
 - The public sitemap pages include a cookie/privacy preferences link wired to Google's `googlefc.showRevocationMessage` API. The link is shown only when the TCF reports that GDPR applies. The European message itself must still be published from AdSense > Privacy & messaging.
 - Legal notice remains noindex until the owner confirms legal name, suitable address, NIF and any applicable registration/authorisation details.
-- 10 downloadable labs, including the offline Recovery Test Scorecard (Python 3.10+, standard library) with seven unit tests. The scorecard evaluates manually entered RTO/RPO timestamps and evidence references; it does not run recovery operations.\n- GitHub Pages runs the scorecard unit tests, rebuilds its ZIP package, then runs the site validators before deployment on pushes to main, using .github/workflows/pages.yml.
+- 10 downloadable labs, including the offline Recovery Test Scorecard (Python 3.10+, standard library) with seven unit tests. The scorecard evaluates manually entered RTO/RPO timestamps and evidence references; it does not run recovery operations.
+- GitHub Pages runs the scorecard unit tests, rebuilds its ZIP package, then runs the site validators before deployment on pushes to main, using .github/workflows/pages.yml.
 
 ## Local preview
 Run a static server from the repository root:
-powershell
+```powershell
 npx http-server . -p 4173
+```
 Then open http://127.0.0.1:4173/.
 
 ## Quality checks
-- `python -m unittest discover -s assets/labs/recovery-test-scorecard/tests -v` checks the offline recovery scorecard (7 tests).\n- `python assets/labs/recovery-test-scorecard/build_lab.py` regenerates its downloadable ZIP.\n- `node validate-text-encoding.cjs` checks text sources for common mojibake and known accent-replacement regressions.
+- `python -m unittest discover -s assets/labs/recovery-test-scorecard/tests -v` checks the offline recovery scorecard (7 tests).
+- `python assets/labs/recovery-test-scorecard/build_lab.py` regenerates its downloadable ZIP.
+- `node validate-text-encoding.cjs` checks text sources for common mojibake and known accent-replacement regressions.
 - `node validate-structured-data.cjs` checks sitemap routes, canonicals, JSON-LD and visible breadcrumbs.
 - `node validate-internal-links.cjs` checks contextual article links and article/lab/learning-path relationships.
 - `node validate-privacy-implementation.cjs` checks AdSense identifiers, legal-page publication gates and consent-preference wiring.
 - `node --check assets/site.js` checks client-side JavaScript syntax.
 - Responsive/mobile QA is currently a manual check; there is no `mobile-check.cjs` in the repository.
 - `git diff --check` before committing.
-- node --check assets/site.js checks client-side JavaScript syntax.
-- git diff --check before committing.
 - After pushing, verify the Actions run and the public canonical URLs, feeds and OG image assets.
 
 ## Editorial integrity
